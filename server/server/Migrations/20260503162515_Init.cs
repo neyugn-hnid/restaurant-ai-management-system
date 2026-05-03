@@ -5,10 +5,10 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace server.Migrations
 {
-
+    /// <inheritdoc />
     public partial class Init : Migration
     {
-
+        /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
@@ -18,10 +18,10 @@ namespace server.Migrations
                     id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     username = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
-                    password_hash = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
+                    password_hash = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: true),
                     full_name = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
                     role = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
-                    status = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
+                    status = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
                     last_login = table.Column<DateTime>(type: "datetime2", nullable: true),
                     created_at = table.Column<DateTime>(type: "datetime2", nullable: false),
                     updated_at = table.Column<DateTime>(type: "datetime2", nullable: false)
@@ -74,7 +74,7 @@ namespace server.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     zone = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
                     capacity = table.Column<int>(type: "int", nullable: false),
-                    status = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
+                    status = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
                     created_at = table.Column<DateTime>(type: "datetime2", nullable: false),
                     updated_at = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
@@ -94,7 +94,7 @@ namespace server.Migrations
                     price = table.Column<decimal>(type: "decimal(12,2)", nullable: false),
                     image_url = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: true),
                     description = table.Column<string>(type: "text", nullable: true),
-                    status = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
+                    status = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
                     created_at = table.Column<DateTime>(type: "datetime2", nullable: false),
                     updated_at = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
@@ -117,12 +117,12 @@ namespace server.Migrations
                     customer_id = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
                     account_id = table.Column<int>(type: "int", nullable: true),
                     table_id = table.Column<int>(type: "int", nullable: true),
-                    status = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
+                    status = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
                     subtotal = table.Column<decimal>(type: "decimal(12,2)", nullable: false),
                     discount = table.Column<decimal>(type: "decimal(12,2)", nullable: false),
                     total = table.Column<decimal>(type: "decimal(12,2)", nullable: false),
                     payment_method = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
-                    payment_status = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
+                    payment_status = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
                     notes = table.Column<string>(type: "text", nullable: true),
                     created_at = table.Column<DateTime>(type: "datetime2", nullable: false),
                     updated_at = table.Column<DateTime>(type: "datetime2", nullable: false)
@@ -158,7 +158,7 @@ namespace server.Migrations
                     reservation_date = table.Column<DateTime>(type: "date", nullable: false),
                     reservation_time = table.Column<TimeSpan>(type: "time", nullable: false),
                     guest_count = table.Column<int>(type: "int", nullable: false),
-                    status = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
+                    status = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
                     notes = table.Column<string>(type: "text", nullable: true),
                     created_at = table.Column<DateTime>(type: "datetime2", nullable: false),
                     updated_at = table.Column<DateTime>(type: "datetime2", nullable: false)
@@ -253,7 +253,7 @@ namespace server.Migrations
                 column: "table_id");
         }
 
-
+        /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
