@@ -13,7 +13,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const RELOAD_DELAY_MS = 250;
     const STORAGE_KEYS = {
         orders: 'bistro_orders',
-        tableStatuses: 'bistro_table_statuses',
         tables: 'bistro_tables'
     };
     const STATUS_FILTER_OPTIONS = [
@@ -63,15 +62,8 @@ document.addEventListener('DOMContentLoaded', () => {
         return readJson(STORAGE_KEYS.orders, []);
     }
 
-    function getLocalTableStatuses() {
-        return readJson(STORAGE_KEYS.tableStatuses, {});
-    }
-
-    function saveLocalTableStatus(tableId, status) {
-        const statuses = getLocalTableStatuses();
-        statuses[tableId] = status;
-        writeJson(STORAGE_KEYS.tableStatuses, statuses);
-    }
+    // Local overrides for table statuses are intentionally removed to
+    // ensure the backend is the single source of truth for table state.
 
     function persistTables() {
         writeJson(STORAGE_KEYS.tables, state.tables);
@@ -173,12 +165,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function resolveDisplayStatus(table) {
-        if (getActiveOrder(table.id)) {
-            return TABLE_STATUSES.OCCUPIED;
-        }
-
-        const localStatus = getLocalTableStatuses()[table.id];
-        return normalizeStatus(localStatus || table.status);
+        if (getActiveOrder(table.id)) return TABLE_STATUSES.OCCUPIED;
+        return normalizeStatus(table.status);
     }
 
     function formatCurrency(value) {
@@ -616,7 +604,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 writeJson(STORAGE_KEYS.orders, orders);
             }
 
-            saveLocalTableStatus(tableId, TABLE_STATUSES.CLEANING);
+            // localStorage override removed — rely on backend status
             renderTables();
             showToast(`${tableId} đã thanh toán thành công!`);
         } catch (error) {
@@ -635,7 +623,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const updatedTable = await updateTableOnServer(table, { status: TABLE_STATUSES.OCCUPIED });
             state.tables = state.tables.map(item => item.id === tableId ? updatedTable : item);
             persistTables();
-            saveLocalTableStatus(tableId, TABLE_STATUSES.OCCUPIED);
             renderTables();
             showToast(`Khách đã nhận ${tableId}!`);
         } catch (error) {
@@ -654,7 +641,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const updatedTable = await updateTableOnServer(table, { status: TABLE_STATUSES.AVAILABLE });
             state.tables = state.tables.map(item => item.id === tableId ? updatedTable : item);
             persistTables();
-            saveLocalTableStatus(tableId, TABLE_STATUSES.AVAILABLE);
             renderTables();
             showToast(`Đã dọn dẹp ${tableId}!`);
         } catch (error) {
@@ -687,7 +673,6 @@ document.addEventListener('DOMContentLoaded', () => {
             body: JSON.stringify(payload)
         })
             .then(async () => {
-                saveLocalTableStatus(tableName, TABLE_STATUSES.AVAILABLE);
                 await loadTables();
                 showToast(`Đã thêm bàn mới: ${tableName}`);
 
@@ -735,7 +720,7 @@ document.addEventListener('DOMContentLoaded', () => {
         document.addEventListener('click', handleDocumentClick);
 
         window.addEventListener('storage', event => {
-            if (event.key === STORAGE_KEYS.orders || event.key === STORAGE_KEYS.tableStatuses) {
+            if (event.key === STORAGE_KEYS.orders) {
                 renderTables();
             }
         });

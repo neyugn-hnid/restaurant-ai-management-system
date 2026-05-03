@@ -13,6 +13,9 @@ namespace server.Modal
         [Column("id")]
         public int Id { get; set; }
 
+
+        
+
         [MaxLength(100)]
         [Column("zone")]
         public string? Zone { get; set; }

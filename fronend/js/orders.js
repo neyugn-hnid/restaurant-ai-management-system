@@ -146,16 +146,16 @@ document.addEventListener('DOMContentLoaded', async () => {
             return `
                 <tr>
                     <td class="ps-4"><a href="#" class="text-decoration-none fw-semibold order-detail-link" data-id="${o.id}">#${o.id}</a></td>
+                    <td><div class="small">${o.time || ''} <span class="text-muted">${o.date || ''}</span></div></td>
                     <td>
                         <div class="d-flex align-items-center gap-2">
                             <span class="material-symbols-outlined icon-sm text-muted">${o.customerIcon || 'receipt_long'}</span>
                             <div><div class="fw-medium">${o.customer || o.table_id || o.tableId || '-'}</div><small class="text-muted">${o.customerSubtext || ''}</small></div>
                         </div>
                     </td>
-                    <td><span class="badge ${badgeClass}">${o.status || 'N/A'}</span></td>
-                    <td><div class="small">${o.time || ''} <span class="text-muted">${o.date || ''}</span></div></td>
-                    <td class="fw-semibold">${total} ₫</td>
                     <td class="text-center"><span class="badge bg-light text-dark">${o.itemsCount || 0} món</span></td>
+                    <td class="fw-semibold">${total} ₫</td>
+                    <td><span class="badge ${badgeClass}">${o.status || 'N/A'}</span></td>
                     <td class="text-end pe-4">
                         <div class="d-flex justify-content-end gap-2">
                             <button class="btn btn-light btn-icon shadow-sm p-0 d-flex align-items-center justify-content-center payment-btn" data-id="${o.id}" title="Thanh toán" style="width:32px;height:32px;border-radius:50%;color:var(--text-soft) !important;background-color:#fff !important;">
@@ -185,8 +185,9 @@ document.addEventListener('DOMContentLoaded', async () => {
                 if (!order) return;
                 document.getElementById('detailsModalOrderId').textContent = `#${order.id}`;
                 document.getElementById('detailsModalCustomer').textContent = order.customer || '-';
-                document.getElementById('detailsModalTable').textContent = order.customer || '-';
+                document.getElementById('detailsModalTable').textContent = order.tableId || order.table_id || '-';
                 document.getElementById('detailsModalTime').textContent = `${order.date || ''} ${order.time || ''}`;
+                renderOrderItems(document.getElementById('detailsModalItems'), order);
                 new bootstrap.Modal(document.getElementById('orderDetailsModal')).show();
             });
         });
@@ -198,8 +199,9 @@ document.addEventListener('DOMContentLoaded', async () => {
                 if (!order) return;
                 document.getElementById('paymentModalOrderId').textContent = `#${order.id}`;
                 document.getElementById('paymentModalCustomer').textContent = order.customer || '-';
-                document.getElementById('paymentModalTable').textContent = order.customer || '-';
+                document.getElementById('paymentModalTable').textContent = order.tableId || order.table_id || '-';
                 document.getElementById('paymentModalTime').textContent = `${order.date || ''} ${order.time || ''}`;
+                renderOrderItems(document.getElementById('paymentModalItems'), order);
                 new bootstrap.Modal(document.getElementById('paymentModal')).show();
             });
         });
@@ -254,6 +256,26 @@ document.addEventListener('DOMContentLoaded', async () => {
                 renderOrders();
             });
         });
+    }
+
+    function renderOrderItems(container, order) {
+        if (!container) return;
+
+        const items = order?.items || order?.orderItems || [];
+        if (!items.length) {
+            container.innerHTML = '<div class="text-center text-muted py-3">Không có món ăn nào trong đơn này.</div>';
+            return;
+        }
+
+        container.innerHTML = items.map(item => `
+            <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
+                <div>
+                    <div class="fw-medium text-dark">${item.productName || item.name || 'Món ăn'}</div>
+                    <small class="text-muted">SL: ${item.quantity || 0}</small>
+                </div>
+                <div class="fw-semibold text-dark">${Number(item.totalPrice ?? ((item.price || 0) * (item.quantity || 0))).toLocaleString('vi-VN')} ₫</div>
+            </div>
+        `).join('');
     }
 
     function bindEvents() {

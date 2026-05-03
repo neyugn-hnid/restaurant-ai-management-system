@@ -9,6 +9,7 @@ using server.Data;
 using server.Extensions;
 using server.Modal;
 using server.Models.Pagination;
+using System.Collections.Generic;
 
 namespace server.Controllers
 {
@@ -25,9 +26,12 @@ namespace server.Controllers
 
 
         [HttpGet]
-        public async Task<ActionResult<PagedResponse<Order>>> GetOrder([FromQuery] PagedRequest request)
+        public async Task<ActionResult<PagedResponse<OrderResponseDto>>> GetOrder([FromQuery] PagedRequest request)
         {
-            var query = _context.Order.AsNoTracking().AsQueryable();
+            var query = _context.Order
+                .AsNoTracking()
+                .Include(order => order.OrderItems)
+                .AsQueryable();
 
             if (!string.IsNullOrWhiteSpace(request.SearchTerm))
             {
@@ -45,21 +49,24 @@ namespace server.Controllers
             query = ApplySorting(query, request);
 
             var pagedResult = await query.ToPagedResponseAsync(request.GetPageNumber(), request.GetPageSize());
-            return Ok(pagedResult);
+            return Ok(MapPagedOrders(pagedResult));
         }
 
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<Order>> GetOrder(string id)
+        public async Task<ActionResult<OrderResponseDto>> GetOrder(string id)
         {
-            var order = await _context.Order.FindAsync(id);
+            var order = await _context.Order
+                .AsNoTracking()
+                .Include(entity => entity.OrderItems)
+                .FirstOrDefaultAsync(entity => entity.Id == id);
 
             if (order == null)
             {
                 return NotFound();
             }
 
-            return order;
+            return Ok(MapOrder(order));
         }
 
 
@@ -96,7 +103,7 @@ namespace server.Controllers
 
 
         [HttpPost]
-        public async Task<ActionResult<Order>> PostOrder(Order order)
+        public async Task<ActionResult<OrderResponseDto>> PostOrder(Order order)
         {
             _context.Order.Add(order);
             try
@@ -115,7 +122,7 @@ namespace server.Controllers
                 }
             }
 
-            return CreatedAtAction("GetOrder", new { id = order.Id }, order);
+            return CreatedAtAction("GetOrder", new { id = order.Id }, MapOrder(order));
         }
 
 
@@ -159,6 +166,83 @@ namespace server.Controllers
                 "updatedat" => isAscending ? query.OrderBy(order => order.UpdatedAt) : query.OrderByDescending(order => order.UpdatedAt),
                 _ => isAscending ? query.OrderBy(order => order.CreatedAt) : query.OrderByDescending(order => order.CreatedAt)
             };
+        }
+
+        private static PagedResponse<OrderResponseDto> MapPagedOrders(PagedResponse<Order> pagedResult)
+        {
+            return new PagedResponse<OrderResponseDto>
+            {
+                Items = pagedResult.Items.Select(MapOrder).ToList(),
+                PageNumber = pagedResult.PageNumber,
+                PageSize = pagedResult.PageSize,
+                TotalItemCount = pagedResult.TotalItemCount,
+                PageCount = pagedResult.PageCount,
+                HasPreviousPage = pagedResult.HasPreviousPage,
+                HasNextPage = pagedResult.HasNextPage
+            };
+        }
+
+        private static OrderResponseDto MapOrder(Order order)
+        {
+            return new OrderResponseDto
+            {
+                Id = order.Id,
+                CustomerId = order.CustomerId,
+                AccountId = order.AccountId,
+                TableId = order.TableId,
+                Status = order.Status,
+                Subtotal = order.Subtotal,
+                Discount = order.Discount,
+                Total = order.Total,
+                PaymentMethod = order.PaymentMethod,
+                PaymentStatus = order.PaymentStatus,
+                Notes = order.Notes,
+                CreatedAt = order.CreatedAt,
+                UpdatedAt = order.UpdatedAt,
+                Items = order.OrderItems?.Select(item => new OrderItemResponseDto
+                {
+                    Id = item.Id,
+                    OrderId = item.OrderId,
+                    ProductId = item.ProductId,
+                    ProductName = item.ProductName,
+                    Quantity = item.Quantity,
+                    UnitPrice = item.UnitPrice,
+                    TotalPrice = item.TotalPrice,
+                    Notes = item.Notes,
+                    CreatedAt = item.CreatedAt
+                }).ToList() ?? new List<OrderItemResponseDto>()
+            };
+        }
+
+        public sealed class OrderResponseDto
+        {
+            public string? Id { get; set; }
+            public string? CustomerId { get; set; }
+            public int? AccountId { get; set; }
+            public int? TableId { get; set; }
+            public OrderStatus Status { get; set; }
+            public decimal Subtotal { get; set; }
+            public decimal Discount { get; set; }
+            public decimal Total { get; set; }
+            public string? PaymentMethod { get; set; }
+            public PaymentStatus PaymentStatus { get; set; }
+            public string? Notes { get; set; }
+            public DateTime CreatedAt { get; set; }
+            public DateTime UpdatedAt { get; set; }
+            public List<OrderItemResponseDto> Items { get; set; } = new();
+        }
+
+        public sealed class OrderItemResponseDto
+        {
+            public int Id { get; set; }
+            public string? OrderId { get; set; }
+            public int ProductId { get; set; }
+            public string? ProductName { get; set; }
+            public int Quantity { get; set; }
+            public decimal UnitPrice { get; set; }
+            public decimal TotalPrice { get; set; }
+            public string? Notes { get; set; }
+            public DateTime CreatedAt { get; set; }
         }
     }
 }

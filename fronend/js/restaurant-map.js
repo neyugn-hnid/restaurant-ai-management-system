@@ -269,6 +269,7 @@ document.addEventListener('DOMContentLoaded', () => {
             await updateTableStatus(selectedTableId, 'Đã đặt');
 
             sessionStorage.setItem('customerName', name);
+            sessionStorage.setItem('bookedCustomerId', customer.id);
             sessionStorage.setItem('bookedTable', selectedTableId);
         } catch (err) {
             console.warn('Một phần lưu thất bại:', err.message);

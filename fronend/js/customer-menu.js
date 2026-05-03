@@ -403,6 +403,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         if (cart.length === 0) return;
 
         const cTable = sessionStorage.getItem('bookedTable') || 'Mang về';
+        const cCustomerId = sessionStorage.getItem('bookedCustomerId') || null;
         const cName = sessionStorage.getItem('customerName') || 'Quý khách';
         const finalTotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
@@ -440,22 +441,39 @@ document.addEventListener("DOMContentLoaded", async () => {
             }
             existingOrders[activeOrderIndex] = activeOrder;
         } else {
+            const orderId = `ORD-${Math.floor(1000 + Math.random() * 9000)}`;
+            const orderItems = cart.map(item => {
+                const productId = Number(item.id);
+                const quantity = Number(item.quantity || 1);
+                const unitPrice = Number(item.price || 0);
+
+                return {
+                    OrderId: orderId,
+                    ProductId: Number.isFinite(productId) ? productId : 0,
+                    ProductName: item.name,
+                    Quantity: quantity,
+                    UnitPrice: unitPrice,
+                    TotalPrice: unitPrice * quantity,
+                    Notes: null,
+                    CreatedAt: new Date().toISOString()
+                };
+            });
+
             const newOrder = {
-                id: `ORD-${Math.floor(1000 + Math.random() * 9000)}`,
-                customerId: null,
-                tableId: (cTable !== 'Mang về' && !isNaN(Number(cTable))) ? Number(cTable) : (cTable !== 'Mang về' ? cTable : null),
-                itemsCount: cart.reduce((sum, item) => sum + item.quantity, 0),
-                items: cart.map(item => ({ name: item.name, quantity: item.quantity, price: item.price })),
-                subtotal: finalTotal,
-                discount: 0,
-                total: finalTotal,
-                status: ORDER_STATUSES.PENDING_CONFIRMATION,
-                statusClass: 'bg-warning bg-opacity-10 text-warning border-warning',
-                customer: cTable,
-                customerIcon: cTable === 'Mang về' ? 'local_mall' : 'table_restaurant',
-                customerSubtext: cName !== 'Quý khách' ? cName : 'Từ QR Khách hàng',
-                time: new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }),
-                date: new Date().toLocaleDateString('vi-VN')
+                Id: orderId,
+                CustomerId: cCustomerId,
+                AccountId: null,
+                TableId: cTable !== 'Mang về' ? Number(cTable) : null,
+                Status: ORDER_STATUSES.PENDING_CONFIRMATION,
+                Subtotal: Number(finalTotal),
+                Discount: 0,
+                Total: Number(finalTotal),
+                PaymentMethod: 'cash',
+                PaymentStatus: 'pending',
+                Notes: null,
+                CreatedAt: new Date().toISOString(),
+                UpdatedAt: new Date().toISOString(),
+                OrderItems: orderItems
             };
             try {
                 const resp = await fetch(ORDERS_API_URL, {
