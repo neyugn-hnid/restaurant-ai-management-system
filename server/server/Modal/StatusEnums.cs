@@ -38,7 +38,13 @@ namespace server.Modal
         Completed,
 
         [EnumMember(Value = "Hủy")]
-        Cancelled
+        Cancelled,
+
+        [EnumMember(Value = "Chờ xác nhận")]
+        PendingConfirmation,
+
+        [EnumMember(Value = "Đã phục vụ")]
+        Served
     }
 
     public enum PaymentStatus

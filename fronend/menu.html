@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Quản lý Thực đơn - Quản trị nhà hàng</title>
+    <title>Quản lý Thực đơn - DEAGUN</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
@@ -17,8 +17,7 @@
                 <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">restaurant</span>
             </div>
             <div>
-                <h5 class="mb-0 fw-bold fs-5">Quản trị nhà hàng</h5>
-                <small class="text-white-50">Hệ thống quản lý</small>
+                <h5 class="mb-0 fw-bold fs-5">DEAGUN</h5>
             </div>
         </div>
         <div class="flex-grow-1 px-3">
@@ -33,18 +32,22 @@
 
         </div>
         <div class="px-3 mt-auto pt-3 border-top border-light border-opacity-10">
-            <a class="nav-link" href="#"><span class="material-symbols-outlined">logout</span> Đăng xuất</a>
+            <a class="nav-link" href="#" onclick="Auth.logout(); return false;"><span class="material-symbols-outlined">logout</span> Đăng xuất</a>
         </div>
     </nav>
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
     <div class="main-content d-flex flex-column">
         <header class="topbar d-flex align-items-center justify-content-end px-4">
+            <button class="mobile-toggle" id="mobileSidebarToggle">
+                <span class="material-symbols-outlined">menu</span>
+            </button>
             <div class="d-flex align-items-center gap-3 topbar-actions">
                 <button class="btn btn-icon border-0 position-relative">
                     <span class="material-symbols-outlined">notifications</span>
-                    <span class="position-absolute top-0 end-0 translate-middle p-1 bg-danger border border-light rounded-circle" style="margin-top: 10px; margin-right: 5px;"></span>
+                    <span class="position-absolute top-0 end-0 translate-middle p-1 bg-danger border border-light rounded-circle notification-dot"></span>
                 </button>
-                <div class="vr" style="height: 24px; align-self: center;"></div>
-                <div class="d-flex align-items-center gap-2 cursor-pointer" style="cursor: pointer;">
+                <div class="vr vr-divider"></div>
+                <div class="d-flex align-items-center gap-2 cursor-pointer cursor-pointer">
                     <img src="https://ui-avatars.com/api/?name=Admin&background=1e3a8a&color=fff" alt="Avatar" class="avatar">
                 </div>
             </div>
@@ -53,7 +56,6 @@
             <div class="d-flex justify-content-between align-items-end mb-4">
                 <div>
                     <h3 class="fw-bold text-dark mb-1">Thực đơn</h3>
-                    <p class="text-secondary mb-0">Quản lý danh sách món ăn, giá cả và trạng thái phục vụ.</p>
                 </div>
                 <div class="d-flex gap-3">
                     <a href="./categories.html" class="btn btn-outline-secondary d-flex align-items-center gap-2 fw-medium px-4 shadow-sm rounded-pill">
@@ -70,8 +72,8 @@
                     <div class="stat-card">
                         <div class="d-flex justify-content-between mb-2">
                             <p class="text-secondary fw-medium mb-0">Tổng số món</p>
-                            <div class="icon-box bg-primary-light" style="width: 32px; height: 32px;">
-                                <span class="material-symbols-outlined" style="font-size: 1.2rem;">restaurant_menu</span>
+                            <div class="icon-box bg-primary-light stat-icon-sm">
+                                <span class="material-symbols-outlined icon-sm">restaurant_menu</span>
                             </div>
                         </div>
                         <h2 class="mb-0 fw-bold">0</h2>
@@ -81,8 +83,8 @@
                     <div class="stat-card">
                         <div class="d-flex justify-content-between mb-2">
                             <p class="text-secondary fw-medium mb-0">Đang bán</p>
-                            <div class="icon-box bg-success-light" style="width: 32px; height: 32px;">
-                                <span class="material-symbols-outlined text-success" style="font-size: 1.2rem;">check_circle</span>
+                            <div class="icon-box bg-success-light stat-icon-sm">
+                                <span class="material-symbols-outlined text-success icon-sm">check_circle</span>
                             </div>
                         </div>
                         <h2 class="mb-0 fw-bold">0</h2>
@@ -92,8 +94,8 @@
                     <div class="stat-card">
                         <div class="d-flex justify-content-between mb-2">
                             <p class="text-secondary fw-medium mb-0">Hết hàng</p>
-                            <div class="icon-box bg-danger-light" style="width: 32px; height: 32px;">
-                                <span class="material-symbols-outlined text-danger" style="font-size: 1.2rem;">remove_shopping_cart</span>
+                            <div class="icon-box bg-danger-light stat-icon-sm">
+                                <span class="material-symbols-outlined text-danger icon-sm">remove_shopping_cart</span>
                             </div>
                         </div>
                         <h2 class="mb-0 fw-bold">0</h2>
@@ -103,8 +105,8 @@
                     <div class="stat-card">
                         <div class="d-flex justify-content-between mb-2">
                             <p class="text-secondary fw-medium mb-0">Tạm ngưng</p>
-                            <div class="icon-box bg-warning-light" style="width: 32px; height: 32px;">
-                                <span class="material-symbols-outlined text-warning" style="font-size: 1.2rem;">pause_circle</span>
+                            <div class="icon-box bg-warning-light stat-icon-sm">
+                                <span class="material-symbols-outlined text-warning icon-sm">pause_circle</span>
                             </div>
                         </div>
                         <h2 class="mb-0 fw-bold">0</h2>
@@ -114,15 +116,15 @@
 
             <div class="card border-0 shadow-sm rounded-4 h-100 d-flex flex-column overflow-hidden">
                 <div class="card-header bg-white border-bottom py-3 d-flex justify-content-between align-items-center flex-wrap gap-3">
-                    <div class="search-box text-dark fw-medium" style="width: 250px; position: relative;">
-                        <span class="material-symbols-outlined fs-5" style="position: absolute; top: 50%; transform: translateY(-50%); left: 12px; color: var(--text-soft);">search</span>
-                        <input type="text" id="menuSearch" class="form-control bg-light border-0 px-4 py-2" placeholder="Tìm kiếm món ăn..." style="padding-left: 38px !important; border-radius: 8px;">
+                    <div class="search-box">
+                        <span class="material-symbols-outlined fs-5">search</span>
+                        <input type="text" id="menuSearch" placeholder="Tìm kiếm món ăn...">
                     </div>
                     <div class="d-flex align-items-center gap-3">
                         <div class="d-flex gap-2">
-                            <select class="form-select bg-light border-0 fw-medium text-dark px-3 py-2" id="categoryFilter" style="width: 170px; border-radius: 8px;"></select>
-                            <select class="form-select bg-light border-0 fw-medium text-dark px-3 py-2" id="statusFilter" style="width: 160px; border-radius: 8px;"></select>
-                            <select class="form-select bg-light border-0 fw-medium text-dark px-3 py-2" id="sortOption" style="width: 170px; border-radius: 8px;"></select>
+                            <select class="filter-select" id="categoryFilter" style="width: 170px;"></select>
+                            <select class="filter-select" id="statusFilter" style="width: 160px;"></select>
+                            <select class="filter-select" id="sortOption" style="width: 170px;"></select>
                         </div>
                         <a href="#" class="text-primary text-decoration-none fw-medium d-flex align-items-center gap-1">
                             Xuất <span class="material-symbols-outlined fs-5">download</span>
@@ -134,7 +136,7 @@
                         <table class="table table-hover table-custom mb-0 w-100">
                         <thead>
                             <tr>
-                                <th class="ps-4">Tên món</th> 
+                                <th class="ps-4">Tên món</th>
                                 <th>Danh mục</th>
                                 <th>Giá bán</th>
                                 <th>Trạng thái</th>
@@ -146,23 +148,22 @@
                     </table>
                     </div>
                 </div>
-                <div class="card-footer bg-white border-top py-3 d-flex justify-content-between align-items-center">
-                    <span id="menuTableInfo" class="text-secondary small">Đang tải dữ liệu...</span>
+                <div class="card-footer bg-white border-top py-3 d-flex justify-content-end align-items-center">
                     <nav aria-label="Page navigation">
-                        <ul id="menuPagination" class="pagination pagination-sm mb-0 gap-2"></ul>
+                        <ul class="pagination pagination-sm mb-0 gap-2" id="menuPagination">
+                        </ul>
                     </nav>
                 </div>
             </div>
         </main>
     </div>
 
-    <!-- Floating Action Button (Frap) -->
-    <a href="/orders.html" class="btn btn-primary d-flex align-items-center justify-content-center p-0 position-fixed" 
-       style="width: 56px; height: 56px; border-radius: 50%; bottom: 32px; right: 32px; z-index: 1050; box-shadow: 0 0 6px rgba(0,0,0,0.24), 0 8px 12px rgba(0,0,0,0.14) !important;">
-        <span class="material-symbols-outlined" style="font-size: 24px;">add_shopping_cart</span>
+
+    <a href="/orders.html" class="btn btn-primary d-flex align-items-center justify-content-center p-0 position-fixed fab">
+        <span class="material-symbols-outlined fab-icon">add_shopping_cart</span>
     </a>
 
-    <!-- Add Food Modal -->
+
     <div class="modal fade" id="addFoodModal" tabindex="-1" aria-labelledby="addFoodModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content border-0 shadow">
@@ -208,7 +209,7 @@
         </div>
     </div>
 
-    <!-- Delete Confirmation Modal -->
+
     <div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-labelledby="deleteConfirmModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content border-0 shadow">
@@ -227,7 +228,7 @@
         </div>
     </div>
 
-    <!-- Toast for Notifications -->
+
     <div class="toast-container position-fixed bottom-0 end-0 p-3">
         <div id="actionToast" class="toast align-items-center text-white bg-success border-0" role="alert" aria-live="assertive" aria-atomic="true">
             <div class="d-flex">
@@ -242,5 +243,7 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script type="module" src="./js/data.js"></script>
     <script type="module" src="./js/menu.js"></script>
+    <script src="./js/sidebar.js"></script>
+    <script src="./js/auth.js"></script>
 </body>
 </html>

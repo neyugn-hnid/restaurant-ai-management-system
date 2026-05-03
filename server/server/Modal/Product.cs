@@ -41,7 +41,7 @@ namespace server.Modal
         [Column("updated_at")]
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
-        // Navigation properties
+
         [ForeignKey(nameof(CategoryId))]
         public Category? Category { get; set; }
 

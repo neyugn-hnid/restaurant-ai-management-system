@@ -1,0 +1,58 @@
+
+
+.role-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+}
+.role-admin { background-color: #fdf0f0; color: #dc3545; }
+.role-manager { background-color: #f0f7fd; color: #0d6efd; }
+.role-staff { background-color: #f4fdf0; color: #198754; }
+
+.notification-dot {
+    margin-top: 10px;
+    margin-right: 5px;
+}
+
+.vr-divider {
+    height: 24px;
+    align-self: center;
+}
+
+.cursor-pointer {
+    cursor: pointer;
+}
+
+.search-box-accounts {
+    width: 250px;
+    position: relative;
+}
+.search-box-accounts .material-symbols-outlined {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    left: 12px;
+    color: var(--text-soft);
+}
+.search-box-accounts .form-control {
+    padding-left: 38px !important;
+    border-radius: 8px;
+}
+
+.filter-role {
+    width: 160px;
+    border-radius: 8px;
+}
+
+.filter-sort {
+    width: 170px;
+    border-radius: 8px;
+}
+
+.delete-icon-lg {
+    font-size: 3rem;
+}

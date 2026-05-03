@@ -1,10 +1,20 @@
 using System.Reflection;
 using System.Runtime.Serialization;
+using System.Text.RegularExpressions;
 
 namespace server.Infrastructure
 {
     public static class EnumMemberValueHelper
     {
+        private static string NormalizeEnumValue(string value)
+        {
+            value = value.Normalize(System.Text.NormalizationForm.FormC)
+                .Replace('\u00A0', ' ')
+                .Trim();
+
+            return Regex.Replace(value, "\\s+", " ");
+        }
+
         public static string GetValue<TEnum>(TEnum value) where TEnum : struct, Enum
         {
             var enumType = typeof(TEnum);
@@ -21,15 +31,17 @@ namespace server.Infrastructure
                 throw new ArgumentException($"Giá trị enum không hợp lệ cho {typeof(TEnum).Name}.");
             }
 
+            rawValue = NormalizeEnumValue(rawValue);
+
             foreach (var field in typeof(TEnum).GetFields(BindingFlags.Public | BindingFlags.Static))
             {
                 var attribute = field.GetCustomAttribute<EnumMemberAttribute>();
-                if (string.Equals(attribute?.Value, rawValue, StringComparison.OrdinalIgnoreCase))
+                if (attribute?.Value is not null && string.Equals(NormalizeEnumValue(attribute.Value), rawValue, StringComparison.OrdinalIgnoreCase))
                 {
                     return (TEnum)field.GetValue(null)!;
                 }
 
-                if (string.Equals(field.Name, rawValue, StringComparison.OrdinalIgnoreCase))
+                if (string.Equals(NormalizeEnumValue(field.Name), rawValue, StringComparison.OrdinalIgnoreCase))
                 {
                     return (TEnum)field.GetValue(null)!;
                 }

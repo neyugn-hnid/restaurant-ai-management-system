@@ -112,7 +112,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const body = await response.text();
                 if (body) message = body;
             } catch (_) {
-                // Ignore parse errors.
+
             }
 
             throw new Error(message);
@@ -170,8 +170,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (statusValue === PRODUCT_STATUSES.DISCONTINUED) return PRODUCT_STATUSES.DISCONTINUED;
         return PRODUCT_STATUSES.ACTIVE;
     }
-
-
 
     function getCategoryName(categoryId) {
         return state.categories.find(category => category.id === categoryId)?.name || 'Khác';
@@ -260,19 +258,6 @@ document.addEventListener('DOMContentLoaded', () => {
         elements.pagination.innerHTML = markup;
     }
 
-    function renderTableInfo() {
-        if (!elements.tableInfo) return;
-
-        if (state.pagination.totalItemCount === 0) {
-            elements.tableInfo.textContent = 'Không có món ăn nào phù hợp';
-            return;
-        }
-
-        const fromItem = ((state.pagination.pageNumber || 1) - 1) * (state.pagination.pageSize || ITEMS_PER_PAGE) + 1;
-        const toItem = Math.min(fromItem + state.products.length - 1, state.pagination.totalItemCount);
-        elements.tableInfo.textContent = `Hiển thị ${fromItem} - ${toItem} trong số ${state.pagination.totalItemCount} món ăn`;
-    }
-
     function getProductImageMarkup(product, categoryName) {
         if (product.imageUrl) {
             return `<img src="${product.imageUrl}" class="w-100 h-100 rounded" style="object-fit: cover;">`;
@@ -291,7 +276,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (state.products.length === 0) {
             elements.tableBody.innerHTML = '<tr><td colspan="5" class="text-center py-4 text-muted">Không tìm thấy dữ liệu</td></tr>';
-            renderTableInfo();
             renderPagination();
             updateStats();
             return;
@@ -333,7 +317,7 @@ document.addEventListener('DOMContentLoaded', () => {
             `;
         }).join('');
 
-        renderTableInfo();
+
         renderPagination();
         updateStats();
     }
@@ -432,8 +416,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (elements.modalTitle) elements.modalTitle.textContent = 'Thêm món mới';
         if (elements.saveFoodButton) elements.saveFoodButton.textContent = 'Lưu món';
     }
-
-
 
     function findProductById(productId) {
         return state.products.find(product => String(product.id) === String(productId));

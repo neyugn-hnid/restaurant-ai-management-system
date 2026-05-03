@@ -23,7 +23,7 @@ namespace server.Controllers
             _context = context;
         }
 
-        // GET: api/Orders
+
         [HttpGet]
         public async Task<ActionResult<PagedResponse<Order>>> GetOrder([FromQuery] PagedRequest request)
         {
@@ -32,10 +32,12 @@ namespace server.Controllers
             if (!string.IsNullOrWhiteSpace(request.SearchTerm))
             {
                 var searchTerm = request.SearchTerm.Trim();
+                int? parsedTableId = int.TryParse(searchTerm, out var pid) ? pid : (int?)null;
+
                 query = query.Where(order =>
                     (order.Id != null && order.Id.Contains(searchTerm)) ||
                     (order.CustomerId != null && order.CustomerId.Contains(searchTerm)) ||
-                    (order.TableId != null && order.TableId.Contains(searchTerm)) ||
+                    (parsedTableId != null && order.TableId == parsedTableId) ||
                     (order.PaymentMethod != null && order.PaymentMethod.Contains(searchTerm)) ||
                     (order.Notes != null && order.Notes.Contains(searchTerm)));
             }
@@ -46,7 +48,7 @@ namespace server.Controllers
             return Ok(pagedResult);
         }
 
-        // GET: api/Orders/5
+
         [HttpGet("{id}")]
         public async Task<ActionResult<Order>> GetOrder(string id)
         {
@@ -60,8 +62,8 @@ namespace server.Controllers
             return order;
         }
 
-        // PUT: api/Orders/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+
+
         [HttpPut("{id}")]
         public async Task<IActionResult> PutOrder(string id, Order order)
         {
@@ -91,8 +93,8 @@ namespace server.Controllers
             return NoContent();
         }
 
-        // POST: api/Orders
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+
+
         [HttpPost]
         public async Task<ActionResult<Order>> PostOrder(Order order)
         {
@@ -116,7 +118,7 @@ namespace server.Controllers
             return CreatedAtAction("GetOrder", new { id = order.Id }, order);
         }
 
-        // DELETE: api/Orders/5
+
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteOrder(string id)
         {

@@ -23,7 +23,7 @@ namespace server.Controllers
             _context = context;
         }
 
-        // GET: api/RestaurantTables
+
         [HttpGet]
         public async Task<ActionResult<PagedResponse<RestaurantTable>>> GetRestaurantTable([FromQuery] PagedRequest request)
         {
@@ -59,7 +59,7 @@ namespace server.Controllers
             return Ok(pagedResult);
         }
 
-        // GET: api/RestaurantTables/5
+
         [HttpGet("{id}")]
         public async Task<ActionResult<RestaurantTable>> GetRestaurantTable(string id)
         {
@@ -73,8 +73,8 @@ namespace server.Controllers
             return restaurantTable;
         }
 
-        // PUT: api/RestaurantTables/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+
+
         [HttpPut("{id}")]
         public async Task<IActionResult> PutRestaurantTable(string id, RestaurantTable restaurantTable)
         {
@@ -104,8 +104,8 @@ namespace server.Controllers
             return NoContent();
         }
 
-        // POST: api/RestaurantTables
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+
+
         [HttpPost]
         public async Task<ActionResult<RestaurantTable>> PostRestaurantTable(RestaurantTable restaurantTable)
         {
@@ -129,7 +129,7 @@ namespace server.Controllers
             return CreatedAtAction("GetRestaurantTable", new { id = restaurantTable.Id }, restaurantTable);
         }
 
-        // DELETE: api/RestaurantTables/5
+
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteRestaurantTable(string id)
         {

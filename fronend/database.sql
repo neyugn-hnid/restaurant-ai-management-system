@@ -48,7 +48,7 @@ CREATE TABLE Customers (
 
 -- 5. Tables Table
 CREATE TABLE RestaurantTables (
-    id VARCHAR(50) PRIMARY KEY,
+    id INT PRIMARY KEY IDENTITY(1,1),
     zone NVARCHAR(100),
     capacity INT DEFAULT 4,
     status NVARCHAR(50),
@@ -59,7 +59,7 @@ CREATE TABLE RestaurantTables (
 CREATE TABLE Reservations (
     id INT PRIMARY KEY IDENTITY(1,1),
     customer_id VARCHAR(50),
-    table_id VARCHAR(50),
+    table_id INT,
     reservation_date DATE NOT NULL,
     reservation_time TIME NOT NULL,
     guest_count INT NOT NULL,
@@ -179,43 +179,47 @@ INSERT INTO Products (category_id, name, price, status, image_url, description, 
 
 -- Accounts
 SET IDENTITY_INSERT Accounts ON;
-INSERT INTO Accounts (id, username, password_hash, fullName, role, status, created_at) VALUES 
-(1, 'admin', 'hashed_password_here', N'Quản trị viên', 'admin', N'Hoạt động', '2026-01-01 08:00:00'),
-(2, 'manager', 'hashed_password_here', N'Quản lý cửa hàng', 'manager', N'Hoạt động', '2026-01-02 08:00:00'),
-(3, 'nhanvien1', 'hashed_password_here', N'Lê Văn C', 'staff', N'Hoạt động', '2026-02-15 09:30:00'),
-(4, 'nhanvien2', 'hashed_password_here', N'Phạm Thị D', 'staff', N'Hoạt động', '2026-03-10 10:15:00');
+INSERT INTO Accounts (username, password_hash, fullName, role, status, last_login, created_at, updated_at) VALUES 
+('admin', '$2a$12$BY9wYnTLmo7PYjI.VLEdv.IhoJpxXORFGzIzPAYiaFIdq2xotUCU.', N'Quản trị viên', 'admin', N'Hoạt động', GETDATE(), GETDATE(), GETDATE()),
+('manager', '$2a$12$BY9wYnTLmo7PYjI.VLEdv.IhoJpxXORFGzIzPAYiaFIdq2xotUCU.', N'Quản lý cửa hàng', 'manager', N'Hoạt động', GETDATE(), GETDATE(), GETDATE()),
+('nhanvien1', '$2a$12$BY9wYnTLmo7PYjI.VLEdv.IhoJpxXORFGzIzPAYiaFIdq2xotUCU.', N'Lê Văn C', 'staff', N'Hoạt động', GETDATE(), GETDATE(), GETDATE()),
+('nhanvien2', '$2a$12$BY9wYnTLmo7PYjI.VLEdv.IhoJpxXORFGzIzPAYiaFIdq2xotUCU.', N'Phạm Thị D', 'staff', N'Hoạt động', GETDATE(), GETDATE(), GETDATE()),
+('nhanvien3', '$2a$12$BY9wYnTLmo7PYjI.VLEdv.IhoJpxXORFGzIzPAYiaFIdq2xotUCU.', N'Nguyễn Thị E', 'staff', N'Hoạt động', GETDATE(), GETDATE(), GETDATE());
 SET IDENTITY_INSERT Accounts OFF;
 
 -- Customers
-INSERT INTO Customers (id, phone, name, full_name, email, visits, total_spent, tier, created_at) VALUES
-('KH101', '0901234567', N'Nguyễn Văn A', N'Nguyễn Văn A', 'nguyenvana@gmail.com', 5, 15000000, 'gold', '2025-12-10 14:20:00'),
-('KH102', '0912345678', N'Trần Thị B', N'Trần Thị B', 'tranthib@gmail.com', 1, 2450000, 'new', '2026-04-05 18:45:00'),
-('KH103', '0987654321', N'Lê Hữu C', N'Lê Hữu C', 'lehuuc@hoanglong.com', 12, 45000000, 'platinum', '2025-06-20 19:00:00'),
-('KH104', '0933445566', N'Hoàng Đăng D', N'Hoàng Đăng D', 'hoangdangd@gmail.com', 3, 8500000, 'silver', '2026-01-15 12:30:00'),
-('KH105', '0977889900', N'Đỗ Mỹ E', N'Đỗ Mỹ E', 'domye@yahoo.com', 2, 3200000, 'new', '2026-02-28 20:10:00');
+INSERT INTO Customers (id, phone, full_name, email, visits, total_spent, tier, created_at, updated_at) VALUES
+('KH101', '0901234567', N'Nguyễn Văn A', 'nguyenvana@gmail.com', 5, 15000000, 'gold', GETDATE(), GETDATE() ),
+('KH102', '0912345678', N'Trần Thị B', 'tranthib@gmail.com', 1, 2450000, 'new', GETDATE(), GETDATE() ),
+('KH103', '0987654321', N'Lê Hữu C', 'lehuuc@hoanglong.com', 12, 45000000, 'platinum', GETDATE(), GETDATE() ),
+('KH104', '0933445566', N'Hoàng Đăng D', 'hoangdangd@gmail.com', 3, 8500000, 'silver', GETDATE(), GETDATE() ),
+('KH105', '0977889900', N'Đỗ Mỹ E', 'domye@yahoo.com', 2, 3200000, 'new', GETDATE(), GETDATE() );
 
 -- Tables
 INSERT INTO RestaurantTables (id, zone, capacity, status, created_at, updated_at) VALUES
-('Bàn 01', N'Tầng 1', 4, N'Trống', '2025-01-01 00:00:00', '2025-01-01 00:00:00'),
-('Bàn 02', N'Tầng 1', 4, N'Trống', '2025-01-01 00:00:00', '2025-01-01 00:00:00'),
-('Bàn 03', N'Tầng 1', 2, N'Trống', '2025-01-01 00:00:00', '2025-01-01 00:00:00'),
-('Bàn 04', N'Tầng 1', 2, N'Trống', '2025-01-01 00:00:00', '2025-01-01 00:00:00'),
-('Bàn 05', N'Sân vườn', 6, N'Trống', '2025-01-01 00:00:00', '2025-01-01 00:00:00'),
-('Bàn 06', N'Sân vườn', 4, N'Trống', '2025-01-01 00:00:00', '2025-01-01 00:00:00'),
-('Bàn VIP 1', N'Khu VIP', 8, N'Trống', '2025-01-01 00:00:00', '2025-01-01 00:00:00'),
-('Bàn VIP 2', N'Khu VIP', 8, N'Trống', '2025-01-01 00:00:00', '2025-01-01 00:00:00');
+INSERT INTO RestaurantTables (zone, capacity, status, created_at, updated_at) VALUES
+(N'Tầng 1', 4, N'Trống', '2025-01-01 00:00:00', '2025-01-01 00:00:00'),
+(N'Tầng 1', 4, N'Trống', '2025-01-01 00:00:00', '2025-01-01 00:00:00'),
+(N'Tầng 1', 2, N'Trống', '2025-01-01 00:00:00', '2025-01-01 00:00:00'),
+(N'Tầng 1', 2, N'Trống', '2025-01-01 00:00:00', '2025-01-01 00:00:00'),
+(N'Sân vườn', 6, N'Trống', '2025-01-01 00:00:00', '2025-01-01 00:00:00'),
+(N'Sân vườn', 4, N'Trống', '2025-01-01 00:00:00', '2025-01-01 00:00:00'),
+(N'Khu VIP', 8, N'Trống', '2025-01-01 00:00:00', '2025-01-01 00:00:00'),
+(N'Khu VIP', 8, N'Trống', '2025-01-01 00:00:00', '2025-01-01 00:00:00');
 
 -- Reservations
 SET IDENTITY_INSERT Reservations ON;
 INSERT INTO Reservations (id, customer_id, table_id, reservation_date, reservation_time, guest_count, status, notes, created_at) VALUES
-(1, 'KH101', 'Bàn VIP 1', '2026-05-02', '19:00:00', 5, N'Đã xác nhận', N'Kỷ niệm', '2026-04-28 10:00:00'),
-(2, 'KH102', 'Bàn 02', '2026-05-02', '20:30:00', 4, N'Chờ xử lý', N'Cần ghế trẻ em', '2026-05-01 15:20:00'),
-(3, 'KH104', 'Bàn 05', '2026-05-03', '18:00:00', 2, N'Đã xác nhận', N'Bàn view đẹp', '2026-04-30 09:45:00');
+INSERT INTO Reservations (id, customer_id, table_id, reservation_date, reservation_time, guest_count, status, notes, created_at) VALUES
+(1, 'KH101', 7, '2026-05-02', '19:00:00', 5, N'Đã xác nhận', N'Kỷ niệm', '2026-04-28 10:00:00'),
+(2, 'KH102', 2, '2026-05-02', '20:30:00', 4, N'Chờ xử lý', N'Cần ghế trẻ em', '2026-05-01 15:20:00'),
+(3, 'KH104', 5, '2026-05-03', '18:00:00', 2, N'Đã xác nhận', N'Bàn view đẹp', '2026-04-30 09:45:00');
 SET IDENTITY_INSERT Reservations OFF;
 
 -- Orders
 INSERT INTO Orders (id, customer_id, customerName, customerPhone, account_id, table_id, time, date, subtotal, discount, total, status, payment_method, payment_status, notes, created_at) VALUES
-('ORD-17042026-001', 'KH101', N'Nguyễn Văn A', '0901234567', 2, 'Bàn VIP 1', '19:30:00', '2026-04-17', 12550000, 0, 12550000, N'Hoàn thành', 'card', 'completed', N'', '2026-04-17 19:30:00'),
+INSERT INTO Orders (id, customer_id, customerName, customerPhone, account_id, table_id, time, date, subtotal, discount, total, status, payment_method, payment_status, notes, created_at) VALUES
+('ORD-17042026-001', 'KH101', N'Nguyễn Văn A', '0901234567', 2, 7, '19:30:00', '2026-04-17', 12550000, 0, 12550000, N'Hoàn thành', 'card', 'completed', N'', '2026-04-17 19:30:00'),
 ('ORD-02052026-002', 'KH103', N'Lê Hữu C', '0987654321', 3, NULL, '18:15:00', '2026-05-02', 35000000, 1000000, 34000000, N'Đang chế biến', 'transfer', 'pending', N'Khách VIP', '2026-05-02 18:15:00'),
 ('ORD-02052026-003', NULL, N'Khách lẻ', '', 4, NULL, '12:30:00', '2026-05-02', 1060000, 0, 1060000, N'Hoàn thành', 'cash', 'completed', N'', '2026-05-02 12:30:00');
 

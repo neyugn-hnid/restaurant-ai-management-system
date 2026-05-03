@@ -23,7 +23,7 @@ namespace server.Controllers
             _context = context;
         }
 
-        // GET: api/OrderItems
+
         [HttpGet]
         public async Task<ActionResult<PagedResponse<OrderItem>>> GetOrderItem([FromQuery] PagedRequest request)
         {
@@ -44,7 +44,7 @@ namespace server.Controllers
             return Ok(pagedResult);
         }
 
-        // GET: api/OrderItems/5
+
         [HttpGet("{id}")]
         public async Task<ActionResult<OrderItem>> GetOrderItem(int id)
         {
@@ -58,8 +58,8 @@ namespace server.Controllers
             return orderItem;
         }
 
-        // PUT: api/OrderItems/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+
+
         [HttpPut("{id}")]
         public async Task<IActionResult> PutOrderItem(int id, OrderItem orderItem)
         {
@@ -89,8 +89,8 @@ namespace server.Controllers
             return NoContent();
         }
 
-        // POST: api/OrderItems
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+
+
         [HttpPost]
         public async Task<ActionResult<OrderItem>> PostOrderItem(OrderItem orderItem)
         {
@@ -100,7 +100,7 @@ namespace server.Controllers
             return CreatedAtAction("GetOrderItem", new { id = orderItem.Id }, orderItem);
         }
 
-        // DELETE: api/OrderItems/5
+
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteOrderItem(int id)
         {

@@ -23,7 +23,7 @@ namespace server.Controllers
             _context = context;
         }
 
-        // GET: api/Accounts
+
         [HttpGet]
         public async Task<ActionResult<PagedResponse<Account>>> GetAccount([FromQuery] PagedRequest request)
         {
@@ -44,7 +44,7 @@ namespace server.Controllers
             return Ok(pagedResult);
         }
 
-        // GET: api/Accounts/5
+
         [HttpGet("{id}")]
         public async Task<ActionResult<Account>> GetAccount(int id)
         {
@@ -58,8 +58,8 @@ namespace server.Controllers
             return account;
         }
 
-        // PUT: api/Accounts/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+
+
         [HttpPut("{id}")]
         public async Task<IActionResult> PutAccount(int id, Account account)
         {
@@ -68,7 +68,22 @@ namespace server.Controllers
                 return BadRequest();
             }
 
-            _context.Entry(account).State = EntityState.Modified;
+            var existing = await _context.Account.FindAsync(id);
+            if (existing == null) return NotFound();
+
+            existing.FullName = account.FullName ?? existing.FullName;
+            existing.Username = account.Username ?? existing.Username;
+            existing.Role = account.Role ?? existing.Role;
+            existing.Status = account.Status;
+            if (!string.IsNullOrWhiteSpace(account.PasswordHash) && !account.PasswordHash.StartsWith("$2"))
+            {
+                existing.PasswordHash = BCrypt.Net.BCrypt.HashPassword(account.PasswordHash);
+            }
+            else if (!string.IsNullOrWhiteSpace(account.PasswordHash))
+            {
+                existing.PasswordHash = account.PasswordHash;
+            }
+            existing.UpdatedAt = DateTime.UtcNow;
 
             try
             {
@@ -89,18 +104,26 @@ namespace server.Controllers
             return NoContent();
         }
 
-        // POST: api/Accounts
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+
+
         [HttpPost]
         public async Task<ActionResult<Account>> PostAccount(Account account)
         {
+            if (!string.IsNullOrWhiteSpace(account.PasswordHash) && !account.PasswordHash.StartsWith("$2"))
+            {
+                account.PasswordHash = BCrypt.Net.BCrypt.HashPassword(account.PasswordHash);
+            }
+            else if (string.IsNullOrWhiteSpace(account.PasswordHash))
+            {
+                account.PasswordHash = BCrypt.Net.BCrypt.HashPassword("admin123");
+            }
             _context.Account.Add(account);
             await _context.SaveChangesAsync();
 
             return CreatedAtAction("GetAccount", new { id = account.Id }, account);
         }
 
-        // DELETE: api/Accounts/5
+
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteAccount(int id)
         {

@@ -26,7 +26,7 @@ namespace server.Modal
         [Column("updated_at")]
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
-        // Navigation property
+
         public ICollection<Product>? Products { get; set; }
     }
 }

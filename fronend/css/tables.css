@@ -1,4 +1,4 @@
-/* Quản lý bàn (Tables) specific styles */
+
 .table-item {
     transition: opacity 0.3s ease-in-out;
 }
@@ -9,7 +9,6 @@
 .table-reserved { border-top-color: #fbbc05; }
 .table-cleaning { border-top-color: #f97316; }
 
-/* Detail Modal Styles */
 .table-icon-large {
     background-color: var(--sb-house-green-light) !important;
 }

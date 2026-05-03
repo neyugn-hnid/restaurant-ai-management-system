@@ -4,10 +4,10 @@
 
 namespace server.Migrations
 {
-    /// <inheritdoc />
+
     public partial class InitEnum : Migration
     {
-        /// <inheritdoc />
+
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.AlterColumn<string>(
@@ -83,7 +83,7 @@ namespace server.Migrations
                 oldNullable: true);
         }
 
-        /// <inheritdoc />
+
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.AlterColumn<string>(

@@ -23,7 +23,7 @@ namespace server.Controllers
             _context = context;
         }
 
-        // GET: api/Reservations
+
         [HttpGet]
         public async Task<ActionResult<PagedResponse<Reservation>>> GetReservation([FromQuery] PagedRequest request)
         {
@@ -32,9 +32,11 @@ namespace server.Controllers
             if (!string.IsNullOrWhiteSpace(request.SearchTerm))
             {
                 var searchTerm = request.SearchTerm.Trim();
+                int? parsedTableId = int.TryParse(searchTerm, out var pid) ? pid : (int?)null;
+
                 query = query.Where(reservation =>
                     (reservation.CustomerId != null && reservation.CustomerId.Contains(searchTerm)) ||
-                    (reservation.TableId != null && reservation.TableId.Contains(searchTerm)) ||
+                    (parsedTableId != null && reservation.TableId == parsedTableId) ||
                     (reservation.Notes != null && reservation.Notes.Contains(searchTerm)));
             }
 
@@ -44,7 +46,7 @@ namespace server.Controllers
             return Ok(pagedResult);
         }
 
-        // GET: api/Reservations/5
+
         [HttpGet("{id}")]
         public async Task<ActionResult<Reservation>> GetReservation(int id)
         {
@@ -58,8 +60,8 @@ namespace server.Controllers
             return reservation;
         }
 
-        // PUT: api/Reservations/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+
+
         [HttpPut("{id}")]
         public async Task<IActionResult> PutReservation(int id, Reservation reservation)
         {
@@ -89,8 +91,8 @@ namespace server.Controllers
             return NoContent();
         }
 
-        // POST: api/Reservations
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+
+
         [HttpPost]
         public async Task<ActionResult<Reservation>> PostReservation(Reservation reservation)
         {
@@ -100,7 +102,7 @@ namespace server.Controllers
             return CreatedAtAction("GetReservation", new { id = reservation.Id }, reservation);
         }
 
-        // DELETE: api/Reservations/5
+
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteReservation(int id)
         {

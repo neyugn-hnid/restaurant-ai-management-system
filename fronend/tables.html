@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Quản lý bàn - Quản trị nhà hàng</title>
+    <title>Quản lý bàn - DEAGUN</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
@@ -17,8 +17,7 @@
                 <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">restaurant</span>
             </div>
             <div>
-                <h5 class="mb-0 fw-bold fs-5">Quản trị nhà hàng</h5>
-                <small class="text-white-50">Hệ thống quản lý</small>
+                <h5 class="mb-0 fw-bold fs-5">DEAGUN</h5>
             </div>
         </div>
         <div class="flex-grow-1 px-3">
@@ -33,18 +32,22 @@
 
         </div>
         <div class="px-3 mt-auto pt-3 border-top border-light border-opacity-10">
-            <a class="nav-link" href="#"><span class="material-symbols-outlined">logout</span> Đăng xuất</a>
+            <a class="nav-link" href="#" onclick="Auth.logout(); return false;"><span class="material-symbols-outlined">logout</span> Đăng xuất</a>
         </div>
     </nav>
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
     <div class="main-content d-flex flex-column">
         <header class="topbar d-flex align-items-center justify-content-end px-4">
+            <button class="mobile-toggle" id="mobileSidebarToggle">
+                <span class="material-symbols-outlined">menu</span>
+            </button>
             <div class="d-flex align-items-center gap-3 topbar-actions">
                 <button class="btn btn-icon border-0 position-relative">
                     <span class="material-symbols-outlined">notifications</span>
-                    <span class="position-absolute top-0 end-0 translate-middle p-1 bg-danger border border-light rounded-circle" style="margin-top: 10px; margin-right: 5px;"></span>
+                    <span class="position-absolute top-0 end-0 translate-middle p-1 bg-danger border border-light rounded-circle notification-dot"></span>
                 </button>
-                <div class="vr" style="height: 24px; align-self: center;"></div>
-                <div class="d-flex align-items-center gap-2 cursor-pointer" style="cursor: pointer;">
+                <div class="vr vr-divider"></div>
+                <div class="d-flex align-items-center gap-2 cursor-pointer cursor-pointer">
                     <img src="https://ui-avatars.com/api/?name=Admin&background=1e3a8a&color=fff" alt="Avatar" class="avatar">
                 </div>
             </div>
@@ -53,7 +56,6 @@
             <div class="d-flex justify-content-between align-items-end mb-4">
                 <div>
                     <h3 class="fw-bold text-dark mb-1">Quản lý bàn</h3>
-                    <p class="text-secondary mb-0">Quản lý sơ đồ và trạng thái phục vụ hiện tại.</p>
                 </div>
                 <div class="d-flex gap-3">
                     <button class="btn btn-primary d-flex align-items-center gap-2 fw-medium px-4 shadow-sm" data-bs-toggle="modal" data-bs-target="#addTableModal">
@@ -64,13 +66,13 @@
 
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <div class="d-flex gap-3 flex-wrap">
-                    <div class="search-box text-dark fw-medium" style="width: 250px;">
+                    <div class="search-box">
                         <span class="material-symbols-outlined fs-5">search</span>
-                        <input type="text" id="tableSearch" class="form-control bg-white shadow-sm" placeholder="Tìm kiếm bàn...">
+                        <input type="text" id="tableSearch" placeholder="Tìm kiếm bàn...">
                     </div>
-                    <select class="form-select border bg-white rounded-pill shadow-sm px-4 fw-medium text-dark" id="locationFilter" style="width: 200px;"></select>
-                    <select class="form-select border bg-white rounded-pill shadow-sm px-4 fw-medium text-dark" id="statusFilter" style="width: 170px;"></select>
-                    <select class="form-select border bg-white rounded-pill shadow-sm px-4 fw-medium text-dark" id="sortOption" style="width: 190px;"></select>
+                    <select id="locationFilter" class="filter-select"></select>
+                    <select id="statusFilter" class="filter-select"></select>
+                    <select id="sortOption" class="filter-select"></select>
                 </div>
                 <a href="./table-management.html" class="text-primary text-decoration-none fw-medium d-flex align-items-center gap-1">
                     Xem & quản lý tất cả bàn <span class="material-symbols-outlined fs-5">arrow_forward</span>
@@ -82,8 +84,8 @@
                     <div class="stat-card">
                         <div class="d-flex justify-content-between mb-2">
                             <p class="text-secondary fw-medium mb-0">Tổng số bàn</p>
-                            <div class="icon-box bg-primary-light" style="width: 32px; height: 32px;">
-                                <span class="material-symbols-outlined" style="font-size: 1.2rem;">table_restaurant</span>
+                            <div class="icon-box bg-primary-light stat-icon-sm">
+                                <span class="material-symbols-outlined icon-sm">table_restaurant</span>
                             </div>
                         </div>
                         <h2 class="mb-0 fw-bold">42</h2>
@@ -93,8 +95,8 @@
                     <div class="stat-card">
                         <div class="d-flex justify-content-between mb-2">
                             <p class="text-secondary fw-medium mb-0">Bàn trống</p>
-                            <div class="icon-box bg-success-light" style="width: 32px; height: 32px;">
-                                <span class="material-symbols-outlined text-success" style="font-size: 1.2rem;">check_circle</span>
+                            <div class="icon-box bg-success-light stat-icon-sm">
+                                <span class="material-symbols-outlined text-success icon-sm">check_circle</span>
                             </div>
                         </div>
                         <h2 class="mb-0 fw-bold">24</h2>
@@ -104,8 +106,8 @@
                     <div class="stat-card">
                         <div class="d-flex justify-content-between mb-2">
                             <p class="text-secondary fw-medium mb-0">Đang phục vụ</p>
-                            <div class="icon-box bg-danger-light" style="width: 32px; height: 32px;">
-                                <span class="material-symbols-outlined text-danger" style="font-size: 1.2rem;">group</span>
+                            <div class="icon-box bg-danger-light stat-icon-sm">
+                                <span class="material-symbols-outlined text-danger icon-sm">group</span>
                             </div>
                         </div>
                         <h2 class="mb-0 fw-bold">15</h2>
@@ -115,8 +117,8 @@
                     <div class="stat-card">
                         <div class="d-flex justify-content-between mb-2">
                             <p class="text-secondary fw-medium mb-0">Đã đặt trước</p>
-                            <div class="icon-box bg-warning-light" style="width: 32px; height: 32px;">
-                                <span class="material-symbols-outlined text-warning" style="font-size: 1.2rem;">event_seat</span>
+                            <div class="icon-box bg-warning-light stat-icon-sm">
+                                <span class="material-symbols-outlined text-warning icon-sm">event_seat</span>
                             </div>
                         </div>
                         <h2 class="mb-0 fw-bold">3</h2>
@@ -125,9 +127,9 @@
             </div>
 
             <div class="row g-4" id="tableList">
-                <!-- Empty State -->
+
                 <div class="col-12 text-center" id="emptyState" style="display: none; padding: 4rem 0;">
-                    <span class="material-symbols-outlined text-secondary" style="font-size: 4rem; opacity: 0.5;">search_off</span>
+                    <span class="material-symbols-outlined text-secondary empty-state-icon">search_off</span>
                     <h5 class="fw-bold mt-3 text-dark">Không tìm thấy bàn nào</h5>
                     <p class="text-secondary">Vui lòng thử nghiệm lại từ khóa hoặc bộ lọc của bạn.</p>
                 </div>
@@ -135,7 +137,7 @@
         </main>
     </div>
 
-    <!-- Add Table Modal -->
+
     <div class="modal fade" id="addTableModal" tabindex="-1" aria-labelledby="addTableModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content rounded-4 border-0 shadow">
@@ -151,12 +153,7 @@
                         </div>
                         <div class="mb-3">
                             <label for="tableLocation" class="form-label fw-medium">Khu vực</label>
-                            <select class="form-select rounded-pill px-3 py-2" id="tableLocation" required>
-                                <option value="" selected disabled>Chọn khu vực</option>
-                                <option value="Tầng 1">Tầng 1</option>
-                                <option value="Sân vườn">Sân vườn</option>
-                                <option value="Khu VIP">Khu VIP</option>
-                            </select>
+                            <select class="form-select rounded-pill px-3 py-2" id="tableLocation" required></select>
                         </div>
                         <div class="mb-4">
                             <label for="tableCapacity" class="form-label fw-medium">Sức chứa (người)</label>
@@ -172,7 +169,7 @@
         </div>
     </div>
 
-    <!-- QR Modal -->
+
     <div class="modal fade" id="qrModal" tabindex="-1" aria-labelledby="qrModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered modal-sm">
             <div class="modal-content rounded-4 border-0 shadow">
@@ -202,59 +199,15 @@
             </div>
         </div>
     </div>
-    
-    <script>
-        // Use a global click interceptor because Bootstrap relatedTarget can be flaky
-        document.addEventListener('click', function(e) {
-            let btn = e.target.closest('button[data-bs-target="#qrModal"]');
-            if (btn) {
-                let tableName = "";
-                let card = btn.closest('.table-card');
-                if (card) {
-                    let h5 = card.querySelector('h5');
-                    if (h5) tableName = h5.textContent.trim();
-                } else {
-                    let row = btn.closest('tr');
-                    if (row) {
-                        let span = row.querySelector('.fw-semibold');
-                        if (span) tableName = span.textContent.trim();
-                        else tableName = row.children[1].textContent.trim();
-                    }
-                }
-                
-                if (tableName) {
-                    let qrModal = document.getElementById('qrModal');
-                    if (qrModal) {
-                        let nameEl = qrModal.querySelector('.qr-table-name');
-                        if (nameEl) nameEl.textContent = tableName;
-                        
-                        let targetUrl = "/customer-menu.html?table=" + encodeURIComponent(tableName);
-                        
-                        let testLink = qrModal.querySelector('#qrTestLink');
-                        if (testLink) testLink.href = targetUrl;
-                        
-                        let directLink = qrModal.querySelector('#qrDirectLink');
-                        if (directLink) directLink.href = targetUrl;
-                        
-                        let testLinkMgmt = qrModal.querySelector('#qrTestLinkMgmt');
-                        if (testLinkMgmt) testLinkMgmt.href = targetUrl;
-                        
-                        let directLinkMgmt = qrModal.querySelector('#qrDirectLink2');
-                        if (directLinkMgmt) directLinkMgmt.href = targetUrl;
-                    }
-                }
-            }
-        });
-    </script>
 
-    <!-- Floating Action Button (Frap) -->
-    <a href="/orders.html" class="btn btn-primary d-flex align-items-center justify-content-center p-0 position-fixed" 
-       style="width: 56px; height: 56px; border-radius: 50%; bottom: 32px; right: 32px; z-index: 1050; box-shadow: 0 0 6px rgba(0,0,0,0.24), 0 8px 12px rgba(0,0,0,0.14) !important;">
-        <span class="material-symbols-outlined" style="font-size: 24px;">add_shopping_cart</span>
+
+
+    <a href="/orders.html" class="btn btn-primary d-flex align-items-center justify-content-center p-0 position-fixed fab">
+        <span class="material-symbols-outlined fab-icon">add_shopping_cart</span>
     </a>
 
-    <!-- Toast Notification Container -->
-    <div class="toast-container position-fixed bottom-0 start-0 p-3" style="z-index: 1080;">
+
+    <div class="toast-container position-fixed bottom-0 start-0 p-3 toast-z">
         <div id="liveToast" class="toast align-items-center text-white bg-success border-0" role="alert" aria-live="assertive" aria-atomic="true">
             <div class="d-flex">
                 <div class="toast-body d-flex align-items-center gap-2">
@@ -266,7 +219,7 @@
         </div>
     </div>
 
-    <!-- Table Detail Modal -->
+
     <div class="modal fade" id="tableDetailModal" tabindex="-1" aria-labelledby="tableDetailModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content rounded-4 border-0 shadow-lg">
@@ -276,7 +229,7 @@
                 </div>
                 <div class="modal-body p-4">
                     <div class="d-flex align-items-center gap-4 mb-4">
-                        <div class="table-icon-large bg-light rounded-4 d-flex align-items-center justify-content-center" style="width: 80px; height: 80px;">
+                        <div class="table-icon-large bg-light rounded-4 d-flex align-items-center justify-content-center table-detail-icon-lg">
                             <span class="material-symbols-outlined text-primary" style="font-size: 40px;">table_restaurant</span>
                         </div>
                         <div>
@@ -284,7 +237,7 @@
                             <span class="badge detail-table-status">Trống</span>
                         </div>
                     </div>
-                    
+
                     <div class="row g-3">
                         <div class="col-6">
                             <div class="p-3 bg-light rounded-4">
@@ -316,18 +269,18 @@
                         </div>
                     </div>
 
-                    <!-- Ordered Items Section -->
+
                     <div class="detail-items-section mt-4" style="display: none;">
                         <h6 class="fw-bold mb-3 d-flex align-items-center gap-2">
                             <span class="material-symbols-outlined fs-5">restaurant_menu</span> Danh sách món đã gọi
                         </h6>
                         <div class="ordered-items-list border rounded-4 overflow-hidden">
-                            <!-- Items will be injected here -->
+
                         </div>
                     </div>
                 </div>
                 <div class="modal-footer border-top-0 gap-2 detail-actions">
-                    <!-- Actions will be injected via JS -->
+
                 </div>
             </div>
         </div>
@@ -336,5 +289,7 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script type="module" src="./js/data.js"></script>
     <script type="module" src="./js/tables.js"></script>
+    <script src="./js/sidebar.js"></script>
+    <script src="./js/auth.js"></script>
 </body>
 </html>

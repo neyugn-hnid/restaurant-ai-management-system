@@ -23,7 +23,7 @@ namespace server.Controllers
             _context = context;
         }
 
-        // GET: api/Products
+
         [HttpGet]
         public async Task<ActionResult<PagedResponse<Product>>> GetProduct([FromQuery] PagedRequest request)
         {
@@ -55,7 +55,7 @@ namespace server.Controllers
             return Ok(pagedResult);
         }
 
-        // GET: api/Products/5
+
         [HttpGet("{id}")]
         public async Task<ActionResult<Product>> GetProduct(int id)
         {
@@ -69,8 +69,8 @@ namespace server.Controllers
             return product;
         }
 
-        // PUT: api/Products/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+
+
         [HttpPut("{id}")]
         public async Task<IActionResult> PutProduct(int id, Product product)
         {
@@ -100,8 +100,8 @@ namespace server.Controllers
             return NoContent();
         }
 
-        // POST: api/Products
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+
+
         [HttpPost]
         public async Task<ActionResult<Product>> PostProduct(Product product)
         {
@@ -111,7 +111,7 @@ namespace server.Controllers
             return CreatedAtAction("GetProduct", new { id = product.Id }, product);
         }
 
-        // DELETE: api/Products/5
+
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteProduct(int id)
         {

@@ -20,9 +20,8 @@ namespace server.Modal
         [Column("account_id")]
         public int? AccountId { get; set; }
 
-        [MaxLength(50)]
         [Column("table_id")]
-        public string? TableId { get; set; }
+        public int? TableId { get; set; }
 
         [Column("status")]
         public OrderStatus Status { get; set; } = OrderStatus.Pending;
@@ -55,7 +54,7 @@ namespace server.Modal
         [Column("updated_at")]
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
-        // Navigation properties
+
         [ForeignKey(nameof(CustomerId))]
         public Customer? Customer { get; set; }
 

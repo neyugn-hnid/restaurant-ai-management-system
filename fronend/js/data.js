@@ -1,4 +1,4 @@
-// Initial Mock Data corresponding to database.sql
+
 const MOCK_CATEGORIES = [
     {
         "id": 1,
@@ -579,42 +579,41 @@ const MOCK_CUSTOMERS = [
 ];
 
 const MOCK_TABLES = [
-    { id: 'Bàn 01', zone: 'Tầng 1', capacity: 4, status: 'Trống', created_at: '2025-01-01T00:00:00Z' },
-    { id: 'Bàn 02', zone: 'Tầng 1', capacity: 4, status: 'Trống', created_at: '2025-01-01T00:00:00Z' },
-    { id: 'Bàn 03', zone: 'Tầng 1 - Cửa sổ', capacity: 2, status: 'Trống', created_at: '2025-01-01T00:00:00Z' },
-    { id: 'Bàn 04', zone: 'Tầng 1', capacity: 2, status: 'Trống', created_at: '2025-01-01T00:00:00Z' },
-    { id: 'Bàn 05', zone: 'Sân vườn', capacity: 6, status: 'Trống', created_at: '2025-01-01T00:00:00Z' },
-    { id: 'Bàn 06', zone: 'Sân vườn', capacity: 4, status: 'Trống', created_at: '2025-01-01T00:00:00Z' },
-    { id: 'Bàn VIP 1', zone: 'Khu VIP', capacity: 8, status: 'Trống', created_at: '2025-01-01T00:00:00Z' }
+    { id: 1, zone: 'Tầng 1', capacity: 4, status: 'Trống', created_at: '2025-01-01T00:00:00Z' },
+    { id: 2, zone: 'Tầng 1', capacity: 4, status: 'Trống', created_at: '2025-01-01T00:00:00Z' },
+    { id: 3, zone: 'Tầng 1 - Cửa sổ', capacity: 2, status: 'Trống', created_at: '2025-01-01T00:00:00Z' },
+    { id: 4, zone: 'Tầng 1', capacity: 2, status: 'Trống', created_at: '2025-01-01T00:00:00Z' },
+    { id: 5, zone: 'Sân vườn', capacity: 6, status: 'Trống', created_at: '2025-01-01T00:00:00Z' },
+    { id: 6, zone: 'Sân vườn', capacity: 4, status: 'Trống', created_at: '2025-01-01T00:00:00Z' },
+    { id: 7, zone: 'Khu VIP', capacity: 8, status: 'Trống', created_at: '2025-01-01T00:00:00Z' }
 ];
 
-// Để tương thích với code cũ
 const MOCK_TABLE_STATUSES = {};
 MOCK_TABLES.forEach(table => {
     MOCK_TABLE_STATUSES[table.id] = table.status;
 });
 
 const MOCK_RESERVATIONS = [
-    { id: 1, customer_id: 'KH101', table_id: 'Bàn VIP 1', reservation_date: '2026-05-02', reservation_time: '19:00', guest_count: 5, status: 'Đã xác nhận', notes: 'Kỷ niệm', created_at: '2026-04-28T10:00:00Z' },
-    { id: 2, customer_id: 'KH102', table_id: 'Bàn 02', reservation_date: '2026-05-02', reservation_time: '20:30', guest_count: 4, status: 'Chờ xử lý', notes: 'Cần ghế trẻ em', created_at: '2026-05-01T15:20:00Z' },
-    { id: 3, customer_id: 'KH104', table_id: 'Bàn 05', reservation_date: '2026-05-03', reservation_time: '18:00', guest_count: 2, status: 'Đã xác nhận', notes: 'Bàn view đẹp', created_at: '2026-04-30T09:45:00Z' }
+    { id: 1, customer_id: 'KH101', table_id: 7, reservation_date: '2026-05-02', reservation_time: '19:00', guest_count: 5, status: 'Đã xác nhận', notes: 'Kỷ niệm', created_at: '2026-04-28T10:00:00Z' },
+    { id: 2, customer_id: 'KH102', table_id: 2, reservation_date: '2026-05-02', reservation_time: '20:30', guest_count: 4, status: 'Chờ xử lý', notes: 'Cần ghế trẻ em', created_at: '2026-05-01T15:20:00Z' },
+    { id: 3, customer_id: 'KH104', table_id: 5, reservation_date: '2026-05-03', reservation_time: '18:00', guest_count: 2, status: 'Đã xác nhận', notes: 'Bàn view đẹp', created_at: '2026-04-30T09:45:00Z' }
 ];
 
 const MOCK_ORDERS = [
-    { 
-        id: 'ORD-17042026-001', 
+    {
+        id: 'ORD-17042026-001',
         customer_id: 'KH101',
         customerName: 'Nguyễn Văn A',
         customerPhone: '0901234567',
         account_id: 2,
-        table_id: 'Bàn VIP 1',
-        tableId: 'Bàn VIP 1',
-        customer: 'Bàn VIP 1', // Cho các chức năng tương thích ngược trong table.js
-        time: '19:30', 
+        table_id: 7,
+        tableId: 7,
+        customer: 'Bàn VIP 1',
+        time: '19:30',
         date: '2026-04-17',
         subtotal: 12550000,
         discount: 0,
-        total: 12550000, 
+        total: 12550000,
         status: 'Hoàn thành',
         payment_method: 'card',
         payment_status: 'completed',
@@ -626,20 +625,20 @@ const MOCK_ORDERS = [
             { product_id: 19, name: 'Tôm Hùm Alaska Đút Lò', price: 1850000, quantity: 2, total_price: 3700000 }
         ]
     },
-    { 
-        id: 'ORD-02052026-002', 
+    {
+        id: 'ORD-02052026-002',
         customer_id: 'KH103',
         customerName: 'Lê Hữu C',
         customerPhone: '0987654321',
         account_id: 3,
         table_id: 'T1',
-        tableId: 'T1', 
+        tableId: 'T1',
         customer: 'T1',
-        time: '18:15', 
+        time: '18:15',
         date: '2026-05-02',
         subtotal: 35000000,
         discount: 1000000,
-        total: 34000000, 
+        total: 34000000,
         status: 'Đang chế biến',
         payment_method: 'transfer',
         payment_status: 'pending',
@@ -650,20 +649,20 @@ const MOCK_ORDERS = [
             { product_id: 38, name: 'Sâm-panh Dom Pérignon', price: 1250000, quantity: 1, total_price: 1250000 }
         ]
     },
-    { 
-        id: 'ORD-02052026-003', 
+    {
+        id: 'ORD-02052026-003',
         customer_id: null,
         customerName: 'Khách lẻ',
         customerPhone: '',
         account_id: 4,
         table_id: 'T2',
-        tableId: 'T2', 
+        tableId: 'T2',
         customer: 'T2',
-        time: '12:30', 
+        time: '12:30',
         date: '2026-05-02',
         subtotal: 1060000,
         discount: 0,
-        total: 1060000, 
+        total: 1060000,
         status: 'Hoàn thành',
         payment_method: 'cash',
         payment_status: 'completed',
@@ -706,7 +705,6 @@ function initializeMockData() {
     }
 }
 
-// Call initialization
 initializeMockData();
 
 window.BistroMockData = {
@@ -720,12 +718,11 @@ window.BistroMockData = {
     MOCK_ORDERS
 };
 
-// --- Cài đặt hiển thị Responsive cho Sidebar và Navbar ---
 document.addEventListener('DOMContentLoaded', () => {
-    // 1. Sidebar cho trang quản trị
+
     const topbar = document.querySelector('.topbar');
     const sidebar = document.querySelector('.sidebar');
-    
+
     if (topbar && sidebar) {
         let toggleBtn = topbar.querySelector('.mobile-toggle');
         if (!toggleBtn) {
@@ -734,7 +731,7 @@ document.addEventListener('DOMContentLoaded', () => {
             toggleBtn.innerHTML = '<span class="material-symbols-outlined fs-2">menu</span>';
             topbar.insertBefore(toggleBtn, topbar.firstChild);
         }
-        
+
         let overlay = document.querySelector('.sidebar-overlay');
         if (!overlay) {
             overlay = document.createElement('div');
@@ -746,7 +743,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             document.body.appendChild(overlay);
         }
-        
+
         toggleBtn.addEventListener('click', () => {
             const isShowing = sidebar.classList.toggle('show');
             if (isShowing) {
@@ -757,7 +754,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 setTimeout(() => overlay.style.display = 'none', 300);
             }
         });
-        
+
         overlay.addEventListener('click', () => {
             sidebar.classList.remove('show');
             overlay.style.opacity = 0;
@@ -765,8 +762,8 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // 2. Navbar cho trang khách hàng (customer pages)
-    const navbar = document.querySelector('.navbar'); 
+
+    const navbar = document.querySelector('.navbar');
     if (navbar && !sidebar) {
         let mobileNavToggle = navbar.querySelector('.mobile-nav-toggle');
         if (!mobileNavToggle) {
@@ -778,7 +775,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 cursor: 'pointer', display: 'none'
             });
             navbar.appendChild(mobileNavToggle);
-            
+
             const style = document.createElement('style');
             style.textContent = `
                 @media (max-width: 768px) {
@@ -796,20 +793,20 @@ document.addEventListener('DOMContentLoaded', () => {
                     .nav-links.nav-active { clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%); }
                     .nav-links .nav-label::after { display: none; }
                     .nav-links .btn { width: 100%; text-align: center; }
-                    /* Adjust elements that might overlap */
+
                     .reservation-bar { grid-template-columns: 1fr !important; }
-                    /* Customer Menu Page */
-                    .menu-filter-island { 
-                        justify-content: flex-start !important; 
-                        padding: 1rem !important; 
-                        margin: 0 !important; 
+
+                    .menu-filter-island {
+                        justify-content: flex-start !important;
+                        padding: 1rem !important;
+                        margin: 0 !important;
                         border-radius: 0 !important;
                         overflow-x: auto;
                         white-space: nowrap;
                     }
                     .menu-filter-island::-webkit-scrollbar { display: none; }
                     .menu-category h2 { font-size: 2.4rem !important; }
-                    /* Map Page */
+
                     .map-main { grid-template-columns: 1fr !important; }
                     .map-booking-panel { position: static !important; width: 100% !important; margin-bottom: 2rem !important; }
                 }
@@ -820,7 +817,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             `;
             document.head.appendChild(style);
-            
+
             if (!document.querySelector('link[href*="Material+Symbols+Outlined"]')) {
                 const link = document.createElement('link');
                 link.rel = 'stylesheet';
@@ -828,7 +825,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 document.head.appendChild(link);
             }
         }
-        
+
         mobileNavToggle.addEventListener('click', () => {
             const navLinks = navbar.querySelector('.nav-links');
             if (navLinks) {

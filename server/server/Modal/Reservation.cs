@@ -17,9 +17,8 @@ namespace server.Modal
         public string? CustomerId { get; set; }
 
         [Required]
-        [MaxLength(50)]
         [Column("table_id")]
-        public string? TableId { get; set; }
+        public int TableId { get; set; }
 
         [Required]
         [Column("reservation_date", TypeName = "date")]
@@ -44,7 +43,7 @@ namespace server.Modal
         [Column("updated_at")]
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
-        // Navigation properties
+
         [ForeignKey(nameof(CustomerId))]
         public Customer? Customer { get; set; }
 

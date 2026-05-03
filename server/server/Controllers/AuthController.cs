@@ -34,7 +34,15 @@ namespace server.Controllers
             }
 
             var token = GenerateJwtToken(user);
-            return Ok(new { token });
+            return Ok(new { token, user = new { id = user.Id, username = user.Username, role = user.Role, fullName = user.FullName } });
+        }
+
+        [HttpPost("logout")]
+        public IActionResult Logout()
+        {
+
+
+            return Ok(new { message = "Đăng xuất thành công" });
         }
 
         private string GenerateJwtToken(Account user)
@@ -61,8 +69,6 @@ namespace server.Controllers
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
     }
-
-
 
     public class LoginRequest
     {

@@ -23,7 +23,7 @@ namespace server.Controllers
             _context = context;
         }
 
-        // GET: api/Customers
+
         [HttpGet]
         public async Task<ActionResult<PagedResponse<Customer>>> GetCustomer([FromQuery] PagedRequest request)
         {
@@ -46,7 +46,7 @@ namespace server.Controllers
             return Ok(pagedResult);
         }
 
-        // GET: api/Customers/5
+
         [HttpGet("{id}")]
         public async Task<ActionResult<Customer>> GetCustomer(string id)
         {
@@ -60,8 +60,8 @@ namespace server.Controllers
             return customer;
         }
 
-        // PUT: api/Customers/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+
+
         [HttpPut("{id}")]
         public async Task<IActionResult> PutCustomer(string id, Customer customer)
         {
@@ -91,8 +91,8 @@ namespace server.Controllers
             return NoContent();
         }
 
-        // POST: api/Customers
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+
+
         [HttpPost]
         public async Task<ActionResult<Customer>> PostCustomer(Customer customer)
         {
@@ -116,7 +116,7 @@ namespace server.Controllers
             return CreatedAtAction("GetCustomer", new { id = customer.Id }, customer);
         }
 
-        // DELETE: api/Customers/5
+
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteCustomer(string id)
         {

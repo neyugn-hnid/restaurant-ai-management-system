@@ -17,7 +17,6 @@ namespace server.Modal
         [Column("username")]
         public string? Username { get; set; }
 
-        [Required]
         [MaxLength(255)]
         [Column("password_hash")]
         public string? PasswordHash { get; set; }
@@ -43,7 +42,7 @@ namespace server.Modal
         [Column("updated_at")]
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
-        // Navigation property
+
         public ICollection<Order>? Orders { get; set; }
     }
 }

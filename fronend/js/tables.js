@@ -5,7 +5,7 @@ import {
 } from './status-constants.js';
 
 document.addEventListener('DOMContentLoaded', () => {
-    const TABLES_API_URL = 'http://localhost:5247/api/RestaurantTables';
+    const TABLES_API_URL = 'http://localhost:7071/api/RestaurantTables';
     const ALL_OPTION = 'Tất cả';
     const DEFAULT_LOCATION = 'Khu chung';
     const DEFAULT_SORT = 'name-asc';
@@ -167,7 +167,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function getActiveOrder(tableId) {
         return getOrders().find(order =>
-            (order.customer === tableId || order.table_id === tableId || order.tableId === tableId) &&
+            (order.customer === tableId || String(order.table_id) === String(tableId) || String(order.tableId) === String(tableId)) &&
             !isCompletedOrderStatus(order.status)
         );
     }
@@ -419,7 +419,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const errorText = await response.text();
                 if (errorText) message = errorText;
             } catch (_) {
-                // Ignore response parsing errors.
+
             }
 
             throw new Error(message);
@@ -430,7 +430,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function findTableById(tableId) {
-        return state.tables.find(table => table.id === tableId);
+        return state.tables.find(table => String(table.id) === String(tableId));
     }
 
     async function updateTableOnServer(table, overrides) {
@@ -475,7 +475,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function buildCustomerMenuUrl(tableId) {
-        const relativeUrl = `/customer-menu.html?table=${encodeURIComponent(tableId)}`;
+        const relativeUrl = `./customer-menu.html?table=${encodeURIComponent(tableId)}`;
         return window.location.protocol.startsWith('http')
             ? `${window.location.origin}${relativeUrl}`
             : `http://localhost:5500${relativeUrl}`;
@@ -485,7 +485,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const tableItem = cardElement.closest('.table-item');
         if (!tableItem || !elements.detailModal) return;
 
-        const tableId = tableItem.dataset.tableId || 'Bàn';
+        const tableIdRaw = tableItem.dataset.tableId || 'Bàn';
+        const tableId = !isNaN(Number(tableIdRaw)) ? Number(tableIdRaw) : tableIdRaw;
         const status = tableItem.dataset.status || TABLE_STATUSES.AVAILABLE;
         const location = tableItem.dataset.zone || DEFAULT_LOCATION;
         const capacity = `${tableItem.dataset.capacity || 0} Người`;
@@ -497,7 +498,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const itemsSectionElement = elements.detailModal.querySelector('.detail-items-section');
         const itemsListElement = elements.detailModal.querySelector('.ordered-items-list');
         const actionsElement = elements.detailModal.querySelector('.detail-actions');
-        const activeOrder = getActiveOrder(tableId);
+            const activeOrder = getActiveOrder(tableId);
         const orderedItems = activeOrder?.items || [];
 
         if (titleElement) titleElement.textContent = tableId;
@@ -568,7 +569,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const mainButton = actionsElement?.querySelector('.detail-main-btn');
         const viewOrderButton = actionsElement?.querySelector('.detail-view-order');
 
-        if (mainButton) {
+            if (mainButton) {
             mainButton.addEventListener('click', () => {
                 modal.hide();
 
@@ -676,7 +677,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         const payload = {
-            id: tableName,
             zone: tableLocation,
             capacity: tableCapacity,
             status: TABLE_STATUSES.AVAILABLE
@@ -750,4 +750,40 @@ document.addEventListener('DOMContentLoaded', () => {
     bindEvents();
     updateFilterOptions();
     loadTables();
+
+
+    document.addEventListener('click', function(e) {
+        let btn = e.target.closest('button[data-bs-target="#qrModal"]');
+        if (btn) {
+            let tableName = "";
+            let card = btn.closest('.table-card');
+            if (card) {
+                let h5 = card.querySelector('h5');
+                if (h5) tableName = h5.textContent.trim();
+            } else {
+                let row = btn.closest('tr');
+                if (row) {
+                    let span = row.querySelector('.fw-semibold');
+                    if (span) tableName = span.textContent.trim();
+                    else tableName = row.children[1].textContent.trim();
+                }
+            }
+
+            if (tableName) {
+                let qrModal = document.getElementById('qrModal');
+                if (qrModal) {
+                    let nameEl = qrModal.querySelector('.qr-table-name');
+                    if (nameEl) nameEl.textContent = tableName;
+
+                    let targetUrl = "./customer-menu.html?table=" + encodeURIComponent(tableName);
+
+                    let testLink = qrModal.querySelector('#qrTestLink');
+                    if (testLink) testLink.href = targetUrl;
+
+                    let directLink = qrModal.querySelector('#qrDirectLink');
+                    if (directLink) directLink.href = targetUrl;
+                }
+            }
+        }
+    });
 });

@@ -2,345 +2,369 @@ import {
     ACCOUNT_STATUSES,
     isActiveAccountStatus,
     isInactiveAccountStatus
-} from '/js/status-constants.js';
-const API_BASE_URL = 'http://localhost:7071/api';
-const ACCOUNTS_API_URL = `${API_BASE_URL}/Accounts`;
-const ITEMS_PER_PAGE = 10;
-
-// State
-let accountsData = [];
-const state = {
-    currentPage: 1,
-    totalPages: 1,
-    totalItems: 0,
-    isLoading: false,
-    searchTerm: '',
-    roleFilter: '',
-    sort: 'name-asc'
-};
-
-let accountToDeleteId = null;
-
-async function request(url, options = {}) {
-    const response = await fetch(url, {
-        headers: {
-            'Content-Type': 'application/json',
-            ...(options.headers || {})
-        },
-        ...options
-    });
-
-    if (!response.ok) {
-        let message = `API lỗi (${response.status})`;
-        try {
-            const body = await response.text();
-            if (body) message = body;
-        } catch (_) {}
-        throw new Error(message);
-    }
-
-    if (response.status === 204) return null;
-    return await response.json();
-}
-
-async function loadAndRenderAccounts() {
-    if (state.isLoading) return;
-    state.isLoading = true;
-
-    const tbody = document.getElementById('accountsTableBody');
-    if (tbody) tbody.innerHTML = '<tr><td colspan="6" class="text-center py-4"><span class="spinner-border spinner-border-sm"></span></td></tr>';
-
-    try {
-        const sortParts = (state.sort || 'name-asc').split('-');
-        const sortBy = sortParts[0] === 'name' ? 'fullname' : sortParts[0];
-        const sortOrder = sortParts[1] || 'asc';
-
-        const params = new URLSearchParams({
-            page: state.currentPage,
-            pageSize: ITEMS_PER_PAGE,
-            searchTerm: state.searchTerm || '',
-            sortBy,
-            sortOrder
-        });
-
-        const response = await request(`${ACCOUNTS_API_URL}?${params}`);
-        accountsData = response?.items || [];
-        state.totalPages = response?.totalPages || 1;
-        state.totalItems = response?.totalItems || (accountsData.length || 0);
-
-        // If role filter is set, apply locally on returned page items
-        let pageItems = accountsData;
-        if (state.roleFilter) {
-            pageItems = pageItems.filter(a => a.role === state.roleFilter);
-        }
-
-        renderAccounts(pageItems);
-    } catch (err) {
-        console.error('Lỗi khi tải tài khoản:', err);
-        const tbody = document.getElementById('accountsTableBody');
-        if (tbody) tbody.innerHTML = `<tr><td colspan="6" class="text-center py-4 text-danger">Lỗi: ${err.message}</td></tr>`;
-    } finally {
-        state.isLoading = false;
-        renderPagination();
-    }
-}
-
-function getRoleMarkup(role) {
-    if (role === 'admin') return '<span class="role-badge role-admin"><span class="material-symbols-outlined" style="font-size: 14px;">admin_panel_settings</span> Quản trị</span>';
-    if (role === 'manager') return '<span class="role-badge role-manager"><span class="material-symbols-outlined" style="font-size: 14px;">manage_accounts</span> Quản lý</span>';
-    return '<span class="role-badge role-staff"><span class="material-symbols-outlined" style="font-size: 14px;">badge</span> Nhân viên</span>';
-}
-
-function getStatusMarkup(status) {
-    if (isActiveAccountStatus(status)) {
-        return `<span class="badge bg-success bg-opacity-10 text-success border border-success">${ACCOUNT_STATUSES.ACTIVE}</span>`;
-    }
-
-    return `<span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary">${ACCOUNT_STATUSES.LOCKED}</span>`;
-}
-
-// (old local paging/filters removed) use `state` and backend
-
-
-function renderPagination() {
-    const paginationContainer = document.querySelector('.pagination');
-    if (!paginationContainer) return;
-
-    paginationContainer.innerHTML = '';
-
-    const totalPages = Math.max(1, state.totalPages || 1);
-
-    const prevLi = document.createElement('li');
-    prevLi.className = `page-item ${state.currentPage === 1 ? 'disabled' : ''}`;
-    prevLi.innerHTML = `<a class="page-link rounded-pill border-0 text-secondary bg-light px-3" href="#" data-page="prev">Trước</a>`;
-    paginationContainer.appendChild(prevLi);
-
-    for (let i = 1; i <= totalPages; i++) {
-        const li = document.createElement('li');
-        li.className = `page-item ${state.currentPage === i ? 'active' : ''}`;
-        const activeClasses = state.currentPage === i ? 'bg-primary text-white' : 'text-secondary bg-light';
-        li.innerHTML = `<a class="page-link rounded-pill border-0 ${activeClasses} px-3" href="#" data-page="${i}">${i}</a>`;
-        paginationContainer.appendChild(li);
-    }
-
-    const nextLi = document.createElement('li');
-    nextLi.className = `page-item ${state.currentPage === totalPages ? 'disabled' : ''}`;
-    nextLi.innerHTML = `<a class="page-link rounded-pill border-0 text-secondary bg-light px-3" href="#" data-page="next">Sau</a>`;
-    paginationContainer.appendChild(nextLi);
-
-    paginationContainer.querySelectorAll('a').forEach(a => {
-        a.addEventListener('click', (e) => {
-            e.preventDefault();
-            const page = e.target.getAttribute('data-page');
-            if (page === 'prev' && state.currentPage > 1) {
-                state.currentPage--;
-                loadAndRenderAccounts();
-            } else if (page === 'next' && state.currentPage < totalPages) {
-                state.currentPage++;
-                loadAndRenderAccounts();
-            } else if (page !== 'prev' && page !== 'next') {
-                state.currentPage = parseInt(page, 10);
-                loadAndRenderAccounts();
-            }
-        });
-    });
-}
-
-function renderAccounts(data) {
-    const tbody = document.getElementById('accountsTableBody');
-    if (!tbody) return;
-
-    const statTotal = document.getElementById('statTotal');
-    const statActive = document.getElementById('statActive');
-    const statInactive = document.getElementById('statInactive');
-
-    if (statTotal) statTotal.textContent = state.totalItems || accountsData.length;
-    if (statActive) statActive.textContent = (accountsData || []).filter(a => isActiveAccountStatus(a.status)).length;
-    if (statInactive) statInactive.textContent = (accountsData || []).filter(a => isInactiveAccountStatus(a.status)).length;
-
-    tbody.innerHTML = '';
-
-    const pageData = data || [];
-
-    if (pageData.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-muted">Không tìm thấy tài khoản nào.</td></tr>';
-        renderPagination();
-        return;
-    }
-
-    pageData.forEach(acc => {
-        const displayName = acc.name || acc.fullName || acc.username || 'User';
-        const nameParts = displayName.split(' ');
-        const initials = nameParts.length > 1
-            ? nameParts[0][0] + nameParts[nameParts.length - 1][0]
-            : displayName[0];
-
-        const avatarColorClass = isActiveAccountStatus(acc.status) ? 'bg-primary-light text-primary' : 'bg-light text-secondary';
-
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-            <td class="ps-4">
-                <div class="d-flex align-items-center gap-3">
-                    <div class="avatar ${avatarColorClass} d-flex align-items-center justify-content-center fw-bold text-uppercase" style="width: 40px; height: 40px;">
-                        ${initials}
-                    </div>
-                    <div>
-                        <h6 class="mb-0 fw-semibold text-dark">${displayName}</h6>
-                    </div>
-                </div>
-            </td>
-            <td class="fw-medium text-dark">@${acc.username}</td>
-            <td>${getRoleMarkup(acc.role)}</td>
-            <td>${getStatusMarkup(acc.status)}</td>
-            <td class="small text-muted">${acc.lastAccess || '-'}</td>
-            <td class="text-end pe-4">
-                <div class="d-flex justify-content-end gap-2">
-                    <button class="btn btn-light btn-icon border shadow-sm p-0 d-flex align-items-center justify-content-center edit-btn" data-id="${acc.id}" style="width: 32px; height: 32px; border-radius: 50%; color: var(--text-soft) !important; background-color: #fff !important;" title="Sửa" onmouseover="this.style.backgroundColor='#f9f9f9'" onmouseout="this.style.backgroundColor='#fff'">
-                        <span class="material-symbols-outlined fs-6">edit</span>
-                    </button>
-                    <button class="btn btn-light btn-icon border border-danger shadow-sm p-0 d-flex align-items-center justify-content-center text-danger delete-btn" data-id="${acc.id}" style="width: 32px; height: 32px; border-radius: 50%; color: #dc3545 !important; background-color: #fff !important;" title="Xóa" onmouseover="this.style.backgroundColor='#fdf0f0'" onmouseout="this.style.backgroundColor='#fff'">
-                        <span class="material-symbols-outlined fs-6">delete</span>
-                    </button>
-                </div>
-            </td>
-        `;
-        tbody.appendChild(tr);
-    });
-
-    document.querySelectorAll('.edit-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            const id = e.currentTarget.getAttribute('data-id');
-            const acc = accountsData.find(a => String(a.id) === String(id));
-            if (acc) {
-                document.getElementById('addAccountModalLabel').textContent = 'Sửa tài khoản';
-                document.getElementById('accountId').value = acc.id;
-                document.getElementById('accountName').value = acc.name || acc.fullName || '';
-                document.getElementById('accountUsername').value = acc.username;
-                document.getElementById('accountRole').value = acc.role;
-                document.getElementById('accountStatus').value = isActiveAccountStatus(acc.status)
-                    ? ACCOUNT_STATUSES.ACTIVE
-                    : ACCOUNT_STATUSES.LOCKED;
-
-                const modal = new bootstrap.Modal(document.getElementById('addAccountModal'));
-                modal.show();
-            }
-        });
-    });
-
-    document.querySelectorAll('.delete-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            accountToDeleteId = e.currentTarget.getAttribute('data-id');
-            const acc = accountsData.find(a => String(a.id) === String(accountToDeleteId));
-            if (acc && acc.id === 'ACC-001') {
-                alert('Không thể xóa quản trị viên mặc định.');
-                accountToDeleteId = null;
-                return;
-            }
-            const modal = new bootstrap.Modal(document.getElementById('deleteConfirmModal'));
-            modal.show();
-        });
-    });
-
-    renderPagination();
-}
+} from './status-constants.js';
 
 document.addEventListener('DOMContentLoaded', () => {
-    const accountSearch = document.getElementById('accountSearch');
-    const roleFilter = document.getElementById('roleFilter');
-    const sortOption = document.getElementById('sortOption');
-    // Wire search / filters to backend loader with debounce
-    let searchTimeout;
-    function applyFilters() {
-        state.searchTerm = accountSearch ? accountSearch.value.trim() : '';
-        state.roleFilter = roleFilter ? roleFilter.value : '';
-        state.sort = sortOption ? sortOption.value : 'name-asc';
-        state.currentPage = 1;
-        loadAndRenderAccounts();
+    const API_BASE_URL = 'http://localhost:7071/api';
+    const ACCOUNTS_API_URL = `${API_BASE_URL}/Accounts`;
+    const ITEMS_PER_PAGE = 10;
+    const DEFAULT_SORT = 'name-asc';
+    const DEBOUNCE_DELAY_MS = 300;
+
+    const ROLE_OPTIONS = [
+        { value: '', label: 'Tất cả vai trò' },
+        { value: 'admin', label: 'Quản trị viên' },
+        { value: 'manager', label: 'Quản lý' },
+        { value: 'staff', label: 'Nhân viên' }
+    ];
+
+    const SORT_OPTIONS = [
+        { value: 'name-asc', label: 'Tên (A-Z)' },
+        { value: 'name-desc', label: 'Tên (Z-A)' }
+    ];
+
+    const FORM_ROLE_OPTIONS = [
+        { value: 'admin', label: 'Quản trị viên' },
+        { value: 'manager', label: 'Quản lý' },
+        { value: 'staff', label: 'Nhân viên' }
+    ];
+
+    const FORM_STATUS_OPTIONS = [
+        { value: 'active', label: 'Hoạt động' },
+        { value: 'inactive', label: 'Khóa' }
+    ];
+
+    const elements = {
+        searchInput: document.getElementById('accountSearch'),
+        roleFilter: document.getElementById('roleFilter'),
+        sortOption: document.getElementById('sortOption'),
+        tableBody: document.getElementById('accountsTableBody'),
+        formRole: document.getElementById('accountRole'),
+        formStatus: document.getElementById('accountStatus'),
+        accountForm: document.getElementById('accountForm'),
+        accountId: document.getElementById('accountId'),
+        accountName: document.getElementById('accountName'),
+        accountUsername: document.getElementById('accountUsername'),
+        accountPassword: document.getElementById('accountPassword'),
+        modalLabel: document.getElementById('addAccountModalLabel'),
+        btnOpenAdd: document.getElementById('btnOpenAddModal'),
+        confirmDeleteBtn: document.getElementById('confirmDeleteBtn'),
+        statTotal: document.getElementById('statTotal'),
+        statActive: document.getElementById('statActive'),
+        statInactive: document.getElementById('statInactive')
+    };
+
+    const state = {
+        accounts: [],
+        currentPage: 1,
+        totalPages: 1,
+        totalItems: 0,
+        searchTerm: '',
+        roleFilter: '',
+        sort: DEFAULT_SORT,
+        accountToDeleteId: null,
+        searchTimeoutId: null
+    };
+
+    function renderSelectOptions(selectElement, options, selectedValue) {
+        if (!selectElement) return;
+        selectElement.innerHTML = options
+            .map(opt => `<option value="${opt.value}"${opt.value === selectedValue ? ' selected' : ''}>${opt.label}</option>`)
+            .join('');
     }
 
-    if (accountSearch) {
-        accountSearch.addEventListener('input', () => {
-            clearTimeout(searchTimeout);
-            searchTimeout = setTimeout(applyFilters, 300);
+    async function request(url, options = {}) {
+        const response = await fetch(url, {
+            headers: { 'Content-Type': 'application/json', ...(options.headers || {}) },
+            ...options
+        });
+        if (!response.ok) {
+            let message = `API lỗi (${response.status})`;
+            try { const body = await response.text(); if (body) message = body; } catch (_) {}
+            throw new Error(message);
+        }
+        if (response.status === 204) return null;
+        return await response.json();
+    }
+
+    function getRoleBadge(role) {
+        const config = {
+            admin: { cls: 'role-admin', icon: 'admin_panel_settings', label: 'Quản trị' },
+            manager: { cls: 'role-manager', icon: 'manage_accounts', label: 'Quản lý' },
+            staff: { cls: 'role-badge role-staff', icon: 'badge', label: 'Nhân viên' }
+        };
+        const c = config[role] || config.staff;
+        return `<span class="role-badge ${c.cls}"><span class="material-symbols-outlined icon-sm">${c.icon}</span> ${c.label}</span>`;
+    }
+
+    function getStatusBadge(status) {
+        if (isActiveAccountStatus(status)) {
+            return '<span class="badge bg-success bg-opacity-10 text-success border border-success">Hoạt động</span>';
+        }
+        return '<span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary">Khóa</span>';
+    }
+
+    async function loadAccounts() {
+        if (!elements.tableBody) return;
+        elements.tableBody.innerHTML = '<tr><td colspan="6" class="text-center py-4"><span class="spinner-border spinner-border-sm"></span> Đang tải...</td></tr>';
+
+        try {
+            const sortParts = state.sort.split('-');
+            const query = new URLSearchParams({
+                page: state.currentPage,
+                pageSize: ITEMS_PER_PAGE,
+                searchTerm: state.searchTerm,
+                sortBy: sortParts[0] === 'name' ? 'fullname' : sortParts[0],
+                sortOrder: sortParts[1] || 'asc'
+            });
+
+            const resp = await request(`${ACCOUNTS_API_URL}?${query}`);
+            state.accounts = resp?.items || [];
+            state.totalItems = resp?.totalItemCount || state.accounts.length;
+            state.totalPages = Math.ceil(state.totalItems / ITEMS_PER_PAGE) || 1;
+
+            updateStats();
+            renderAccounts();
+        } catch (err) {
+            console.warn('Không thể tải tài khoản từ API:', err.message);
+            if (elements.tableBody) {
+                elements.tableBody.innerHTML = `<tr><td colspan="6" class="text-center py-4 text-danger">Lỗi: ${err.message}</td></tr>`;
+            }
+        }
+    }
+
+    function updateStats() {
+        if (elements.statTotal) elements.statTotal.textContent = state.totalItems;
+        if (elements.statActive) {
+            elements.statActive.textContent = state.accounts.filter(a => isActiveAccountStatus(a.status)).length;
+        }
+        if (elements.statInactive) {
+            elements.statInactive.textContent = state.accounts.filter(a => isInactiveAccountStatus(a.status)).length;
+        }
+    }
+
+    function getFilteredAccounts() {
+        return state.accounts.filter(acc => {
+            if (state.roleFilter && acc.role !== state.roleFilter) return false;
+            return true;
         });
     }
-    if (roleFilter) roleFilter.addEventListener('change', applyFilters);
-    if (sortOption) sortOption.addEventListener('change', applyFilters);
 
-    // Initial load
-    loadAndRenderAccounts();
+    function renderAccounts() {
+        if (!elements.tableBody) return;
 
-    const btnOpenAddModal = document.getElementById('btnOpenAddModal');
-    if (btnOpenAddModal) {
-        btnOpenAddModal.addEventListener('click', () => {
-            document.getElementById('addAccountModalLabel').textContent = 'Thêm tài khoản';
-            document.getElementById('accountForm').reset();
-            document.getElementById('accountId').value = '';
-        });
+        const filtered = getFilteredAccounts();
+        if (filtered.length === 0) {
+            elements.tableBody.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-muted">Không tìm thấy tài khoản nào.</td></tr>';
+            renderPagination();
+            return;
+        }
+
+        elements.tableBody.innerHTML = filtered.map(acc => {
+            const name = acc.name || acc.fullName || acc.username || 'User';
+            const nameParts = name.split(' ');
+            const initials = (nameParts.length > 1
+                ? nameParts[0][0] + nameParts[nameParts.length - 1][0]
+                : name[0]).toUpperCase();
+            const avatarCls = isActiveAccountStatus(acc.status)
+                ? 'bg-primary-light text-primary'
+                : 'bg-light text-secondary';
+
+            return `
+                <tr>
+                    <td class="ps-4">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="rounded-circle d-flex align-items-center justify-content-center fw-bold text-uppercase ${avatarCls}" style="width:40px;height:40px;">
+                                ${initials}
+                            </div>
+                            <div><h6 class="mb-0 fw-semibold text-dark">${name}</h6></div>
+                        </div>
+                    </td>
+                    <td class="fw-medium text-dark">@${acc.username || '-'}</td>
+                    <td>${getRoleBadge(acc.role)}</td>
+                    <td>${getStatusBadge(acc.status)}</td>
+                    <td class="small text-muted">${acc.lastAccess || '-'}</td>
+                    <td class="text-end pe-4">
+                        <div class="d-flex justify-content-end gap-2">
+                            <button class="btn btn-light btn-icon shadow-sm p-0 d-flex align-items-center justify-content-center edit-btn" data-id="${acc.id}" title="Sửa" style="width:32px;height:32px;border-radius:50%;color:var(--text-soft) !important;background-color:#fff !important;">
+                                <span class="material-symbols-outlined icon-sm">edit</span>
+                            </button>
+                            <button class="btn btn-light btn-icon shadow-sm p-0 d-flex align-items-center justify-content-center delete-btn" data-id="${acc.id}" title="Xóa" style="width:32px;height:32px;border-radius:50%;color:#dc3545 !important;background-color:#fff !important;">
+                                <span class="material-symbols-outlined icon-sm">delete</span>
+                            </button>
+                        </div>
+                    </td>
+                </tr>`;
+        }).join('');
+
+        bindRowButtons();
+        renderPagination();
     }
 
-    const accountForm = document.getElementById('accountForm');
-    if (accountForm) {
-        accountForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const id = document.getElementById('accountId').value;
-            const name = document.getElementById('accountName').value.trim();
-            const username = document.getElementById('accountUsername').value.trim();
-            const role = document.getElementById('accountRole').value;
-            const status = document.getElementById('accountStatus').value;
+    function bindRowButtons() {
+        document.querySelectorAll('.edit-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const id = btn.dataset.id;
+                const acc = state.accounts.find(a => String(a.id) === String(id));
+                if (!acc) return;
 
-            try {
-                const payload = {
-                    fullName: name || null,
-                    username,
-                    role,
-                    status,
-                    updatedAt: new Date().toISOString()
-                };
+                elements.modalLabel.textContent = 'Sửa tài khoản';
+                elements.accountId.value = acc.id;
+                elements.accountName.value = acc.name || acc.fullName || '';
+                elements.accountUsername.value = acc.username || '';
+                elements.formRole.value = acc.role || 'staff';
+                elements.formStatus.value = isActiveAccountStatus(acc.status) ? 'active' : 'inactive';
 
-                if (id) {
-                    // PUT - update
-                    await request(`${ACCOUNTS_API_URL}/${encodeURIComponent(id)}`, {
-                        method: 'PUT',
-                        body: JSON.stringify({ id: Number(id), ...payload })
-                    });
-                } else {
-                    // Create
-                    await request(ACCOUNTS_API_URL, {
-                        method: 'POST',
-                        body: JSON.stringify({ ...payload, createdAt: new Date().toISOString() })
-                    });
+                new bootstrap.Modal(document.getElementById('addAccountModal')).show();
+            });
+        });
+
+        document.querySelectorAll('.delete-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const id = btn.dataset.id;
+                const acc = state.accounts.find(a => String(a.id) === String(id));
+                if (acc && acc.id === 'ACC-001') {
+                    alert('Không thể xóa quản trị viên mặc định.');
+                    return;
                 }
-
-                // reload
-                state.currentPage = 1;
-                await loadAndRenderAccounts();
-
-                const modalEl = document.getElementById('addAccountModal');
-                const modal = bootstrap.Modal.getInstance(modalEl);
-                if (modal) modal.hide();
-            } catch (err) {
-                console.error('Lỗi khi lưu tài khoản:', err);
-                alert(`Lỗi: ${err.message}`);
-            }
+                state.accountToDeleteId = id;
+                new bootstrap.Modal(document.getElementById('deleteConfirmModal')).show();
+            });
         });
     }
 
-    const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
-    if (confirmDeleteBtn) {
-        confirmDeleteBtn.addEventListener('click', async () => {
-            if (!accountToDeleteId) return;
+    function renderPagination() {
+        const container = document.querySelector('.pagination');
+        if (!container) return;
+
+        container.innerHTML = '';
+        const totalPages = Math.max(1, state.totalPages);
+
+        const addBtn = (label, page, disabled) => {
+            const li = document.createElement('li');
+            li.className = `page-item${disabled ? ' disabled' : ''}`;
+            li.innerHTML = `<a class="page-link rounded-pill border-0 text-secondary bg-light px-3" href="#" data-page="${page}">${label}</a>`;
+            container.appendChild(li);
+        };
+
+        addBtn('Trước', 'prev', state.currentPage === 1);
+
+        for (let i = 1; i <= totalPages; i++) {
+            const li = document.createElement('li');
+            li.className = `page-item${state.currentPage === i ? ' active' : ''}`;
+            const cls = state.currentPage === i ? 'bg-primary text-white' : 'text-secondary bg-light';
+            li.innerHTML = `<a class="page-link rounded-pill border-0 ${cls} px-3" href="#" data-page="${i}">${i}</a>`;
+            container.appendChild(li);
+        }
+
+        addBtn('Sau', 'next', state.currentPage === totalPages);
+
+        container.querySelectorAll('a').forEach(a => {
+            a.addEventListener('click', e => {
+                e.preventDefault();
+                const page = a.dataset.page;
+                if (page === 'prev' && state.currentPage > 1) state.currentPage--;
+                else if (page === 'next' && state.currentPage < totalPages) state.currentPage++;
+                else if (page !== 'prev' && page !== 'next') state.currentPage = parseInt(page, 10);
+                loadAccounts();
+            });
+        });
+    }
+
+    function applyFilters() {
+        state.searchTerm = elements.searchInput?.value.trim() || '';
+        state.roleFilter = elements.roleFilter?.value || '';
+        state.sort = elements.sortOption?.value || DEFAULT_SORT;
+        state.currentPage = 1;
+        loadAccounts();
+    }
+
+    async function handleFormSubmit(e) {
+        if (e) e.preventDefault();
+        const id = elements.accountId?.value || '';
+        const name = elements.accountName?.value?.trim() || '';
+        const username = elements.accountUsername?.value?.trim() || '';
+        const role = elements.formRole?.value || 'staff';
+        const status = elements.formStatus?.value || 'active';
+        const password = elements.accountPassword?.value || '';
+
+        if (!username) { alert('Vui lòng nhập Username!'); return; }
+        if (!name) { alert('Vui lòng nhập Tên hiển thị!'); return; }
+
+        const payload = { fullName: name || null, username, role, status, updatedAt: new Date().toISOString() };
+
+        try {
+            if (id) {
+                const updatePayload = { ...payload, id: Number(id) };
+                if (password) updatePayload.passwordHash = password;
+                await request(`${ACCOUNTS_API_URL}/${encodeURIComponent(id)}`, {
+                    method: 'PUT', body: JSON.stringify(updatePayload)
+                });
+            } else {
+                await request(ACCOUNTS_API_URL, {
+                    method: 'POST', body: JSON.stringify({
+                        ...payload,
+                        passwordHash: password || 'admin123',
+                        createdAt: new Date().toISOString()
+                    })
+                });
+            }
+            await loadAccounts();
+            const modal = bootstrap.Modal.getInstance(document.getElementById('addAccountModal'));
+            if (modal) modal.hide();
+        } catch (err) {
+            alert(`Lỗi: ${err.message}`);
+        }
+    }
+
+    function bindEvents() {
+        const saveBtn = document.querySelector('#addAccountModal button[type="submit"]');
+        if (saveBtn) {
+            saveBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                handleFormSubmit(e);
+            });
+        }
+
+        if (elements.searchInput) {
+            elements.searchInput.addEventListener('input', () => {
+                clearTimeout(state.searchTimeoutId);
+                state.searchTimeoutId = setTimeout(applyFilters, DEBOUNCE_DELAY_MS);
+            });
+        }
+        elements.roleFilter?.addEventListener('change', applyFilters);
+        elements.sortOption?.addEventListener('change', applyFilters);
+        elements.accountForm?.addEventListener('submit', handleFormSubmit);
+
+        elements.btnOpenAdd?.addEventListener('click', () => {
+            elements.modalLabel.textContent = 'Thêm tài khoản';
+            elements.accountId.value = '';
+            elements.accountName.value = '';
+            elements.accountUsername.value = '';
+            if (elements.accountPassword) elements.accountPassword.value = '';
+            if (elements.formRole) elements.formRole.value = 'staff';
+            if (elements.formStatus) elements.formStatus.value = 'active';
+        });
+
+        elements.confirmDeleteBtn?.addEventListener('click', async () => {
+            if (!state.accountToDeleteId) return;
             try {
-                await request(`${ACCOUNTS_API_URL}/${encodeURIComponent(accountToDeleteId)}`, { method: 'DELETE' });
-                accountToDeleteId = null;
-                await loadAndRenderAccounts();
-                const modalEl = document.getElementById('deleteConfirmModal');
-                const modal = bootstrap.Modal.getInstance(modalEl);
+                await request(`${ACCOUNTS_API_URL}/${encodeURIComponent(state.accountToDeleteId)}`, { method: 'DELETE' });
+                state.accountToDeleteId = null;
+                await loadAccounts();
+                const modal = bootstrap.Modal.getInstance(document.getElementById('deleteConfirmModal'));
                 if (modal) modal.hide();
             } catch (err) {
-                console.error('Lỗi khi xóa tài khoản:', err);
                 alert(`Lỗi: ${err.message}`);
             }
         });
     }
+
+    renderSelectOptions(elements.roleFilter, ROLE_OPTIONS, '');
+    renderSelectOptions(elements.sortOption, SORT_OPTIONS, DEFAULT_SORT);
+    renderSelectOptions(elements.formRole, FORM_ROLE_OPTIONS, 'staff');
+    renderSelectOptions(elements.formStatus, FORM_STATUS_OPTIONS, 'active');
+
+    bindEvents();
+    loadAccounts();
 });
