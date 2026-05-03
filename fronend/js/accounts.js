@@ -3,16 +3,87 @@ import {
     isActiveAccountStatus,
     isInactiveAccountStatus
 } from '/js/status-constants.js';
+const API_BASE_URL = 'http://localhost:7071/api';
+const ACCOUNTS_API_URL = `${API_BASE_URL}/Accounts`;
+const ITEMS_PER_PAGE = 10;
 
-const STORAGE_KEY_ACCOUNTS = 'bistro_accounts';
-
-let accountsData = JSON.parse(localStorage.getItem(STORAGE_KEY_ACCOUNTS));
-if (!accountsData || accountsData.length === 0) {
-    accountsData = window.BistroMockData?.MOCK_ACCOUNTS || [];
-    localStorage.setItem(STORAGE_KEY_ACCOUNTS, JSON.stringify(accountsData));
-}
+// State
+let accountsData = [];
+const state = {
+    currentPage: 1,
+    totalPages: 1,
+    totalItems: 0,
+    isLoading: false,
+    searchTerm: '',
+    roleFilter: '',
+    sort: 'name-asc'
+};
 
 let accountToDeleteId = null;
+
+async function request(url, options = {}) {
+    const response = await fetch(url, {
+        headers: {
+            'Content-Type': 'application/json',
+            ...(options.headers || {})
+        },
+        ...options
+    });
+
+    if (!response.ok) {
+        let message = `API lỗi (${response.status})`;
+        try {
+            const body = await response.text();
+            if (body) message = body;
+        } catch (_) {}
+        throw new Error(message);
+    }
+
+    if (response.status === 204) return null;
+    return await response.json();
+}
+
+async function loadAndRenderAccounts() {
+    if (state.isLoading) return;
+    state.isLoading = true;
+
+    const tbody = document.getElementById('accountsTableBody');
+    if (tbody) tbody.innerHTML = '<tr><td colspan="6" class="text-center py-4"><span class="spinner-border spinner-border-sm"></span></td></tr>';
+
+    try {
+        const sortParts = (state.sort || 'name-asc').split('-');
+        const sortBy = sortParts[0] === 'name' ? 'fullname' : sortParts[0];
+        const sortOrder = sortParts[1] || 'asc';
+
+        const params = new URLSearchParams({
+            page: state.currentPage,
+            pageSize: ITEMS_PER_PAGE,
+            searchTerm: state.searchTerm || '',
+            sortBy,
+            sortOrder
+        });
+
+        const response = await request(`${ACCOUNTS_API_URL}?${params}`);
+        accountsData = response?.items || [];
+        state.totalPages = response?.totalPages || 1;
+        state.totalItems = response?.totalItems || (accountsData.length || 0);
+
+        // If role filter is set, apply locally on returned page items
+        let pageItems = accountsData;
+        if (state.roleFilter) {
+            pageItems = pageItems.filter(a => a.role === state.roleFilter);
+        }
+
+        renderAccounts(pageItems);
+    } catch (err) {
+        console.error('Lỗi khi tải tài khoản:', err);
+        const tbody = document.getElementById('accountsTableBody');
+        if (tbody) tbody.innerHTML = `<tr><td colspan="6" class="text-center py-4 text-danger">Lỗi: ${err.message}</td></tr>`;
+    } finally {
+        state.isLoading = false;
+        renderPagination();
+    }
+}
 
 function getRoleMarkup(role) {
     if (role === 'admin') return '<span class="role-badge role-admin"><span class="material-symbols-outlined" style="font-size: 14px;">admin_panel_settings</span> Quản trị</span>';
@@ -28,9 +99,8 @@ function getStatusMarkup(status) {
     return `<span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary">${ACCOUNT_STATUSES.LOCKED}</span>`;
 }
 
-let currentPage = 1;
-const itemsPerPage = 10;
-let filteredData = [];
+// (old local paging/filters removed) use `state` and backend
+
 
 function renderPagination() {
     const paginationContainer = document.querySelector('.pagination');
@@ -38,23 +108,23 @@ function renderPagination() {
 
     paginationContainer.innerHTML = '';
 
-    const totalPages = Math.ceil(filteredData.length / itemsPerPage) || 1;
+    const totalPages = Math.max(1, state.totalPages || 1);
 
     const prevLi = document.createElement('li');
-    prevLi.className = `page-item ${currentPage === 1 ? 'disabled' : ''}`;
+    prevLi.className = `page-item ${state.currentPage === 1 ? 'disabled' : ''}`;
     prevLi.innerHTML = `<a class="page-link rounded-pill border-0 text-secondary bg-light px-3" href="#" data-page="prev">Trước</a>`;
     paginationContainer.appendChild(prevLi);
 
     for (let i = 1; i <= totalPages; i++) {
         const li = document.createElement('li');
-        li.className = `page-item ${currentPage === i ? 'active' : ''}`;
-        const activeClasses = currentPage === i ? 'bg-primary text-white' : 'text-secondary bg-light';
+        li.className = `page-item ${state.currentPage === i ? 'active' : ''}`;
+        const activeClasses = state.currentPage === i ? 'bg-primary text-white' : 'text-secondary bg-light';
         li.innerHTML = `<a class="page-link rounded-pill border-0 ${activeClasses} px-3" href="#" data-page="${i}">${i}</a>`;
         paginationContainer.appendChild(li);
     }
 
     const nextLi = document.createElement('li');
-    nextLi.className = `page-item ${currentPage === totalPages ? 'disabled' : ''}`;
+    nextLi.className = `page-item ${state.currentPage === totalPages ? 'disabled' : ''}`;
     nextLi.innerHTML = `<a class="page-link rounded-pill border-0 text-secondary bg-light px-3" href="#" data-page="next">Sau</a>`;
     paginationContainer.appendChild(nextLi);
 
@@ -62,15 +132,15 @@ function renderPagination() {
         a.addEventListener('click', (e) => {
             e.preventDefault();
             const page = e.target.getAttribute('data-page');
-            if (page === 'prev' && currentPage > 1) {
-                currentPage--;
-                renderAccounts(filteredData);
-            } else if (page === 'next' && currentPage < totalPages) {
-                currentPage++;
-                renderAccounts(filteredData);
+            if (page === 'prev' && state.currentPage > 1) {
+                state.currentPage--;
+                loadAndRenderAccounts();
+            } else if (page === 'next' && state.currentPage < totalPages) {
+                state.currentPage++;
+                loadAndRenderAccounts();
             } else if (page !== 'prev' && page !== 'next') {
-                currentPage = parseInt(page, 10);
-                renderAccounts(filteredData);
+                state.currentPage = parseInt(page, 10);
+                loadAndRenderAccounts();
             }
         });
     });
@@ -84,15 +154,13 @@ function renderAccounts(data) {
     const statActive = document.getElementById('statActive');
     const statInactive = document.getElementById('statInactive');
 
-    if (statTotal) statTotal.textContent = accountsData.length;
-    if (statActive) statActive.textContent = accountsData.filter(a => isActiveAccountStatus(a.status)).length;
-    if (statInactive) statInactive.textContent = accountsData.filter(a => isInactiveAccountStatus(a.status)).length;
+    if (statTotal) statTotal.textContent = state.totalItems || accountsData.length;
+    if (statActive) statActive.textContent = (accountsData || []).filter(a => isActiveAccountStatus(a.status)).length;
+    if (statInactive) statInactive.textContent = (accountsData || []).filter(a => isInactiveAccountStatus(a.status)).length;
 
     tbody.innerHTML = '';
 
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    const endIndex = startIndex + itemsPerPage;
-    const pageData = data.slice(startIndex, endIndex);
+    const pageData = data || [];
 
     if (pageData.length === 0) {
         tbody.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-muted">Không tìm thấy tài khoản nào.</td></tr>';
@@ -118,7 +186,6 @@ function renderAccounts(data) {
                     </div>
                     <div>
                         <h6 class="mb-0 fw-semibold text-dark">${displayName}</h6>
-                        <small class="text-muted">ID: ${acc.id}</small>
                     </div>
                 </div>
             </td>
@@ -181,36 +248,27 @@ document.addEventListener('DOMContentLoaded', () => {
     const accountSearch = document.getElementById('accountSearch');
     const roleFilter = document.getElementById('roleFilter');
     const sortOption = document.getElementById('sortOption');
-
+    // Wire search / filters to backend loader with debounce
+    let searchTimeout;
     function applyFilters() {
-        const query = accountSearch ? accountSearch.value.toLowerCase() : '';
-        const role = roleFilter ? roleFilter.value : '';
-        const sort = sortOption ? sortOption.value : 'name-asc';
-
-        filteredData = accountsData.filter(a => {
-            const tempName = a.name || a.fullName || a.username || '';
-            const matchQuery = tempName.toLowerCase().includes(query) || a.username.toLowerCase().includes(query);
-            const matchRole = role && role !== '' && role !== 'Tất cả' ? a.role === role : true;
-            return matchQuery && matchRole;
-        });
-
-        filteredData.sort((a, b) => {
-            const tempNameA = a.name || a.fullName || a.username || '';
-            const tempNameB = b.name || b.fullName || b.username || '';
-            if (sort === 'name-asc') return tempNameA.localeCompare(tempNameB);
-            if (sort === 'name-desc') return tempNameB.localeCompare(tempNameA);
-            return 0;
-        });
-
-        currentPage = 1;
-        renderAccounts(filteredData);
+        state.searchTerm = accountSearch ? accountSearch.value.trim() : '';
+        state.roleFilter = roleFilter ? roleFilter.value : '';
+        state.sort = sortOption ? sortOption.value : 'name-asc';
+        state.currentPage = 1;
+        loadAndRenderAccounts();
     }
 
-    applyFilters();
-
-    if (accountSearch) accountSearch.addEventListener('input', applyFilters);
+    if (accountSearch) {
+        accountSearch.addEventListener('input', () => {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(applyFilters, 300);
+        });
+    }
     if (roleFilter) roleFilter.addEventListener('change', applyFilters);
     if (sortOption) sortOption.addEventListener('change', applyFilters);
+
+    // Initial load
+    loadAndRenderAccounts();
 
     const btnOpenAddModal = document.getElementById('btnOpenAddModal');
     if (btnOpenAddModal) {
@@ -223,62 +281,65 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const accountForm = document.getElementById('accountForm');
     if (accountForm) {
-        accountForm.addEventListener('submit', (e) => {
+        accountForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const id = document.getElementById('accountId').value;
-            const name = document.getElementById('accountName').value;
-            const username = document.getElementById('accountUsername').value;
+            const name = document.getElementById('accountName').value.trim();
+            const username = document.getElementById('accountUsername').value.trim();
             const role = document.getElementById('accountRole').value;
             const status = document.getElementById('accountStatus').value;
 
-            if (id) {
-                const index = accountsData.findIndex(a => String(a.id) === String(id));
-                if (index !== -1) {
-                    accountsData[index] = {
-                        ...accountsData[index],
-                        name,
-                        username,
-                        role,
-                        status
-                    };
-                }
-            } else {
-                if (accountsData.some(a => a.username === username)) {
-                    alert('Username đã tồn tại!');
-                    return;
-                }
-                const newAcc = {
-                    id: `ACC-${Math.floor(100 + Math.random() * 900)}`,
-                    name,
+            try {
+                const payload = {
+                    fullName: name || null,
                     username,
                     role,
                     status,
-                    lastAccess: 'Vừa tạo'
+                    updatedAt: new Date().toISOString()
                 };
-                accountsData.push(newAcc);
+
+                if (id) {
+                    // PUT - update
+                    await request(`${ACCOUNTS_API_URL}/${encodeURIComponent(id)}`, {
+                        method: 'PUT',
+                        body: JSON.stringify({ id: Number(id), ...payload })
+                    });
+                } else {
+                    // Create
+                    await request(ACCOUNTS_API_URL, {
+                        method: 'POST',
+                        body: JSON.stringify({ ...payload, createdAt: new Date().toISOString() })
+                    });
+                }
+
+                // reload
+                state.currentPage = 1;
+                await loadAndRenderAccounts();
+
+                const modalEl = document.getElementById('addAccountModal');
+                const modal = bootstrap.Modal.getInstance(modalEl);
+                if (modal) modal.hide();
+            } catch (err) {
+                console.error('Lỗi khi lưu tài khoản:', err);
+                alert(`Lỗi: ${err.message}`);
             }
-
-            localStorage.setItem(STORAGE_KEY_ACCOUNTS, JSON.stringify(accountsData));
-            applyFilters();
-
-            const modalEl = document.getElementById('addAccountModal');
-            const modal = bootstrap.Modal.getInstance(modalEl);
-            if (modal) modal.hide();
         });
     }
 
     const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
     if (confirmDeleteBtn) {
-        confirmDeleteBtn.addEventListener('click', () => {
-            if (accountToDeleteId) {
-                accountsData = accountsData.filter(a => String(a.id) !== String(accountToDeleteId));
-                localStorage.setItem(STORAGE_KEY_ACCOUNTS, JSON.stringify(accountsData));
-                applyFilters();
-
+        confirmDeleteBtn.addEventListener('click', async () => {
+            if (!accountToDeleteId) return;
+            try {
+                await request(`${ACCOUNTS_API_URL}/${encodeURIComponent(accountToDeleteId)}`, { method: 'DELETE' });
                 accountToDeleteId = null;
+                await loadAndRenderAccounts();
                 const modalEl = document.getElementById('deleteConfirmModal');
                 const modal = bootstrap.Modal.getInstance(modalEl);
                 if (modal) modal.hide();
+            } catch (err) {
+                console.error('Lỗi khi xóa tài khoản:', err);
+                alert(`Lỗi: ${err.message}`);
             }
         });
     }

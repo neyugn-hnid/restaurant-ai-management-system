@@ -1,5 +1,8 @@
 import { ORDER_STATUSES, TABLE_STATUSES } from '/js/status-constants.js';
 
+const API_BASE_URL = 'http://localhost:7071/api';
+const ORDERS_API_URL = `${API_BASE_URL}/Orders`;
+
 let ordersData = JSON.parse(localStorage.getItem('bistro_orders') || '[]');
 if (ordersData.length === 0) {
     ordersData = window.BistroMockData?.MOCK_ORDERS || [];
@@ -94,6 +97,54 @@ function renderPagination() {
     });
 }
 
+// Simple request helper used across pages
+async function request(url, options = {}) {
+    const response = await fetch(url, {
+        headers: {
+            'Content-Type': 'application/json',
+            ...(options.headers || {})
+        },
+        ...options
+    });
+
+    if (!response.ok) {
+        let message = `API lỗi (${response.status})`;
+        try {
+            const body = await response.text();
+            if (body) message = body;
+        } catch (_) {}
+        throw new Error(message);
+    }
+
+    if (response.status === 204) return null;
+    return await response.json();
+}
+
+async function loadAndRenderOrders(resetPage = false) {
+    if (resetPage) currentPage = 1;
+    try {
+        const searchTerm = currentSearch || '';
+        const query = new URLSearchParams({
+            page: currentPage,
+            pageSize: itemsPerPage,
+            searchTerm: searchTerm,
+            sortBy: 'createdAt',
+            sortOrder: 'desc'
+        });
+
+        const resp = await request(`${ORDERS_API_URL}?${query}`);
+        if (resp && resp.items) {
+            ordersData = resp.items;
+            // keep localStorage in sync for offline fallback
+            localStorage.setItem('bistro_orders', JSON.stringify(ordersData));
+        }
+    } catch (err) {
+        console.warn('Không thể tải đơn hàng từ API, sử dụng dữ liệu cục bộ:', err.message);
+    }
+
+    renderOrders(false);
+}
+
 function renderOrders(resetPage = false) {
     const tableBody = document.getElementById('ordersTableBody');
     if (!tableBody) return;
@@ -135,7 +186,7 @@ function renderOrders(resetPage = false) {
 
             const tr = document.createElement('tr');
             tr.innerHTML = `
-                <td class="ps-4"><a href="#" class="text-decoration-none fw-semibold">#${order.id}</a></td>
+                <td class="ps-4"><a href="#" class="text-decoration-none fw-semibold">${order.id}</a></td>
                 <td>
                     <div class="fw-medium text-dark">${order.time}</div>
                     <div class="small text-muted">${order.date}</div>
@@ -404,44 +455,55 @@ function showToast(message, type = 'success') {
     }
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-    renderOrders();
+document.addEventListener('DOMContentLoaded', async () => {
+    await loadAndRenderOrders(true);
 
     const searchInput = document.getElementById('searchInput');
     if (searchInput) {
-        searchInput.addEventListener('input', (e) => {
+        searchInput.addEventListener('input', async (e) => {
             currentSearch = e.target.value.toLowerCase().trim();
-            renderOrders(true);
+            currentPage = 1;
+            await loadAndRenderOrders(true);
         });
     }
 
     const statusFilterHtml = document.getElementById('statusFilter');
     if (statusFilterHtml) {
-        statusFilterHtml.addEventListener('change', (e) => {
+        statusFilterHtml.addEventListener('change', async (e) => {
             currentFilter = e.target.value;
-            renderOrders(true);
+            currentPage = 1;
+            await loadAndRenderOrders(true);
         });
     }
 
     const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
     if (confirmDeleteBtn) {
-        confirmDeleteBtn.addEventListener('click', () => {
+        confirmDeleteBtn.addEventListener('click', async () => {
             if (orderToDeleteId) {
-                ordersData = ordersData.filter(o => o.id !== orderToDeleteId);
-                localStorage.setItem('bistro_orders', JSON.stringify(ordersData));
+                try {
+                    await request(`${ORDERS_API_URL}/${encodeURIComponent(orderToDeleteId)}`, { method: 'DELETE' });
+                    ordersData = ordersData.filter(o => o.id !== orderToDeleteId);
+                    localStorage.setItem('bistro_orders', JSON.stringify(ordersData));
+                    showToast('Đã xóa đơn hàng thành công!', 'success');
+                } catch (err) {
+                    // Fallback to local removal
+                    ordersData = ordersData.filter(o => o.id !== orderToDeleteId);
+                    localStorage.setItem('bistro_orders', JSON.stringify(ordersData));
+                    showToast('Xóa cục bộ do API lỗi.', 'danger');
+                }
+
                 orderToDeleteId = null;
                 const modalEl = document.getElementById('deleteConfirmModal');
                 const modal = bootstrap.Modal.getInstance(modalEl);
                 if (modal) modal.hide();
-                showToast('Đã xóa đơn hàng thành công!', 'success');
-                renderOrders();
+                await loadAndRenderOrders(false);
             }
         });
     }
 
     const addOrderForm = document.getElementById('addOrderForm');
     if (addOrderForm) {
-        addOrderForm.addEventListener('submit', (e) => {
+        addOrderForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const customer = document.getElementById('newOrderCustomer').value;
             const totalStr = document.getElementById('newOrderTotal').value;
@@ -458,90 +520,113 @@ document.addEventListener('DOMContentLoaded', () => {
                 customer: customer,
                 customerIcon: customer.toLowerCase().includes('bàn') ? 'table_restaurant' : 'local_mall',
                 customerSubtext: '',
-                itemsCount: 1, // Default to 1 for generic creation
+                itemsCount: 1,
+                subtotal: parseInt(totalStr, 10) || 0,
+                discount: 0,
                 total: parseInt(totalStr, 10) || 0,
                 status: status,
-                statusClass: getStatusClass(status)
+                payment_method: 'cash',
+                payment_status: 'pending'
             };
 
-            ordersData.unshift(newOrder);
+            try {
+                const created = await request(ORDERS_API_URL, { method: 'POST', body: JSON.stringify(newOrder) });
+                if (created) ordersData.unshift(created);
+            } catch (err) {
+                // fallback local
+                ordersData.unshift(newOrder);
+                showToast('Tạo đơn cục bộ do API lỗi.', 'danger');
+            }
+
             localStorage.setItem('bistro_orders', JSON.stringify(ordersData));
-            
             const modalEl = document.getElementById('addOrderModal');
             const modal = bootstrap.Modal.getInstance(modalEl);
             if (modal) modal.hide();
-            
             addOrderForm.reset();
+            await loadAndRenderOrders(true);
             showToast('Tạo đơn hàng mới thành công!', 'success');
-            renderOrders();
         });
     }
 
     const updateStatusForm = document.getElementById('updateStatusForm');
     if (updateStatusForm) {
-        updateStatusForm.addEventListener('submit', (e) => {
+        updateStatusForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             if (orderToUpdateId) {
                 const newStatus = document.getElementById('updateStatusSelect').value;
-                const order = ordersData.find(o => o.id === orderToUpdateId);
-                if (order) {
+                const orderIdx = ordersData.findIndex(o => o.id === orderToUpdateId);
+                if (orderIdx !== -1) {
+                    const order = ordersData[orderIdx];
                     order.status = newStatus;
-                    order.statusClass = getStatusClass(newStatus);
+                    try {
+                        await request(`${ORDERS_API_URL}/${encodeURIComponent(order.id)}`, { method: 'PUT', body: JSON.stringify(order) });
+                    } catch (err) {
+                        showToast('Cập nhật cục bộ do API lỗi.', 'danger');
+                    }
+                    ordersData[orderIdx] = order;
                     localStorage.setItem('bistro_orders', JSON.stringify(ordersData));
                 }
                 orderToUpdateId = null;
                 const modalEl = document.getElementById('updateStatusModal');
                 const modal = bootstrap.Modal.getInstance(modalEl);
                 if (modal) modal.hide();
+                await loadAndRenderOrders(false);
                 showToast('Cập nhật trạng thái thành công!', 'success');
-                renderOrders();
             }
         });
     }
 
     const confirmToKitchenBtn = document.getElementById('confirmToKitchenBtn');
     if (confirmToKitchenBtn) {
-        confirmToKitchenBtn.addEventListener('click', () => {
+        confirmToKitchenBtn.addEventListener('click', async () => {
             if (currentOrderDetailsId) {
-                const order = ordersData.find(o => o.id === currentOrderDetailsId);
-                if (order) {
-                    order.status = ORDER_STATUSES.PREPARING;
-                    order.statusClass = getStatusClass(ORDER_STATUSES.PREPARING);
+                const idx = ordersData.findIndex(o => o.id === currentOrderDetailsId);
+                if (idx !== -1) {
+                    ordersData[idx].status = ORDER_STATUSES.PREPARING;
+                    try {
+                        await request(`${ORDERS_API_URL}/${encodeURIComponent(ordersData[idx].id)}`, { method: 'PUT', body: JSON.stringify(ordersData[idx]) });
+                    } catch (err) {
+                        showToast('Cập nhật cục bộ do API lỗi.', 'danger');
+                    }
                     localStorage.setItem('bistro_orders', JSON.stringify(ordersData));
                 }
                 currentOrderDetailsId = null;
                 const modalEl = document.getElementById('orderDetailsModal');
                 const modal = bootstrap.Modal.getInstance(modalEl);
                 if (modal) modal.hide();
+                await loadAndRenderOrders(false);
                 showToast('Đã chuyển đơn hàng xuống bếp (Đang chế biến)!', 'success');
-                renderOrders();
             }
         });
     }
 
     const confirmPaymentBtn = document.getElementById('confirmPaymentBtn');
     if (confirmPaymentBtn) {
-        confirmPaymentBtn.addEventListener('click', () => {
+        confirmPaymentBtn.addEventListener('click', async () => {
             if (currentPaymentOrderId) {
-                const order = ordersData.find(o => o.id === currentPaymentOrderId);
-                if (order) {
-                    order.status = ORDER_STATUSES.COMPLETED;
-                    order.statusClass = getStatusClass(ORDER_STATUSES.COMPLETED);
-                    localStorage.setItem('bistro_orders', JSON.stringify(ordersData));
+                const idx = ordersData.findIndex(o => o.id === currentPaymentOrderId);
+                if (idx !== -1) {
+                    ordersData[idx].status = ORDER_STATUSES.COMPLETED;
+                    try {
+                        await request(`${ORDERS_API_URL}/${encodeURIComponent(ordersData[idx].id)}`, { method: 'PUT', body: JSON.stringify(ordersData[idx]) });
+                    } catch (err) {
+                        showToast('Cập nhật cục bộ do API lỗi.', 'danger');
+                    }
 
                     // Nếu là đơn hàng tại bàn, chuyển trạng thái bàn sang "Chờ dọn dẹp"
-                    if (order.customerIcon === 'table_restaurant' && order.customer) {
+                    if (ordersData[idx].customerIcon === 'table_restaurant' && ordersData[idx].customer) {
                         const tableStatuses = JSON.parse(localStorage.getItem('bistro_table_statuses') || '{}');
-                        tableStatuses[order.customer] = TABLE_STATUSES.CLEANING;
+                        tableStatuses[ordersData[idx].customer] = TABLE_STATUSES.CLEANING;
                         localStorage.setItem('bistro_table_statuses', JSON.stringify(tableStatuses));
                     }
+                    localStorage.setItem('bistro_orders', JSON.stringify(ordersData));
                 }
                 currentPaymentOrderId = null;
                 const modalEl = document.getElementById('paymentModal');
                 const modal = bootstrap.Modal.getInstance(modalEl);
                 if (modal) modal.hide();
+                await loadAndRenderOrders(false);
                 showToast('Thanh toán đơn hàng thành công!', 'success');
-                renderOrders();
             }
         });
     }

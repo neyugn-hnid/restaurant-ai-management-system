@@ -5,8 +5,61 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentPage = 1;
     const itemsPerPage = 10;
     
+    const API_BASE_URL = 'http://localhost:7071/api';
+    const CUSTOMERS_API_URL = `${API_BASE_URL}/Customers`;
+
     let allCustomers = JSON.parse(localStorage.getItem("bistro_customers") || "[]");
     let filteredData = [...allCustomers];
+
+    async function request(url, options = {}) {
+        const response = await fetch(url, {
+            headers: {
+                'Content-Type': 'application/json',
+                ...(options.headers || {})
+            },
+            ...options
+        });
+
+        if (!response.ok) {
+            let message = `API lỗi (${response.status})`;
+            try {
+                const body = await response.text();
+                if (body) message = body;
+            } catch (_) {}
+            throw new Error(message);
+        }
+
+        if (response.status === 204) return null;
+        return await response.json();
+    }
+
+    async function loadAndRenderCustomers(page = 1) {
+        try {
+            const query = new URLSearchParams({ page, pageSize: itemsPerPage, sortBy: 'createdAt', sortOrder: 'desc' });
+            const resp = await request(`${CUSTOMERS_API_URL}?${query}`);
+            if (resp && resp.items) {
+                allCustomers = resp.items.map(c => ({
+                    id: c.id || c.id,
+                    name: c.fullName || c.name || c.fullname || c.full_name || '',
+                    phone: c.phone || '',
+                    email: c.email || '',
+                    tier: c.tier || c.Tier || 'new',
+                    visits: c.visits || c.Visits || 0,
+                    totalSpent: c.totalSpent || c.TotalSpent || 0
+                }));
+                localStorage.setItem('bistro_customers', JSON.stringify(allCustomers));
+                filteredData = [...allCustomers];
+                currentPage = page;
+                renderCustomers();
+                return;
+            }
+        } catch (err) {
+            console.warn('Không thể tải khách hàng từ API, sử dụng dữ liệu cục bộ:', err.message);
+        }
+
+        filteredData = [...allCustomers];
+        renderCustomers();
+    }
 
     function renderPagination() {
         const paginationContainer = document.querySelector('.pagination');
@@ -184,7 +237,8 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('searchCustomer')?.addEventListener('input', filterCustomers);
     document.getElementById('rankFilter')?.addEventListener('change', filterCustomers);
 
-    renderCustomers();
+    // Try load from backend first, fallback will render local data
+    loadAndRenderCustomers();
 
     let editingCustIndex = null;
     let customerToDeleteIndex = null;
@@ -218,12 +272,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const confirmDeleteBtn = document.getElementById('confirmDeleteBtn') || document.querySelector('#deleteConfirmModal .btn-danger');
     if (confirmDeleteBtn) {
-        confirmDeleteBtn.addEventListener('click', () => {
+        confirmDeleteBtn.addEventListener('click', async () => {
             if (customerToDeleteIndex !== null && customerToDeleteIndex > -1) {
-                allCustomers.splice(customerToDeleteIndex, 1);
-                localStorage.setItem("bistro_customers", JSON.stringify(allCustomers));
-                filterCustomers();
-                
+                const cust = allCustomers[customerToDeleteIndex];
+                try {
+                    if (cust && cust.id) {
+                        await request(`${CUSTOMERS_API_URL}/${encodeURIComponent(cust.id)}`, { method: 'DELETE' });
+                        allCustomers.splice(customerToDeleteIndex, 1);
+                        localStorage.setItem("bistro_customers", JSON.stringify(allCustomers));
+                        filterCustomers();
+                    }
+                } catch (err) {
+                    // fallback local
+                    allCustomers.splice(customerToDeleteIndex, 1);
+                    localStorage.setItem("bistro_customers", JSON.stringify(allCustomers));
+                    filterCustomers();
+                    console.warn('Xóa khách hàng cục bộ do API lỗi:', err.message);
+                }
+
                 const modalEl = document.getElementById('deleteConfirmModal');
                 const modal = bootstrap.Modal.getInstance(modalEl);
                 if (modal) modal.hide();
@@ -233,22 +299,35 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     if (customerForm) {
-        customerForm.addEventListener('submit', (e) => {
+        customerForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-            
+
             const name = document.getElementById('customerName').value;
             const phone = document.getElementById('customerPhone').value;
             const email = document.getElementById('customerEmail').value || '-';
             const rank = document.getElementById('customerRank').value;
-            
+
             if (editingCustIndex !== null && editingCustIndex > -1) {
-                allCustomers[editingCustIndex] = {
-                    ...allCustomers[editingCustIndex],
-                    name, phone, email, tier: rank
+                const existing = allCustomers[editingCustIndex];
+                const payload = {
+                    id: existing.id,
+                    fullName: name,
+                    phone,
+                    email,
+                    tier: rank
                 };
+                try {
+                    await request(`${CUSTOMERS_API_URL}/${encodeURIComponent(existing.id)}`, { method: 'PUT', body: JSON.stringify(payload) });
+                    allCustomers[editingCustIndex] = { ...existing, name, phone, email, tier: rank };
+                } catch (err) {
+                    // fallback local
+                    allCustomers[editingCustIndex] = { ...existing, name, phone, email, tier: rank };
+                    console.warn('Cập nhật cục bộ do API lỗi:', err.message);
+                }
             } else {
                 const newCustomer = {
                     id: 'KH' + String(Math.floor(Math.random() * 900) + 100),
+                    fullName: name,
                     name,
                     phone,
                     email,
@@ -256,18 +335,24 @@ document.addEventListener('DOMContentLoaded', () => {
                     visits: 0,
                     totalSpent: 0
                 };
-                allCustomers.unshift(newCustomer);
+                try {
+                    const created = await request(CUSTOMERS_API_URL, { method: 'POST', body: JSON.stringify(newCustomer) });
+                    if (created) allCustomers.unshift({ id: created.id || newCustomer.id, name: created.fullName || name, phone: created.phone || phone, email: created.email || email, tier: created.tier || rank, visits: created.visits || 0, totalSpent: created.totalSpent || 0 });
+                } catch (err) {
+                    allCustomers.unshift(newCustomer);
+                    console.warn('Tạo khách hàng cục bộ do API lỗi:', err.message);
+                }
             }
-            
+
             localStorage.setItem("bistro_customers", JSON.stringify(allCustomers));
             filterCustomers();
-            
+
             const modalEl = document.getElementById('addCustomerModal');
             if (modalEl) {
                 const modalInst = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
                 modalInst.hide();
             }
-            
+
             customerForm.reset();
             editingCustIndex = null;
             document.getElementById('addCustomerModalLabel').textContent = 'Thêm khách hàng';

@@ -15,6 +15,32 @@ document.addEventListener("DOMContentLoaded", () => {
   const tableNum = urlParams.get("table") || "Khách vãng lai";
   document.getElementById("tableNumber").textContent = `Bàn: ${tableNum}`;
 
+  const API_BASE_URL = 'http://localhost:7071/api';
+  const CUSTOMERS_API_URL = `${API_BASE_URL}/Customers`;
+  const ORDERS_API_URL = `${API_BASE_URL}/Orders`;
+
+  async function request(url, options = {}) {
+    const response = await fetch(url, {
+      headers: {
+        'Content-Type': 'application/json',
+        ...(options.headers || {})
+      },
+      ...options
+    });
+
+    if (!response.ok) {
+      let message = `API lỗi (${response.status})`;
+      try {
+        const body = await response.text();
+        if (body) message = body;
+      } catch (_) {}
+      throw new Error(message);
+    }
+
+    if (response.status === 204) return null;
+    return await response.json();
+  }
+
   const menuItems = [
     {
       id: 1,
@@ -378,17 +404,33 @@ document.addEventListener("DOMContentLoaded", () => {
           cust.visits = (cust.visits || 0) + 1;
           cust.tier = calculateTier(cust.totalSpent || 0);
           if (cust.name !== name) cust.name = name; // Update name to newest
+          // Try update on server
+          try {
+            const payload = { id: cust.id, fullName: cust.name, phone: cust.phone, email: cust.email || '', tier: cust.tier };
+            await request(`${CUSTOMERS_API_URL}/${encodeURIComponent(cust.id)}`, { method: 'PUT', body: JSON.stringify(payload) });
+          } catch (err) {
+            console.warn('Không thể cập nhật khách hàng lên API:', err.message);
+          }
         } else {
           // New
           cust = {
             id: "KH" + String(Date.now()).slice(-4),
             name: name,
+            fullName: name,
             phone: phone,
             visits: 1,
             totalSpent: 0,
             tier: "new",
             createdAt: new Date().toISOString()
           };
+          try {
+            const created = await request(CUSTOMERS_API_URL, { method: 'POST', body: JSON.stringify(cust) });
+            if (created) {
+              cust = { id: created.id || cust.id, name: created.fullName || cust.name, phone: created.phone || cust.phone, visits: created.visits || 1, totalSpent: created.totalSpent || 0, tier: created.tier || 'new' };
+            }
+          } catch (err) {
+            console.warn('Không thể tạo khách hàng trên API, lưu cục bộ:', err.message);
+          }
           allCustomers.unshift(cust); // Add to beginning
         }
 
@@ -587,7 +629,7 @@ document.addEventListener("DOMContentLoaded", () => {
           }
         }
 
-        // Sync to staff dashboard
+        // Sync to staff dashboard via API; fallback to localStorage
         const existingOrders = JSON.parse(
           localStorage.getItem("bistro_orders") || "[]",
         );
@@ -601,74 +643,63 @@ document.addEventListener("DOMContentLoaded", () => {
             o.status !== "Hủy",
         );
 
-        if (activeOrderIndex !== -1) {
-          // Đã có đơn hàng, gộp thêm món
-          const activeOrder = existingOrders[activeOrderIndex];
+        (async () => {
+          if (activeOrderIndex !== -1) {
+            const activeOrder = existingOrders[activeOrderIndex];
 
-          // Gộp món ăn
-          cart.forEach((cartItem) => {
-            const existingItem = activeOrder.items.find(
-              (i) => i.name === cartItem.name,
-            );
-            if (existingItem) {
-              existingItem.quantity += cartItem.qty;
-            } else {
-              activeOrder.items.push({
-                name: cartItem.name,
-                quantity: cartItem.qty,
-                price: cartItem.price,
-              });
+            cart.forEach((cartItem) => {
+              const existingItem = activeOrder.items.find((i) => i.name === cartItem.name);
+              if (existingItem) {
+                existingItem.quantity += cartItem.qty;
+              } else {
+                activeOrder.items.push({ name: cartItem.name, quantity: cartItem.qty, price: cartItem.price });
+              }
+            });
+
+            activeOrder.itemsCount += cart.reduce((sum, item) => sum + item.qty, 0);
+            activeOrder.total += finalTotal;
+            activeOrder.status = "Chờ xác nhận";
+            activeOrder.statusClass = "bg-warning bg-opacity-10 text-warning border-warning";
+            activeOrder.time = new Date().toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" });
+
+            try {
+              await fetch(`${ORDERS_API_URL}/${encodeURIComponent(activeOrder.id)}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(activeOrder) });
+            } catch (err) {
+              console.warn('Không thể cập nhật đơn lên API, lưu cục bộ:', err.message);
             }
-          });
 
-          // Cập nhật tổng tiền và số lượng
-          activeOrder.itemsCount += cart.reduce(
-            (sum, item) => sum + item.qty,
-            0,
-          );
-          activeOrder.total += finalTotal; // Add final discounted total instead of raw
+            existingOrders[activeOrderIndex] = activeOrder;
+          } else {
+            const newOrder = {
+              id: `ORD-${Math.floor(1000 + Math.random() * 9000)}`,
+              time: new Date().toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" }),
+              date: new Date().toLocaleDateString("vi-VN"),
+              customer: tableNum === "Khách vãng lai" ? "Mang về" : tableNum,
+              customerIcon: tableNum === "Khách vãng lai" ? "local_mall" : "table_restaurant",
+              customerSubtext: currentCustomer ? `${currentCustomer.name} - ${currentCustomer.phone}` : "Từ QR Khách hàng",
+              itemsCount: cart.reduce((sum, item) => sum + item.qty, 0),
+              items: cart.map((item) => ({ name: item.name, quantity: item.qty, price: item.price })),
+              total: finalTotal,
+              status: "Chờ xác nhận",
+              statusClass: "bg-warning bg-opacity-10 text-warning border-warning",
+            };
 
-          // Đổi trạng thái về chờ xác nhận để báo cho bếp biết có món mới
-          activeOrder.status = "Chờ xác nhận";
-          activeOrder.statusClass =
-            "bg-warning bg-opacity-10 text-warning border-warning";
+            try {
+              const resp = await fetch(ORDERS_API_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(newOrder) });
+              if (resp.ok) {
+                const created = await resp.json();
+                existingOrders.unshift(created || newOrder);
+              } else {
+                existingOrders.unshift(newOrder);
+              }
+            } catch (err) {
+              console.warn('Không thể tạo đơn trên API, lưu cục bộ:', err.message);
+              existingOrders.unshift(newOrder);
+            }
+          }
 
-          // Cập nhật lại thời gian đặt thêm món
-          activeOrder.time = new Date().toLocaleTimeString("vi-VN", {
-            hour: "2-digit",
-            minute: "2-digit",
-          });
-
-          existingOrders[activeOrderIndex] = activeOrder;
-        } else {
-          // Tạo đơn hàng mới
-          const newOrder = {
-            id: `ORD-${Math.floor(1000 + Math.random() * 9000)}`,
-            time: new Date().toLocaleTimeString("vi-VN", {
-              hour: "2-digit",
-              minute: "2-digit",
-            }),
-            date: new Date().toLocaleDateString("vi-VN"),
-            customer: tableNum === "Khách vãng lai" ? "Mang về" : tableNum,
-            customerIcon:
-              tableNum === "Khách vãng lai" ? "local_mall" : "table_restaurant",
-            customerSubtext: currentCustomer
-              ? `${currentCustomer.name} - ${currentCustomer.phone}`
-              : "Từ QR Khách hàng",
-            itemsCount: cart.reduce((sum, item) => sum + item.qty, 0),
-            items: cart.map((item) => ({
-              name: item.name,
-              quantity: item.qty,
-              price: item.price,
-            })),
-            total: finalTotal, // Final discounted total
-            status: "Chờ xác nhận",
-            statusClass: "bg-warning bg-opacity-10 text-warning border-warning",
-          };
-          existingOrders.unshift(newOrder); // add to top
-        }
-
-        localStorage.setItem("bistro_orders", JSON.stringify(existingOrders));
+          localStorage.setItem("bistro_orders", JSON.stringify(existingOrders));
+        })();
 
         orderModal.hide();
         btn.disabled = false;

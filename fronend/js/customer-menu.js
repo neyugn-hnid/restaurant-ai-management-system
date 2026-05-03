@@ -1,4 +1,4 @@
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
     const urlParams = new URLSearchParams(window.location.search);
     const tableParam = urlParams.get('table');
     if (tableParam) {
@@ -8,12 +8,60 @@ document.addEventListener("DOMContentLoaded", () => {
     // Check if categories and products are parsed correctly
     let categories = JSON.parse(localStorage.getItem('bistro_categories') || '[]');
     let products = JSON.parse(localStorage.getItem('bistro_products') || '[]');
+
+    const API_BASE_URL = 'http://localhost:7071/api';
+    const CATEGORIES_API_URL = `${API_BASE_URL}/Categories`;
+    const PRODUCTS_API_URL = `${API_BASE_URL}/Products`;
+    const ORDERS_API_URL = `${API_BASE_URL}/Orders`;
+
+    async function request(url, options = {}) {
+      const response = await fetch(url, {
+        headers: {
+          'Content-Type': 'application/json',
+          ...(options.headers || {})
+        },
+        ...options
+      });
+
+      if (!response.ok) {
+        let message = `API lỗi (${response.status})`;
+        try {
+          const body = await response.text();
+          if (body) message = body;
+        } catch (_) {}
+        throw new Error(message);
+      }
+
+      if (response.status === 204) return null;
+      return await response.json();
+    }
+
+    async function loadMenuData() {
+      try {
+        const catResp = await request(`${CATEGORIES_API_URL}?page=1&pageSize=100&sortBy=name&sortOrder=asc`);
+        const prodResp = await request(`${PRODUCTS_API_URL}?page=1&pageSize=1000&sortBy=createdAt&sortOrder=desc`);
+
+        if (catResp?.items) {
+          categories = catResp.items;
+          localStorage.setItem('bistro_categories', JSON.stringify(categories));
+        }
+        if (prodResp?.items) {
+          products = prodResp.items;
+          localStorage.setItem('bistro_products', JSON.stringify(products));
+        }
+      } catch (err) {
+        console.warn('Không thể tải menu từ API, dùng dữ liệu cục bộ:', err.message);
+      }
+    }
     
     // In case localstorage was overridden with old data:
     if(!categories.find(c => c._id === 'starters')) {
-        categories = window.BistroMockData.MOCK_CATEGORIES;
-        products = window.BistroMockData.MOCK_PRODUCTS;
+      categories = window.BistroMockData.MOCK_CATEGORIES;
+      products = window.BistroMockData.MOCK_PRODUCTS;
     }
+
+    // Try to fetch latest from API (falls back to localStorage/mock)
+    await loadMenuData();
 
     const menuContainer = document.querySelector('main');
     
@@ -88,10 +136,12 @@ document.addEventListener("DOMContentLoaded", () => {
     if (filterIslandWrap) {
         filterIslandWrap.innerHTML = '';
         categories.forEach((cat, index) => {
-            const btn = document.createElement('a');
-            btn.href = `#${cat._id || `cat-${cat.id}`}`;
-            btn.className = `filter-tag ${index === 0 ? 'active' : ''}`;
-            btn.textContent = cat.name;
+          const btn = document.createElement('a');
+          const targetId = (cat._id || `cat-${cat.id}`);
+          btn.href = '#';
+          btn.dataset.target = targetId;
+          btn.className = `filter-tag ${index === 0 ? 'active' : ''}`;
+          btn.textContent = cat.name;
             
             btn.addEventListener('click', (e) => {
                 e.preventDefault();
@@ -100,7 +150,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 btn.classList.add('active');
                 
                 // smooth scroll
-                const target = document.getElementById(cat._id || `cat-${cat.id}`);
+                const target = document.getElementById(targetId);
                 if (target) {
                     const offset = target.getBoundingClientRect().top + window.scrollY - 100;
                     window.scrollTo({ top: offset, behavior: 'smooth' });
@@ -125,14 +175,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
             if (currentId) {
                 document.querySelectorAll('.filter-tag').forEach(t => {
-                    if (t.getAttribute('href') === `#${currentId}`) {
-                        if (!t.classList.contains('active')) {
-                            t.classList.add('active');
-                            t.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
-                        }
-                    } else {
-                        t.classList.remove('active');
+                  if (t.dataset.target === currentId) {
+                    if (!t.classList.contains('active')) {
+                      t.classList.add('active');
+                      t.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
                     }
+                  } else {
+                    t.classList.remove('active');
+                  }
                 });
             }
         });
@@ -348,7 +398,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const cName = sessionStorage.getItem("customerName") || "Quý khách";
       const cTable = sessionStorage.getItem("bookedTable") || "Mang về";
 
-      // Sync to staff dashboard
+      // Sync to staff dashboard via API, fallback to localStorage
       const existingOrders = JSON.parse(localStorage.getItem("bistro_orders") || "[]");
 
       const activeOrderIndex = existingOrders.findIndex(
@@ -361,9 +411,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
       let finalTotal = currentCart.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
-      if (activeOrderIndex !== -1) {
+      (async () => {
+        if (activeOrderIndex !== -1) {
           const activeOrder = existingOrders[activeOrderIndex];
-          
+
           currentCart.forEach((cartItem) => {
               const existingItem = activeOrder.items.find((i) => i.name === cartItem.name);
               if (existingItem) {
@@ -383,8 +434,13 @@ document.addEventListener("DOMContentLoaded", () => {
           activeOrder.statusClass = "bg-warning bg-opacity-10 text-warning border-warning";
           activeOrder.time = new Date().toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" });
 
+          try {
+            await fetch(`${ORDERS_API_URL}/${encodeURIComponent(activeOrder.id)}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(activeOrder) });
+          } catch (err) {
+            console.warn('Không thể cập nhật đơn lên API, lưu cục bộ:', err.message);
+          }
           existingOrders[activeOrderIndex] = activeOrder;
-      } else {
+        } else {
           const newOrder = {
               id: `ORD-${Math.floor(1000 + Math.random() * 9000)}`,
               time: new Date().toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" }),
@@ -402,10 +458,23 @@ document.addEventListener("DOMContentLoaded", () => {
               status: "Chờ xác nhận",
               statusClass: "bg-warning bg-opacity-10 text-warning border-warning",
           };
-          existingOrders.unshift(newOrder);
-      }
 
-      localStorage.setItem("bistro_orders", JSON.stringify(existingOrders));
+          try {
+            const resp = await fetch(ORDERS_API_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(newOrder) });
+            if (resp.ok) {
+              const created = await resp.json();
+              existingOrders.unshift(created || newOrder);
+            } else {
+              existingOrders.unshift(newOrder);
+            }
+          } catch (err) {
+            console.warn('Không thể tạo đơn trên API, lưu cục bộ:', err.message);
+            existingOrders.unshift(newOrder);
+          }
+        }
+
+        localStorage.setItem("bistro_orders", JSON.stringify(existingOrders));
+      })();
 
       const msgEl = document.getElementById("order-success-msg");
       msgEl.innerHTML = `Cảm ơn <b>${cName}</b>.<br/>Các món ăn đã được gửi yêu cầu lên hệ thống. Bếp sẽ chuẩn bị ngay nhé, nếu có thay đổi xin vui lòng gọi đến số điện thoại quy định.`;

@@ -1,13 +1,48 @@
-const STORAGE_KEY_CATEGORIES = 'bistro_categories';
-
 document.addEventListener('DOMContentLoaded', () => {
-    let categories = getCategories();
-    
+    const API_BASE_URL = 'http://localhost:7071/api';
+    const CATEGORIES_API_URL = `${API_BASE_URL}/Categories`;
+    const ITEMS_PER_PAGE = 10;
+
     const tableBody = document.getElementById('categoriesTableBody');
     const categoryForm = document.getElementById('categoryForm');
     const saveBtn = document.getElementById('saveCategoryBtn');
     const addModalEl = document.getElementById('addCategoryModal');
-    let editingId = null;
+    
+    const state = {
+        currentPage: 1,
+        totalPages: 1,
+        searchTerm: '',
+        editingId: null,
+        isLoading: false
+    };
+
+    // Helper function for API requests
+    async function request(url, options = {}) {
+        const response = await fetch(url, {
+            headers: {
+                'Content-Type': 'application/json',
+                ...(options.headers || {})
+            },
+            ...options
+        });
+
+        if (!response.ok) {
+            let message = `API lỗi (${response.status})`;
+            try {
+                const body = await response.text();
+                if (body) message = body;
+            } catch (_) {
+                // Ignore parse errors
+            }
+            throw new Error(message);
+        }
+
+        if (response.status === 204) {
+            return null;
+        }
+
+        return await response.json();
+    }
 
     // Reset modal on close
     if (addModalEl) {
@@ -16,28 +51,9 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('categoryId').value = '';
             document.querySelector('#addCategoryModal .modal-title').textContent = 'Thêm danh mục mới';
             saveBtn.textContent = 'Lưu danh mục';
-            editingId = null;
+            state.editingId = null;
         });
     }
-
-    function getCategories() {
-        // data.js will have already initialized localStorage, but fallback just in case
-        const data = localStorage.getItem(STORAGE_KEY_CATEGORIES);
-        if (data) {
-            return JSON.parse(data);
-        }
-        const defaultData = window.BistroMockData?.MOCK_CATEGORIES || [];
-        localStorage.setItem(STORAGE_KEY_CATEGORIES, JSON.stringify(defaultData));
-        return defaultData.slice();
-    }
-
-    function saveCategories() {
-        localStorage.setItem(STORAGE_KEY_CATEGORIES, JSON.stringify(categories));
-    }
-
-    let currentPage = 1;
-    const itemsPerPage = 10;
-    let filteredCategories = [];
 
     function renderPagination() {
         const paginationContainer = document.querySelector('.pagination');
@@ -45,26 +61,24 @@ document.addEventListener('DOMContentLoaded', () => {
         
         paginationContainer.innerHTML = '';
         
-        const totalPages = Math.ceil(filteredCategories.length / itemsPerPage) || 1;
-        
         // Prev button
         const prevLi = document.createElement('li');
-        prevLi.className = `page-item ${currentPage === 1 ? 'disabled' : ''}`;
+        prevLi.className = `page-item ${state.currentPage === 1 ? 'disabled' : ''}`;
         prevLi.innerHTML = `<a class="page-link rounded-pill border-0 text-secondary bg-light px-3" href="#" data-page="prev">Trước</a>`;
         paginationContainer.appendChild(prevLi);
         
         // Page numbers
-        for (let i = 1; i <= totalPages; i++) {
+        for (let i = 1; i <= state.totalPages; i++) {
             const li = document.createElement('li');
-            li.className = `page-item ${currentPage === i ? 'active' : ''}`;
-            const activeClasses = currentPage === i ? 'bg-primary text-white' : 'text-secondary bg-light';
+            li.className = `page-item ${state.currentPage === i ? 'active' : ''}`;
+            const activeClasses = state.currentPage === i ? 'bg-primary text-white' : 'text-secondary bg-light';
             li.innerHTML = `<a class="page-link rounded-pill border-0 ${activeClasses} px-3" href="#" data-page="${i}">${i}</a>`;
             paginationContainer.appendChild(li);
         }
         
         // Next button
         const nextLi = document.createElement('li');
-        nextLi.className = `page-item ${currentPage === totalPages ? 'disabled' : ''}`;
+        nextLi.className = `page-item ${state.currentPage === state.totalPages ? 'disabled' : ''}`;
         nextLi.innerHTML = `<a class="page-link rounded-pill border-0 text-secondary bg-light px-3" href="#" data-page="next">Sau</a>`;
         paginationContainer.appendChild(nextLi);
         
@@ -73,70 +87,85 @@ document.addEventListener('DOMContentLoaded', () => {
             a.addEventListener('click', (e) => {
                 e.preventDefault();
                 const page = e.target.getAttribute('data-page');
-                if (page === 'prev' && currentPage > 1) {
-                    currentPage--;
-                    renderTable(false);
-                } else if (page === 'next' && currentPage < totalPages) {
-                    currentPage++;
-                    renderTable(false);
+                if (page === 'prev' && state.currentPage > 1) {
+                    state.currentPage--;
+                    loadAndRenderCategories();
+                } else if (page === 'next' && state.currentPage < state.totalPages) {
+                    state.currentPage++;
+                    loadAndRenderCategories();
                 } else if (page !== 'prev' && page !== 'next') {
-                    currentPage = parseInt(page);
-                    renderTable(false);
+                    state.currentPage = parseInt(page);
+                    loadAndRenderCategories();
                 }
             });
         });
     }
 
-    function renderTable(resetPage = false) {
-        if (resetPage) currentPage = 1;
+    async function loadAndRenderCategories() {
+        if (state.isLoading) return;
+        
+        state.isLoading = true;
+        tableBody.innerHTML = '<tr><td colspan="3" class="text-center py-4"><span class="spinner-border spinner-border-sm"></span></td></tr>';
 
-        // Apply filters
-        const searchInput = document.getElementById('searchCategory');
-        const searchTerm = searchInput ? searchInput.value.toLowerCase().trim() : '';
-        const statusFilter = document.getElementById('statusFilter') ? document.getElementById('statusFilter').value : 'Tất cả';
+        try {
+            const searchTerm = document.getElementById('searchCategory')?.value.trim() || '';
+            const queryParams = new URLSearchParams({
+                page: state.currentPage,
+                pageSize: ITEMS_PER_PAGE,
+                searchTerm: searchTerm,
+                sortBy: 'name',
+                sortOrder: 'asc'
+            });
 
-        filteredCategories = categories.filter(c => {
-            const matchSearch = c.name.toLowerCase().includes(searchTerm) || (c.description || '').toLowerCase().includes(searchTerm);
-            const matchStatus = statusFilter === 'Tất cả' || c.status === statusFilter;
-            return matchSearch && matchStatus;
-        });
+            const response = await request(`${CATEGORIES_API_URL}?${queryParams}`);
+            
+            if (response?.items) {
+                renderTable(response.items);
+                state.totalPages = response.totalPages || 1;
+            } else {
+                tableBody.innerHTML = '<tr><td colspan="3" class="text-center py-4 text-muted">Không tìm thấy danh mục.</td></tr>';
+            }
+        } catch (error) {
+            console.error('Lỗi khi tải danh mục:', error);
+            tableBody.innerHTML = `<tr><td colspan="3" class="text-center py-4 text-danger">Lỗi: ${error.message}</td></tr>`;
+        } finally {
+            state.isLoading = false;
+            renderPagination();
+        }
+    }
 
+    function renderTable(categories) {
         tableBody.innerHTML = '';
         
-        const startIndex = (currentPage - 1) * itemsPerPage;
-        const endIndex = startIndex + itemsPerPage;
-        const pageData = filteredCategories.slice(startIndex, endIndex);
-
-        if (pageData.length === 0) {
-            tableBody.innerHTML = `<tr><td colspan="5" class="text-center py-4 text-muted">Không tìm thấy danh mục.</td></tr>`;
-        } else {
-            pageData.forEach(cat => {
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td class="ps-4">
-                        <h6 class="mb-0 fw-semibold text-dark">${escapeHtml(cat.name)}</h6>
-                    </td>
-                    <td><span class="text-secondary">${escapeHtml(cat.description || '')}</span></td>
-                    <td class="text-end pe-4">
-                        <div class="d-flex justify-content-end gap-2">
-                            <button class="btn btn-light btn-icon border shadow-sm p-0 d-flex align-items-center justify-content-center edit-btn" data-id="${cat.id}" style="width: 32px; height: 32px; border-radius: 50%;">
-                                <span class="material-symbols-outlined fs-6">edit</span>
-                            </button>
-                            <button class="btn btn-light btn-icon border border-danger shadow-sm p-0 d-flex align-items-center justify-content-center delete-btn" data-id="${cat.id}" style="width: 32px; height: 32px; border-radius: 50%; color: #dc3545 !important;">
-                                <span class="material-symbols-outlined fs-6">delete</span>
-                            </button>
-                        </div>
-                    </td>
-                `;
-                tableBody.appendChild(tr);
-            });
+        if (!categories || categories.length === 0) {
+            tableBody.innerHTML = '<tr><td colspan="3" class="text-center py-4 text-muted">Không tìm thấy danh mục.</td></tr>';
+            return;
         }
-        
-        renderPagination();
+
+        categories.forEach(cat => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td class="ps-4">
+                    <h6 class="mb-0 fw-semibold text-dark">${escapeHtml(cat.name)}</h6>
+                </td>
+                <td><span class="text-secondary">${escapeHtml(cat.description || '')}</span></td>
+                <td class="text-end pe-4">
+                    <div class="d-flex justify-content-end gap-2">
+                        <button class="btn btn-light btn-icon border shadow-sm p-0 d-flex align-items-center justify-content-center edit-btn" data-id="${cat.id}" style="width: 32px; height: 32px; border-radius: 50%;">
+                            <span class="material-symbols-outlined fs-6">edit</span>
+                        </button>
+                        <button class="btn btn-light btn-icon border border-danger shadow-sm p-0 d-flex align-items-center justify-content-center delete-btn" data-id="${cat.id}" style="width: 32px; height: 32px; border-radius: 50%; color: #dc3545 !important;">
+                            <span class="material-symbols-outlined fs-6">delete</span>
+                        </button>
+                    </div>
+                </td>
+            `;
+            tableBody.appendChild(tr);
+        });
     }
 
     // Handle form submit/save
-    saveBtn.addEventListener('click', () => {
+    saveBtn.addEventListener('click', async () => {
         const nameInput = document.getElementById('categoryName').value.trim();
         const descInput = document.getElementById('categoryDescription').value.trim();
 
@@ -145,30 +174,45 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        if (editingId) {
-            // Edit
-            const cat = categories.find(c => c.id === editingId);
-            if (cat) {
-                cat.name = nameInput;
-                cat.description = descInput;
-            }
-        } else {
-            // Add new
-            const newId = categories.length > 0 ? Math.max(...categories.map(c => c.id)) + 1 : 1;
-            categories.push({
-                id: newId,
-                name: nameInput,
-                description: descInput,
-                count: 0,
-                status: 'Hoạt động'
-            });
-        }
+        saveBtn.disabled = true;
+        saveBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Đang lưu...';
 
-        saveCategories();
-        renderTable();
-        
-        const modal = bootstrap.Modal.getInstance(addModalEl);
-        if (modal) modal.hide();
+        try {
+            const payload = {
+                name: nameInput,
+                description: descInput || null,
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString()
+            };
+
+            if (state.editingId) {
+                // Update
+                payload.id = state.editingId;
+                await request(`${CATEGORIES_API_URL}/${state.editingId}`, {
+                    method: 'PUT',
+                    body: JSON.stringify(payload)
+                });
+            } else {
+                // Create new
+                await request(CATEGORIES_API_URL, {
+                    method: 'POST',
+                    body: JSON.stringify(payload)
+                });
+            }
+
+            state.currentPage = 1;
+            state.editingId = null;
+            await loadAndRenderCategories();
+            
+            const modal = bootstrap.Modal.getInstance(addModalEl);
+            if (modal) modal.hide();
+        } catch (error) {
+            console.error('Lỗi khi lưu danh mục:', error);
+            alert(`Lỗi: ${error.message}`);
+        } finally {
+            saveBtn.disabled = false;
+            saveBtn.innerHTML = 'Lưu danh mục';
+        }
     });
 
     // Handle Edit / Delete Actions
@@ -178,13 +222,28 @@ document.addEventListener('DOMContentLoaded', () => {
     const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
 
     if (confirmDeleteBtn) {
-        confirmDeleteBtn.addEventListener('click', () => {
+        confirmDeleteBtn.addEventListener('click', async () => {
             if (categoryToDelete !== null) {
-                categories = categories.filter(c => c.id !== categoryToDelete);
-                saveCategories();
-                renderTable();
-                if (deleteModal) deleteModal.hide();
-                categoryToDelete = null;
+                confirmDeleteBtn.disabled = true;
+                confirmDeleteBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Đang xóa...';
+
+                try {
+                    await request(`${CATEGORIES_API_URL}/${categoryToDelete}`, {
+                        method: 'DELETE'
+                    });
+
+                    state.currentPage = 1;
+                    await loadAndRenderCategories();
+                    
+                    if (deleteModal) deleteModal.hide();
+                    categoryToDelete = null;
+                } catch (error) {
+                    console.error('Lỗi khi xóa danh mục:', error);
+                    alert(`Lỗi: ${error.message}`);
+                } finally {
+                    confirmDeleteBtn.disabled = false;
+                    confirmDeleteBtn.innerHTML = 'Xóa';
+                }
             }
         });
     }
@@ -195,19 +254,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (editBtn) {
             const id = parseInt(editBtn.getAttribute('data-id'));
-            const cat = categories.find(c => c.id === id);
-            if (cat) {
-                editingId = id;
-                document.getElementById('categoryId').value = id;
-                document.getElementById('categoryName').value = cat.name;
-                document.getElementById('categoryDescription').value = cat.description || '';
-                
-                document.querySelector('#addCategoryModal .modal-title').textContent = 'Sửa danh mục';
-                saveBtn.textContent = 'Cập nhật';
+            const categoryRow = editBtn.closest('tr');
+            const name = categoryRow.querySelector('h6').textContent;
+            const desc = categoryRow.querySelector('td:nth-child(2) span').textContent;
 
-                const modal = bootstrap.Modal.getInstance(addModalEl) || new bootstrap.Modal(addModalEl);
-                modal.show();
-            }
+            state.editingId = id;
+            document.getElementById('categoryId').value = id;
+            document.getElementById('categoryName').value = name;
+            document.getElementById('categoryDescription').value = desc;
+            
+            document.querySelector('#addCategoryModal .modal-title').textContent = 'Sửa danh mục';
+            saveBtn.textContent = 'Cập nhật';
+
+            const modal = bootstrap.Modal.getInstance(addModalEl) || new bootstrap.Modal(addModalEl);
+            modal.show();
         } else if (deleteBtn) {
             const id = parseInt(deleteBtn.getAttribute('data-id'));
             categoryToDelete = id;
@@ -226,14 +286,20 @@ document.addEventListener('DOMContentLoaded', () => {
              .replace(/'/g, "&#039;");
     }
 
-    renderTable();
-
-    // Setup simple search
+    // Setup search
     const searchInput = document.querySelector('.search-box input');
     if (searchInput) {
         searchInput.id = 'searchCategory';
-        searchInput.addEventListener('input', (e) => {
-            renderTable(true);
+        let searchTimeout;
+        searchInput.addEventListener('input', () => {
+            clearTimeout(searchTimeout);
+            state.currentPage = 1;
+            searchTimeout = setTimeout(() => {
+                loadAndRenderCategories();
+            }, 300);
         });
     }
+
+    // Initial load
+    loadAndRenderCategories();
 });

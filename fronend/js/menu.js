@@ -55,7 +55,6 @@ document.addEventListener('DOMContentLoaded', () => {
         modalTitle: document.getElementById('addFoodModalLabel'),
         foodName: document.getElementById('foodName'),
         foodImage: document.getElementById('foodImage'),
-        foodSku: document.getElementById('foodSku'),
         foodPrice: document.getElementById('foodPrice'),
         foodCategory: document.getElementById('foodCategory'),
         foodStatus: document.getElementById('foodStatus'),
@@ -172,20 +171,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return PRODUCT_STATUSES.ACTIVE;
     }
 
-    function parseProductIdInput(rawValue) {
-        const normalizedValue = String(rawValue || '').trim();
-        if (!normalizedValue) return null;
 
-        const numericValue = Number(normalizedValue);
-        if (Number.isInteger(numericValue) && numericValue > 0) {
-            return numericValue;
-        }
-
-        const digits = normalizedValue.match(/\d+/g)?.join('') || '';
-        const extractedValue = Number(digits);
-
-        return Number.isInteger(extractedValue) && extractedValue > 0 ? extractedValue : null;
-    }
 
     function getCategoryName(categoryId) {
         return state.categories.find(category => category.id === categoryId)?.name || 'Khác';
@@ -447,10 +433,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (elements.saveFoodButton) elements.saveFoodButton.textContent = 'Lưu món';
     }
 
-    function generateSku() {
-        if (state.editingProductId || !elements.foodCategory || !elements.foodSku) return;
-        elements.foodSku.value = '';
-    }
+
 
     function findProductById(productId) {
         return state.products.find(product => String(product.id) === String(productId));
@@ -465,7 +448,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         elements.foodName.value = product.name || '';
         elements.foodDesc.value = product.description || '';
-        elements.foodSku.value = String(product.id || '');
         elements.foodCategory.value = String(product.categoryId || '');
         elements.foodPrice.value = Math.trunc(product.price || 0);
         elements.foodStatus.value = getProductStatusLabel(product);
@@ -478,7 +460,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const categoryId = Number(elements.foodCategory.value);
         const statusLabel = elements.foodStatus.value;
         const editingProduct = state.editingProductId ? findProductById(state.editingProductId) : null;
-        const parsedId = parseProductIdInput(elements.foodSku.value);
         const payload = {
             name: elements.foodName.value.trim(),
             categoryId,
@@ -492,8 +473,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (state.editingProductId) {
             payload.id = state.editingProductId;
-        } else if (parsedId) {
-            payload.id = parsedId;
         }
 
         return payload;
@@ -622,13 +601,11 @@ document.addEventListener('DOMContentLoaded', () => {
         elements.tableBody?.addEventListener('click', handleTableAction);
         elements.deleteConfirmButton?.addEventListener('click', handleDeleteConfirm);
         elements.saveFoodButton?.addEventListener('click', handleSaveFood);
-        elements.foodCategory?.addEventListener('change', generateSku);
 
         elements.addFoodModal?.addEventListener('hidden.bs.modal', resetFoodForm);
         elements.addFoodModal?.addEventListener('show.bs.modal', () => {
             if (!state.editingProductId) {
                 updateFilters();
-                generateSku();
             }
         });
     }
