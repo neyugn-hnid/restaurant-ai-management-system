@@ -1,0 +1,28 @@
+/* Quản lý bàn (Tables) specific styles */
+.table-item {
+    transition: opacity 0.3s ease-in-out;
+}
+.table-card { background: #fff; border-radius: var(--card-radius); padding: 1.5rem; border: none; box-shadow: var(--card-shadow); cursor: pointer; transition: all 0.2s; position: relative; overflow: hidden; border-top: 4px solid var(--sb-ceramic); }
+.table-card:hover { transform: translateY(-2px); box-shadow: 0 4px 6px rgba(0,0,0,0.1), 0 1px 3px rgba(0,0,0,0.08); }
+.table-free { border-top-color: #27c38a; }
+.table-occupied { border-top-color: #c82014; }
+.table-reserved { border-top-color: #fbbc05; }
+.table-cleaning { border-top-color: #f97316; }
+
+/* Detail Modal Styles */
+.table-icon-large {
+    background-color: var(--sb-house-green-light) !important;
+}
+.table-icon-large .material-symbols-outlined {
+    color: var(--sb-house-green) !important;
+}
+.rounded-4 { border-radius: 1rem !important; }
+.modal-content {
+    border: none;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25) !important;
+}
+.detail-actions .btn {
+    border-radius: 50px;
+    padding: 0.6rem 1.5rem;
+    font-weight: 600;
+}

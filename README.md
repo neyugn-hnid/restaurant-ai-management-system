@@ -1,1 +1,0 @@
-# restaurant-ai-management-system

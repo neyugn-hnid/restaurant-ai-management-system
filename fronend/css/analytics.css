@@ -1,0 +1,6 @@
+/* Thống kê (Analytics) specific styles */
+.chart-container { height: 300px; width: 100%; display: flex; align-items: flex-end; gap: 12px; padding: 20px 0 0 0; }
+.chart-bar-wrapper { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 8px; height: 100%; }
+.chart-bar { width: 100%; background-color: var(--sb-accent); border-radius: 4px 4px 0 0; min-height: 4px; transition: height 0.3s ease; }
+.chart-label { font-size: 0.75rem; color: var(--text-soft); }
+.chart-val { font-size: 0.75rem; font-weight: 600; color: var(--sb-accent); margin-bottom: 4px; }

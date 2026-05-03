@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Thực Đơn Chuẩn Vị | L'Héritage</title>
+  <!-- Polyfill for process.env -->
+  <script>window.process = { env: {} };</script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/customer-menu.css">
+</head>
+<body>
+  <nav class="navbar">
+    <a href="/" class="nav-brand">DeaGun</a>
+    <div class="nav-links">
+      <a href="/" class="nav-label">Trang chủ</a>
+      <a href="/customer-menu.html" class="nav-label active">Thực đơn</a>
+      <a href="/#about" class="nav-label">Trải nghiệm</a>
+      <a href="/restaurant-map.html" class="btn btn-primary">Đặt bàn</a>
+    </div>
+  </nav>
+  <header class="menu-hero">
+    <h1 class="display-hero">Bộ Sưu Tập Hương Vị</h1>
+    <p class="body-lead">Trải nghiệm nghệ thuật ẩm thực tinh hoa với vô vàn lựa chọn từ nguyên liệu xa xỉ nhất Thế giới.</p>
+  </header>
+  <div class="menu-filter-wrap">
+    <nav class="menu-filter-island">
+      <a href="#starters" class="active">Khai vị</a>
+      <a href="#pasta">Mì Ý & Risotto</a>
+      <a href="#steaks">Thịt nướng tảng</a>
+      <a href="#seafood">Hải sản</a>
+      <a href="#sides">Món ăn kèm</a>
+      <a href="#desserts">Tráng miệng</a>
+      <a href="#drinks">Thức uống</a>
+      <a href="#vegan">Món chay</a>
+      <a href="#specials">Đặc biệt</a>
+    </nav>
+  </div>
+  <main>
+    <section class="promo-vip">
+      <span class="subheading" style="color: #ffffff;">Độc Quyền Hội Viên</span>
+      <h3>Tasting Menu Của Bếp Trưởng</h3>
+      <p class="body-lead" style="margin-inline: auto;">Trọn vẹn 6 món ăn vương giả Pairing cùng 3 dòng Vang Ý cực hiếm.</p>
+      <a href="/#reservations" class="btn btn-gold">Khám Phá Gói</a>
+    </section>
+  </main>
+  <footer>
+    <a href="/" class="footer-logo">L'Héritage</a>
+    <div class="body-text" style="font-size: 1.4rem; color: rgba(255,255,255,0.5);">&copy; 2026 Bản quyền thuộc về L'Héritage Steakhouse. Không gian di sản.</div>
+  </footer>
+  <script type="module" src="/js/data.js"></script>
+  
+  <script type="module" src="/js/customer-menu.js"></script>
+</body>
+</html>

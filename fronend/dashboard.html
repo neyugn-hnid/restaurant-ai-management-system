@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Tổng quan - Quản trị nhà hàng</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+    <link href="./css/common.css" rel="stylesheet">
+    <link href="./css/index.css" rel="stylesheet">
+</head>
+<body>
+    <nav class="sidebar py-4 d-flex flex-column shadow text-white">
+        <div class="px-4 mb-4 d-flex align-items-center gap-3">
+            <div class="icon-box bg-white bg-opacity-25 text-white">
+                <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">restaurant</span>
+            </div>
+            <div>
+                <h5 class="mb-0 fw-bold fs-5">Quản trị nhà hàng</h5>
+                <small class="text-white-50">Hệ thống quản lý</small>
+            </div>
+        </div>
+        <div class="flex-grow-1 px-3">
+            <a class="nav-link active" href="/dashboard.html"><span class="material-symbols-outlined">dashboard</span> Tổng quan</a>
+            <a class="nav-link" href="./tables.html"><span class="material-symbols-outlined">table_restaurant</span> Quản lý bàn</a>
+            <a class="nav-link" href="/menu.html"><span class="material-symbols-outlined">restaurant_menu</span> Quản lý thực đơn</a>
+            <a class="nav-link" href="/orders.html"><span class="material-symbols-outlined">receipt_long</span> Quản lý đơn hàng</a>
+            <a class="nav-link" href="/customers.html"><span class="material-symbols-outlined">group</span> Quản lý khách hàng</a>
+            <a class="nav-link" href="/accounts.html"><span class="material-symbols-outlined">manage_accounts</span> Quản lý tài khoản</a>
+            <a class="nav-link" href="/analytics.html"><span class="material-symbols-outlined">analytics</span> Thống kê</a>
+            <a class="nav-link" href="/settings.html"><span class="material-symbols-outlined">settings</span> Cài đặt</a>
+
+        </div>
+        <div class="px-3 mt-auto pt-3 border-top border-light border-opacity-10">
+            <a class="nav-link" href="#"><span class="material-symbols-outlined">logout</span> Đăng xuất</a>
+        </div>
+    </nav>
+    <div class="main-content d-flex flex-column">
+        <header class="topbar d-flex align-items-center justify-content-end px-4">
+            <div class="d-flex align-items-center gap-3 topbar-actions">
+                <button class="btn btn-icon border-0 position-relative">
+                    <span class="material-symbols-outlined">notifications</span>
+                    <span class="position-absolute top-0 end-0 translate-middle p-1 bg-danger border border-light rounded-circle" style="margin-top: 10px; margin-right: 5px;"></span>
+                </button>
+                <div class="vr" style="height: 24px; align-self: center;"></div>
+                <div class="d-flex align-items-center gap-2 cursor-pointer" style="cursor: pointer;">
+                    <img src="https://ui-avatars.com/api/?name=Admin&background=1e3a8a&color=fff" alt="Avatar" class="avatar">
+                </div>
+            </div>
+        </header>
+        <main class="topbar-pad p-4 flex-grow-1">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h3 class="fw-bold text-dark mb-1">Tổng quan</h3>
+                    <p class="text-secondary mb-0">Theo dõi hoạt động kinh doanh hôm nay.</p>
+                </div>
+                <div>
+                    <button class="btn btn-primary d-flex align-items-center gap-2">
+                        <span class="material-symbols-outlined fs-6">add</span> Tạo đơn mới
+                    </button>
+                </div>
+            </div>
+
+            <div class="row g-4 mb-4">
+                <div class="col-md-6 col-xl-3">
+                    <div class="stat-card d-flex flex-column justify-content-between">
+                        <div class="d-flex justify-content-between mb-3">
+                            <div>
+                                <p class="text-secondary mb-1">Tổng doanh thu</p>
+                                <h3 class="mb-0 fw-bold">0đ</h3>
+                            </div>
+                            <div class="icon-box bg-success-light">
+                                <span class="material-symbols-outlined">payments</span>
+                            </div>
+                        </div>
+                        <div class="text-success small d-flex align-items-center gap-1">
+                            <span class="material-symbols-outlined" style="font-size: 1rem;">trending_up</span>
+                            <span>+15% so với hôm qua</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6 col-xl-3">
+                    <div class="stat-card d-flex flex-column justify-content-between">
+                        <div class="d-flex justify-content-between mb-3">
+                            <div>
+                                <p class="text-secondary mb-1">Đơn hàng mới</p>
+                                <h3 class="mb-0 fw-bold">124</h3>
+                            </div>
+                            <div class="icon-box bg-primary-light">
+                                <span class="material-symbols-outlined">receipt_long</span>
+                            </div>
+                        </div>
+                        <div class="text-success small d-flex align-items-center gap-1">
+                            <span class="material-symbols-outlined" style="font-size: 1rem;">trending_up</span>
+                            <span>+5% so với hôm qua</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6 col-xl-3">
+                    <div class="stat-card d-flex flex-column justify-content-between">
+                        <div class="d-flex justify-content-between mb-3">
+                            <div>
+                                <p class="text-secondary mb-1">Khách hàng</p>
+                                <h3 class="mb-0 fw-bold">342</h3>
+                            </div>
+                            <div class="icon-box bg-warning-light">
+                                <span class="material-symbols-outlined">group</span>
+                            </div>
+                        </div>
+                        <div class="text-danger small d-flex align-items-center gap-1">
+                            <span class="material-symbols-outlined" style="font-size: 1rem;">trending_down</span>
+                            <span>-2% so với hôm qua</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6 col-xl-3">
+                    <div class="stat-card d-flex flex-column justify-content-between">
+                        <div class="d-flex justify-content-between mb-3">
+                            <div>
+                                <p class="text-secondary mb-1">Bàn đang phục vụ</p>
+                                <h3 class="mb-0 fw-bold">15 / 42</h3>
+                            </div>
+                            <div class="icon-box bg-danger-light">
+                                <span class="material-symbols-outlined">table_restaurant</span>
+                            </div>
+                        </div>
+                        <div class="text-secondary small d-flex align-items-center gap-1">
+                            <span>Tỉ lệ lấp đầy: 35%</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts Section -->
+            <div class="row g-4 mb-4">
+                <div class="col-lg-8">
+                    <div class="card border-0 shadow-sm rounded-4 h-100 d-flex flex-column">
+                        <div class="card-header bg-white border-0 pt-4 pb-0">
+                            <h5 class="fw-bold mb-0">Doanh thu 7 ngày qua</h5>
+                        </div>
+                        <div class="card-body">
+                            <canvas id="revenueChart" style="max-height: 300px;"></canvas>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4">
+                    <div class="card border-0 shadow-sm rounded-4 h-100 d-flex flex-column">
+                        <div class="card-header bg-white border-0 pt-4 pb-0">
+                            <h5 class="fw-bold mb-0">Trạng thái đơn hàng</h5>
+                        </div>
+                        <div class="card-body d-flex justify-content-center align-items-center">
+                            <canvas id="statusChart" style="max-height: 250px;"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row g-4">
+                <div class="col-lg-8">
+                    <div class="card border-0 shadow-sm rounded-4 h-100 d-flex flex-column">
+                        <div class="card-header bg-white border-0 pt-4 pb-0 d-flex justify-content-between align-items-center">
+                            <h5 class="fw-bold mb-0">Đơn hàng gần đây</h5>
+                            <a href="/orders.html" class="btn btn-sm btn-light text-primary fw-semibold">Xem tất cả</a>
+                        </div>
+                        <div class="card-body p-0 mt-3 flex-grow-1 overflow-auto">
+                            <div class="table-responsive">
+                                <table class="table table-hover table-custom mb-0 w-100">
+                                <thead>
+                                    <tr>
+                                        <th>Mã ĐH</th>
+                                        <th>Thời gian</th>
+                                        <th>Bàn</th>
+                                        <th>Tổng tiền</th>
+                                        <th>Trạng thái</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="dashboardOrdersBody">
+                                </tbody>
+                            </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4">
+                    <div class="card border-0 shadow-sm rounded-4 h-100 d-flex flex-column">
+                        <div class="card-header bg-white border-0 pt-4 pb-0">
+                            <h5 class="fw-bold mb-0">Món bán chạy</h5>
+                        </div>
+                        <div class="card-body flex-grow-1">
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="bg-primary-light rounded-circle p-2 d-flex align-items-center justify-content-center me-3" style="width: 48px; height: 48px;">
+                                    <span class="fw-bold text-primary">1</span>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <h6 class="mb-0 fw-semibold">Bò Bít Tết Úc</h6>
+                                    <small class="text-muted">45 lượt gọi</small>
+                                </div>
+                                <div class="fw-bold">15.750.000 ₫</div>
+                            </div>
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="bg-secondary bg-opacity-10 rounded-circle p-2 d-flex align-items-center justify-content-center me-3" style="width: 48px; height: 48px;">
+                                    <span class="fw-bold text-secondary">2</span>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <h6 class="mb-0 fw-semibold">Salad Vườn Xuân</h6>
+                                    <small class="text-muted">38 lượt gọi</small>
+                                </div>
+                                <div class="fw-bold">3.230.000 ₫</div>
+                            </div>
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="bg-secondary bg-opacity-10 rounded-circle p-2 d-flex align-items-center justify-content-center me-3" style="width: 48px; height: 48px;">
+                                    <span class="fw-bold text-secondary">3</span>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <h6 class="mb-0 fw-semibold">Cá Hồi Nướng</h6>
+                                    <small class="text-muted">26 lượt gọi</small>
+                                </div>
+                                <div class="fw-bold">7.280.000 ₫</div>
+                            </div>
+                            <div class="d-flex align-items-center">
+                                <div class="bg-secondary bg-opacity-10 rounded-circle p-2 d-flex align-items-center justify-content-center me-3" style="width: 48px; height: 48px;">
+                                    <span class="fw-bold text-secondary">4</span>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <h6 class="mb-0 fw-semibold">Trà Nhiệt Đới</h6>
+                                    <small class="text-muted">54 lượt gọi</small>
+                                </div>
+                                <div class="fw-bold">3.510.000 ₫</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- Floating Action Button (Frap) -->
+    <a href="/orders.html" class="btn btn-primary shadow d-flex align-items-center justify-content-center p-0 position-fixed" 
+       style="width: 56px; height: 56px; border-radius: 50%; bottom: 32px; right: 32px; z-index: 1050; box-shadow: 0 0 6px rgba(0,0,0,0.24), 0 8px 12px rgba(0,0,0,0.14) !important;">
+        <span class="material-symbols-outlined" style="font-size: 24px;">add_shopping_cart</span>
+    </a>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script type="module" src="/js/data.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Render recent orders
+            const ordersList = JSON.parse(localStorage.getItem('bistro_orders') || '[]');
+            const tbody = document.getElementById('dashboardOrdersBody');
+            if (tbody) {
+                tbody.innerHTML = '';
+                ordersList.slice(0, 5).forEach(o => {
+                    let badgeClass = 'bg-secondary';
+                    if (o.status === 'Chờ xác nhận') badgeClass = 'bg-warning text-dark';
+                    else if (o.status === 'Đang chế biến') badgeClass = 'bg-info text-white';
+                    else if (o.status === 'Đã phục vụ' || o.status === 'Hoàn thành') badgeClass = 'bg-success';
+                    
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td><a href="/orders.html" class="text-decoration-none fw-semibold">#${o.id}</a></td>
+                        <td><div class="small">${o.time} <span class="text-muted">${o.date}</span></div></td>
+                        <td>${o.customer || o.tableId || ''}</td>
+                        <td class="fw-semibold">${(o.total || 0).toLocaleString('vi-VN')} ₫</td>
+                        <td><span class="badge ${badgeClass}">${o.status}</span></td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            }
+
+            // Revenue Chart
+            const ctxRev = document.getElementById('revenueChart').getContext('2d');
+            new Chart(ctxRev, {
+                type: 'line',
+                data: {
+                    labels: ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'],
+                    datasets: [{
+                        label: 'Doanh thu (VNĐ)',
+                        data: [12000000, 19000000, 15000000, 22000000, 18000000, 35000000, 42000000],
+                        borderColor: '#0d6efd',
+                        backgroundColor: 'rgba(13, 110, 253, 0.1)',
+                        borderWidth: 2,
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return value / 1000000 + 'M';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Status Chart
+            const ctxStat = document.getElementById('statusChart').getContext('2d');
+            new Chart(ctxStat, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Đã phục vụ', 'Đang chế biến', 'Chờ xác nhận', 'Hủy'],
+                    datasets: [{
+                        data: [65, 20, 10, 5],
+                        backgroundColor: ['#198754', '#0dcaf0', '#ffc107', '#dc3545'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                usePointStyle: true,
+                                pointStyle: 'rect'
+                            }
+                        }
+                    },
+                    cutout: '70%'
+                }
+            });
+        });
+    </script>
+</body>
+</html>

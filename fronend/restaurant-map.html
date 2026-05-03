@@ -1,0 +1,753 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sơ Đồ Nhà Hàng | Đặt Bàn</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/customer-menu.css" />
+    <style>
+      /* Premium Seating Plan Styles */
+      .map-section {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 8rem 5%;
+      }
+
+      .table-legend {
+        display: flex;
+        gap: 3.2rem;
+        justify-content: center;
+        margin-bottom: 6rem;
+        font-size: 1.4rem;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: var(--color-text-muted);
+      }
+
+      .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 1.2rem;
+      }
+      .legend-box {
+        width: 16px;
+        height: 16px;
+        border-radius: 4px;
+        border: 2px solid transparent;
+      }
+      .legend-box.available {
+        border-color: var(--color-house-green);
+        background: #ffffff;
+      }
+      .legend-box.occupied {
+        background: #f0f0f0;
+        border-color: #e0e0e0;
+      }
+      .legend-box.selected {
+        background: var(--color-gold);
+        border-color: var(--color-gold);
+      }
+
+      /* Card-based Table Layout */
+      .table-layout {
+        position: relative;
+        background: #faf9f6; /* Architectural blueprint paper tone */
+        border-radius: 12px;
+        padding: 4.8rem;
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 3.2rem;
+        border: 1px solid rgba(203, 162, 88, 0.3); /* Gold tint border */
+        box-shadow:
+          0 40px 80px rgba(0, 0, 0, 0.05),
+          inset 0 0 0 1px rgba(255, 255, 255, 0.5);
+      }
+
+      .layout-zone {
+        background: #ffffff;
+        border: 1px dashed rgba(203, 162, 88, 0.4);
+        border-radius: 8px;
+        padding: 3.2rem;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 3.2rem;
+        justify-content: center;
+        align-content: flex-start;
+        position: relative;
+      }
+      
+      .table-grid {
+        display: none;
+      }
+
+      .zone-title {
+        width: 100%;
+        font-size: 1.2rem;
+        text-align: center;
+        text-transform: uppercase;
+        font-weight: 700;
+        letter-spacing: 0.2em;
+        color: var(--color-house-green);
+        margin-bottom: 3.2rem;
+        padding-bottom: 1.6rem;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+      }
+
+      .tbl {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        font-family: var(--font-main);
+        font-weight: 600;
+        font-size: 1.8rem;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        user-select: none;
+        position: relative;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+        background: #fff;
+        z-index: 2;
+      }
+
+      /* Chair indicators (pseudo elements) */
+      .tbl::before {
+        content: "";
+        position: absolute;
+        inset: -8px;
+        border: 1px dashed rgba(0, 0, 0, 0.2);
+        border-radius: inherit;
+        pointer-events: none;
+      }
+
+      .tbl-2 {
+        width: 80px;
+        height: 80px;
+        border-radius: 8px;
+      }
+      .tbl-4 {
+        width: 100px;
+        height: 100px;
+        border-radius: 8px;
+      }
+      .tbl-6 {
+        width: 140px;
+        height: 100px;
+        border-radius: 8px;
+      }
+      .tbl-8 {
+        width: 140px;
+        height: 140px;
+        border-radius: 50%;
+      }
+      .tbl-vip {
+        width: 160px;
+        height: 160px;
+        border-radius: 50%;
+      }
+
+      .tbl.available {
+        border: 2px solid var(--color-house-green);
+        color: var(--color-house-green);
+        cursor: pointer;
+      }
+      .tbl.available:hover {
+        border-color: var(--color-gold);
+        color: var(--color-gold);
+        box-shadow: 0 12px 24px rgba(203, 162, 88, 0.15);
+        transform: translateY(-4px) scale(1.02);
+      }
+      .tbl.occupied {
+        background: #f0f0f0;
+        color: #999;
+        border: 2px solid #e0e0e0;
+        cursor: not-allowed;
+        box-shadow: none;
+      }
+      .tbl.selected {
+        background: var(--color-gold);
+        color: #fff;
+        border: 2px solid var(--color-gold);
+        box-shadow: 0 12px 24px rgba(203, 162, 88, 0.25);
+        transform: translateY(-4px) scale(1.05);
+      }
+      .tbl.selected::before {
+        border-color: rgba(203, 162, 88, 0.5);
+      }
+
+      .tbl span {
+        font-size: 1rem;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: inherit;
+        opacity: 0.8;
+        margin-top: 6px;
+        font-weight: 500;
+      }
+
+      @media (max-width: 1024px) {
+        .table-layout {
+          padding: 3.2rem 2.4rem;
+        }
+        .map-section {
+          padding: 4.8rem 5%;
+        }
+      }
+
+      /* RESERVATION BAR STYLES */
+      .reservation-wrapper {
+        max-width: 1400px;
+        margin: -6rem auto 0;
+        padding: 0 5%;
+        position: relative;
+        z-index: 10;
+      }
+      .reservation-bar {
+        background: var(--color-surface);
+        border-radius: 8px;
+        box-shadow: 0 24px 48px rgba(0, 0, 0, 0.08);
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        border: 1px solid rgba(0, 0, 0, 0.06);
+      }
+      .res-row {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+      }
+      .res-group {
+        display: flex;
+        flex-direction: column;
+        padding: 2.4rem 3.2rem;
+        border-right: 1px solid rgba(0, 0, 0, 0.06);
+        border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+        transition: background 0.2s;
+      }
+      .res-group:hover {
+        background: rgba(0, 0, 0, 0.015);
+      }
+      .res-row .res-group:last-child {
+        border-right: none;
+      }
+      .res-group label {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: var(--color-gold);
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        margin-bottom: 0.8rem;
+      }
+      .res-input {
+        background: transparent;
+        border: none;
+        color: var(--color-text);
+        font-family: var(--font-main);
+        font-size: 1.6rem;
+        font-weight: 500;
+        outline: none;
+        width: 100%;
+        cursor: pointer;
+      }
+      .res-input::placeholder {
+        color: rgba(0, 0, 0, 0.3);
+        font-weight: 400;
+      }
+
+      .res-submit-btn {
+        background: var(--color-house-green);
+        color: white;
+        border: none;
+        padding: 1.6rem 6rem;
+        font-size: 1.4rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-family: var(--font-main);
+        width: auto;
+        align-self: center;
+        margin: 3.2rem 0;
+        border-radius: 50px;
+      }
+      .res-submit-btn:hover {
+        background: var(--color-accent);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+      }
+
+      @media (max-width: 768px) {
+        .res-row {
+          grid-template-columns: 1fr;
+        }
+        .res-group {
+          border-right: none;
+        }
+      }
+
+      /* MAP SECTION LOGIC */
+      .map-section {
+        transition: opacity 0.4s ease;
+      }
+      .map-section.active {
+      }
+
+      /* Booking Notification Modal */
+      .booking-modal {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.6);
+        z-index: 1000;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        opacity: 0;
+        pointer-events: none;
+        transition: var(--transition-smooth);
+        backdrop-filter: blur(4px);
+      }
+      .booking-modal.active {
+        opacity: 1;
+        pointer-events: auto;
+      }
+      .booking-dialog {
+        background: var(--color-surface);
+        width: 100%;
+        max-width: 480px;
+        padding: 4rem;
+        border-radius: 4px;
+        text-align: center;
+        transform: translateY(20px);
+        transition: var(--transition-smooth);
+        box-shadow: 0 24px 48px rgba(0, 0, 0, 0.2);
+      }
+      .booking-modal.active .booking-dialog {
+        transform: translateY(0);
+      }
+      .booking-icon {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        background: rgba(212, 175, 55, 0.1);
+        color: var(--color-gold);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 2.4rem;
+      }
+      .booking-icon svg {
+        width: 40px;
+        height: 40px;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- NAVBAR -->
+    <nav class="navbar">
+      <a href="/" class="nav-brand">DeaGun</a>
+      <div class="nav-links">
+        <a href="/" class="nav-label">Trang chủ</a>
+        <a href="/customer-menu.html" class="nav-label">Thực đơn</a>
+        <a href="/#about" class="nav-label">Trải nghiệm</a>
+        <a href="/restaurant-map.html" class="btn btn-primary">Đặt bàn</a>
+      </div>
+    </nav>
+
+    <!-- HERO SECTION -->
+    <header
+      class="menu-hero"
+      style="
+        background:
+          linear-gradient(
+            to bottom,
+            rgba(30, 57, 50, 0.7) 0%,
+            rgba(30, 57, 50, 0.9) 100%
+          ),
+          url(&quot;https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&q=80&w=2000&quot;)
+            center/cover;
+      "
+    >
+      <span
+        class="subheading"
+        style="color: var(--color-gold); margin-bottom: 1.6rem"
+        >Reservations</span
+      >
+      <h1 class="display-hero" style="color: #ffffff">Đặt Bàn Của Bạn</h1>
+      <p class="body-lead" style="color: rgba(255, 255, 255, 0.7)">
+        Khai mở trải nghiệm ẩm thực thượng lưu. Điền thông tin bên dưới để kiểm
+        tra bàn trống trước khi chọn vị trí.
+      </p>
+    </header>
+
+    <!-- RESERVATION BAR -->
+    <section class="reservation-wrapper" id="reservations">
+      <form
+        class="reservation-bar"
+        id="reservationForm"
+        onsubmit="window.handleBooking(event)"
+      >
+        <!-- Top Row: Core Booking Info -->
+        <div class="res-row">
+          <div class="res-group">
+            <label for="b-date">Ngày *</label>
+            <input type="date" id="b-date" class="res-input" required />
+          </div>
+          <div class="res-group">
+            <label for="b-time">Giờ *</label>
+            <select id="b-time" class="res-input" required>
+              <option value="19:00" disabled selected>Chọn giờ</option>
+              <optgroup label="Bữa Trưa">
+                <option value="11:00">11:00</option>
+                <option value="11:30">11:30</option>
+                <option value="12:00">12:00</option>
+                <option value="13:00">12:30</option>
+              </optgroup>
+              <optgroup label="Bữa Tối">
+                <option value="17:00">17:00</option>
+                <option value="18:00">18:00</option>
+                <option value="19:00">19:00</option>
+                <option value="20:00">20:00</option>
+              </optgroup>
+            </select>
+          </div>
+          <div class="res-group">
+            <label for="b-guests">Số lượng *</label>
+            <input
+              type="number"
+              id="b-guests"
+              class="res-input"
+              value="4"
+              min="1"
+              max="20"
+              placeholder="Số lượng"
+              required
+            />
+          </div>
+        </div>
+
+        <!-- Bottom Row: Contact Info -->
+        <div class="res-row">
+          <div class="res-group">
+            <label for="b-name">Người Đặt *</label>
+            <input
+              type="text"
+              id="b-name"
+              class="res-input"
+              placeholder="VD: Nguyễn Văn A"
+              value="Nguyễn Văn Đình"
+              required
+            />
+          </div>
+          <div class="res-group">
+            <label for="b-phone">Liên Hệ *</label>
+            <input
+              type="tel"
+              id="b-phone"
+              class="res-input"
+              placeholder="0901234567"
+              value="0868886886"
+              required
+            />
+          </div>
+          <div class="res-group">
+            <label for="b-preference">Ghi chú</label>
+            <input
+              type="text"
+              id="b-preference"
+              class="res-input"
+              placeholder="Ghế trẻ em, v.v."
+            />
+          </div>
+        </div>
+
+        <button type="submit" class="res-submit-btn" id="bookingActionBtn">
+          Kiểm Tra Bàn Trống
+        </button>
+      </form>
+    </section>
+
+    <!-- MAP INTERACTIVE SECTION -->
+    <main class="map-section" id="mapSection">
+      <div class="table-layout" id="standaloneTableLayout">
+        <!-- Tables are generated dynamically via JavaScript -->
+      </div>
+
+      <div style="text-align: center; margin-top: 6rem;">
+        <button
+          class="btn btn-primary"
+          id="confirmTableBtn"
+          onclick="confirmTableSelection()"
+          disabled
+          style="padding: 1.6rem 6rem"
+        >
+          Hoàn Tất Đặt Bàn
+        </button>
+      </div>
+    </main>
+
+    <!-- Booking Confirmation Modal -->
+    <div class="booking-modal" id="bookingModal">
+      <div class="booking-dialog">
+        <div class="booking-icon">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+            <polyline points="22 4 12 14.01 9 11.01"></polyline>
+          </svg>
+        </div>
+        <h2
+          class="heading-2"
+          style="
+            font-size: 3.2rem;
+            margin-bottom: 1.6rem;
+            color: var(--color-house-green);
+          "
+        >
+          Đặt Bàn Thành Công!
+        </h2>
+        <p
+          class="body-text"
+          id="bookingMsg"
+          style="margin-bottom: 2.4rem; color: var(--color-text-muted)"
+        ></p>
+        <p style="font-size: 1.8rem; font-weight: 600; color: var(--color-text); margin-bottom: 3.2rem;">
+          Bạn muốn gọi món luôn hay gọi món sau?
+        </p>
+        <div style="display: flex; gap: 1.6rem; justify-content: center;">
+          <button class="btn btn-outline" style="flex: 1; padding: 1.2rem 2.4rem;" onclick="closeBookingModal()">Gọi Món Sau</button>
+          <a href="/customer-menu.html" class="btn btn-primary" style="flex: 1; text-decoration: none; padding: 1.2rem 2.4rem;">Gọi Món Luôn</a>
+        </div>
+      </div>
+    </div>
+
+    <footer>
+      <a href="/" class="footer-logo">L'Héritage</a>
+      <div
+        class="body-text"
+        style="font-size: 1.4rem; color: rgba(255, 255, 255, 0.5)"
+      >
+        &copy; 2026 Bản quyền thuộc về L'Héritage Steakhouse. Không gian di sản.
+      </div>
+    </footer>
+
+    <script type="module" src="/js/data.js"></script>
+    <script>
+      let pendingBookingData = null;
+      let selectedTableId = null;
+
+      document.addEventListener("DOMContentLoaded", () => {
+        const dateInput = document.getElementById("b-date");
+        if (dateInput) {
+          const today = new Date().toISOString().split("T")[0];
+          dateInput.setAttribute("min", today);
+          dateInput.value = today; // Pre-fill with today
+        }
+        
+        // Auto fill mock data
+        const mockData = {
+            "b-name": "Nguyễn Văn A",
+            "b-phone": "0987654321",
+            "b-time": "19:00",
+            "b-guests": "2",
+            "b-preference": "Gần cửa sổ, có nến"
+        };
+        for (const [id, value] of Object.entries(mockData)) {
+            const el = document.getElementById(id);
+            if (el) el.value = value;
+        }
+      });
+
+      window.handleBooking = function (e) {
+        e.preventDefault();
+
+        const nameEl = document.getElementById("b-name");
+        const phoneEl = document.getElementById("b-phone");
+        const dateEl = document.getElementById("b-date");
+        const timeEl = document.getElementById("b-time");
+        const guestsEl = document.getElementById("b-guests");
+        const prefEl = document.getElementById("b-preference");
+
+        if (
+          !nameEl.checkValidity() ||
+          !phoneEl.checkValidity() ||
+          !dateEl.checkValidity() ||
+          !timeEl.checkValidity() ||
+          !guestsEl.checkValidity()
+        ) {
+          document.getElementById("reservationForm").reportValidity();
+          return;
+        }
+
+        pendingBookingData = {
+          name: nameEl.value,
+          phone: phoneEl.value,
+          date: dateEl.value,
+          time: timeEl.value,
+          guests: guestsEl.value,
+          preference: prefEl.value || "Không có",
+        };
+
+        const actionBtn = document.getElementById("bookingActionBtn");
+        actionBtn.innerText = "Kéo xuống để chọn bàn";
+        
+        // Show map section
+        document.getElementById("mapSection").classList.add("active");
+
+        const layout = document.getElementById("standaloneTableLayout");
+        layout.innerHTML = ''; // clear existing tables
+
+        const tablesData = JSON.parse(localStorage.getItem('bistro_tables') || '[]');
+        const tableStatuses = JSON.parse(localStorage.getItem('bistro_table_statuses') || '{}');
+        
+        // Group tables by zone
+        const zones = {};
+        tablesData.forEach(t => {
+            if (!zones[t.zone]) zones[t.zone] = [];
+            zones[t.zone].push(t);
+        });
+        
+        for (const [zoneName, zoneTables] of Object.entries(zones)) {
+            const zoneDiv = document.createElement('div');
+            zoneDiv.className = 'layout-zone';
+            
+            const title = document.createElement('div');
+            title.className = 'zone-title';
+            title.textContent = zoneName;
+            zoneDiv.appendChild(title);
+            
+            zoneTables.forEach(t => {
+                const status = tableStatuses[t.id] || "Trống";
+                if (status !== "Trống") return; // Optional logic: "Filter and show only available tables" - let's render only available ones
+                
+                const tbl = document.createElement('div');
+                tbl.className = `tbl tbl-${t.capacity > 4 ? (t.capacity >= 8 ? 'vip' : '6') : (t.capacity == 2 ? '2' : '4')} available`;
+                const isVip = t.zone.toLowerCase().includes('vip') || t.capacity >= 8;
+                if(isVip) tbl.classList.add('tbl-vip');
+                
+                tbl.id = `table-${t.id.replace(/\s+/g, '-')}`;
+                tbl.setAttribute('onclick', `selectTable(this, '${t.id}')`);
+                
+                tbl.innerHTML = `${t.id} <span>${t.capacity} ghế</span>`;
+                
+                zoneDiv.appendChild(tbl);
+            });
+            
+            // Only add zone if it has available tables
+            if (zoneDiv.querySelectorAll('.tbl').length > 0) {
+                layout.appendChild(zoneDiv);
+            }
+        }
+
+        // Scroll down
+        document
+          .getElementById("mapSection")
+          .scrollIntoView({ behavior: "smooth", block: "start" });
+      };
+
+      window.selectTable = function (element, tableId) {
+        if (!element.classList.contains("available")) return;
+        document
+          .querySelectorAll(".tbl")
+          .forEach((t) => t.classList.remove("selected"));
+        element.classList.add("selected");
+        selectedTableId = tableId;
+        document.getElementById("confirmTableBtn").disabled = false;
+      };
+
+      window.confirmTableSelection = function () {
+        if (!selectedTableId || !pendingBookingData) return;
+        const btn = document.getElementById("confirmTableBtn");
+        btn.innerText = "Đang xử lý...";
+        btn.disabled = true;
+
+        const { name, phone, date, time } = pendingBookingData;
+        const [year, month, day] = date.split("-");
+        const formattedDate = `${day}/${month}/${year}`;
+
+        setTimeout(() => {
+          sessionStorage.setItem("customerName", name);
+          sessionStorage.setItem("bookedTable", selectedTableId);
+          
+          const statuses = JSON.parse(localStorage.getItem('bistro_table_statuses') || '{}');
+          statuses[selectedTableId] = 'Đã đặt';
+          localStorage.setItem('bistro_table_statuses', JSON.stringify(statuses));
+
+          let customers = JSON.parse(localStorage.getItem('bistro_customers') || '[]');
+          let existingCustomer = customers.find(c => c.phone === phone);
+          
+          if (existingCustomer) {
+              existingCustomer.visits = (existingCustomer.visits || 1) + 1;
+              if (existingCustomer.visits >= 10) existingCustomer.tier = 'platinum';
+              else if (existingCustomer.visits >= 5) existingCustomer.tier = 'gold';
+              else if (existingCustomer.visits >= 2) existingCustomer.tier = 'silver';
+          } else {
+              const newId = 'KH' + String(Math.floor(Math.random() * 900) + 100);
+              const newCustomer = {
+                  id: newId,
+                  name: name,
+                  phone: phone,
+                  tier: 'new',
+                  visits: 1,
+                  totalSpent: 0
+              };
+              customers.push(newCustomer);
+              existingCustomer = newCustomer;
+          }
+          localStorage.setItem('bistro_customers', JSON.stringify(customers));
+          
+          let reservations = JSON.parse(localStorage.getItem('bistro_reservations') || '[]');
+          reservations.push({
+             id: reservations.length ? Math.max(...reservations.map(r => r.id)) + 1 : 1,
+             customer_id: existingCustomer.id,
+             table_id: selectedTableId,
+             reservation_date: date,
+             reservation_time: time,
+             guest_count: parseInt(document.getElementById('b-guests').value) || 2,
+             status: 'Đã xác nhận',
+             notes: document.getElementById('b-preference').value || '',
+             created_at: new Date().toISOString()
+          });
+          localStorage.setItem('bistro_reservations', JSON.stringify(reservations));
+          
+          let tableStatuses = JSON.parse(localStorage.getItem('bistro_table_statuses') || '{}');
+          tableStatuses[selectedTableId] = 'Đã đặt';
+          localStorage.setItem('bistro_table_statuses', JSON.stringify(tableStatuses));
+
+          const modal = document.getElementById("bookingModal");
+          const msg = document.getElementById("bookingMsg");
+          msg.innerHTML = `Cảm ơn quý khách <b>${name}</b>.<br/>Vị trí <b>${selectedTableId}</b> vào lúc <b>${time}</b> ngày <b>${formattedDate}</b> đã được đặt thành công. Hệ thống sẽ gửi sms thông báo sau ít phút.`;
+          modal.classList.add("active");
+          
+          document.getElementById("reservationForm").reset();
+          btn.innerText = "Hoàn Tất Đặt Bàn";
+          btn.disabled = false;
+          selectedTableId = null;
+          document
+            .querySelectorAll(".tbl")
+            .forEach((t) => t.classList.remove("selected"));
+          document.getElementById("bookingActionBtn").innerText =
+            "Kiểm Tra Bàn Trống";
+          document.getElementById("mapSection").classList.remove("active");
+        }, 1000);
+      };
+
+      window.closeBookingModal = function () {
+        document.getElementById("bookingModal").classList.remove("active");
+        window.location.href = "/";
+      };
+    </script>
+  </body>
+</html>

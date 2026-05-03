@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Quản lý tất cả bàn - Quản trị nhà hàng</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+    <link href="./css/common.css" rel="stylesheet">
+    <link href="./css/tables.css" rel="stylesheet">
+</head>
+<body>
+    <nav class="sidebar py-4 d-flex flex-column shadow text-white">
+        <div class="px-4 mb-4 d-flex align-items-center gap-3">
+            <div class="icon-box bg-white bg-opacity-25 text-white">
+                <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">restaurant</span>
+            </div>
+            <div>
+                <h5 class="mb-0 fw-bold fs-5">Quản trị nhà hàng</h5>
+                <small class="text-white-50">Hệ thống quản lý</small>
+            </div>
+        </div>
+        <div class="flex-grow-1 px-3">
+            <a class="nav-link" href="./dashboard.html"><span class="material-symbols-outlined">dashboard</span> Tổng quan</a>
+            <a class="nav-link active" href="./tables.html"><span class="material-symbols-outlined">table_restaurant</span> Quản lý bàn</a>
+            <a class="nav-link" href="./menu.html"><span class="material-symbols-outlined">restaurant_menu</span> Quản lý thực đơn</a>
+            <a class="nav-link" href="./orders.html"><span class="material-symbols-outlined">receipt_long</span> Quản lý đơn hàng</a>
+            <a class="nav-link" href="./customers.html"><span class="material-symbols-outlined">group</span> Quản lý khách hàng</a>
+            <a class="nav-link" href="./accounts.html"><span class="material-symbols-outlined">manage_accounts</span> Quản lý tài khoản</a>
+            <a class="nav-link" href="./analytics.html"><span class="material-symbols-outlined">analytics</span> Thống kê</a>
+            <a class="nav-link" href="./settings.html"><span class="material-symbols-outlined">settings</span> Cài đặt</a>
+        </div>
+        <div class="px-3 mt-auto pt-3 border-top border-light border-opacity-10">
+            <a class="nav-link" href="#"><span class="material-symbols-outlined">logout</span> Đăng xuất</a>
+        </div>
+    </nav>
+    <div class="main-content d-flex flex-column">
+        <header class="topbar d-flex align-items-center justify-content-between px-4">
+            <div class="d-flex align-items-center gap-3">
+                <a href="./tables.html" class="btn btn-light btn-icon border-0 text-secondary" style="border-radius: 50%;">
+                    <span class="material-symbols-outlined">arrow_back</span>
+                </a>
+                <div class="search-box">
+                    <span class="material-symbols-outlined fs-5">search</span>
+                    <input type="text" class="form-control form-control-sm" placeholder="Tìm kiếm bàn, đơn hàng...">
+                </div>
+            </div>
+            
+            <div class="d-flex align-items-center gap-3 topbar-actions">
+                <button class="btn btn-icon border-0 position-relative">
+                    <span class="material-symbols-outlined">notifications</span>
+                    <span class="position-absolute top-0 end-0 translate-middle p-1 bg-danger border border-light rounded-circle" style="margin-top: 10px; margin-right: 5px;"></span>
+                </button>
+                <div class="vr"></div>
+                <div class="d-flex align-items-center gap-2 cursor-pointer" style="cursor: pointer;">
+                    <div class="text-end d-none d-md-block">
+                        <p class="mb-0 fw-semibold text-dark fs-6" style="line-height: 1.2;">Admin</p>
+                        <small class="text-muted" style="font-size: 0.75rem;">Quản lý</small>
+                    </div>
+                    <img src="https://ui-avatars.com/api/?name=Admin&background=1e3a8a&color=fff" alt="Avatar" class="avatar">
+                </div>
+            </div>
+        </header>
+
+        <main class="topbar-pad p-4 flex-grow-1">
+            <!-- Header section -->
+            <div class="d-flex justify-content-between align-items-end mb-4">
+                <div>
+                    <h2 class="mb-1 fw-bold text-dark">Danh sách Bàn</h2>
+                    <p class="text-secondary mb-0">Quản lý và cập nhật thông tin toàn bộ bàn trong nhà hàng.</p>
+                </div>
+                <div class="d-flex gap-3">
+                    <button class="btn btn-primary d-flex align-items-center gap-2 fw-medium px-4 shadow-sm" data-bs-toggle="modal" data-bs-target="#editTableModal" data-table-mode="create">
+                        <span class="material-symbols-outlined fs-6">add</span> Thêm bàn mới
+                    </button>
+                </div>
+            </div>
+
+            <!-- Table Card -->
+            <div class="card border-0 shadow-sm rounded-4 h-100 d-flex flex-column overflow-hidden">
+                <div class="card-header bg-white border-bottom py-3 d-flex justify-content-between align-items-center flex-wrap gap-3">
+                    <div class="search-box text-dark fw-medium" style="width: 250px; position: relative;">
+                        <span class="material-symbols-outlined fs-5" style="position: absolute; top: 50%; transform: translateY(-50%); left: 12px; color: var(--text-soft);">search</span>
+                        <input type="text" id="tableSearchMgmt" class="form-control bg-light border-0 px-4 py-2" placeholder="Tìm kiếm bàn..." style="padding-left: 38px !important; border-radius: 8px;">
+                    </div>
+                    <div class="d-flex gap-2">
+                        <select id="locationFilterMgmt" class="form-select bg-light border-0 fw-medium text-dark px-3 py-2" style="width: 170px; border-radius: 8px;"></select>
+                        <select id="statusFilterMgmt" class="form-select bg-light border-0 fw-medium text-dark px-3 py-2" style="width: 180px; border-radius: 8px;"></select>
+                        <select id="sortOptionMgmt" class="form-select bg-light border-0 fw-medium text-dark px-3 py-2" style="width: 190px; border-radius: 8px;"></select>
+                    </div>
+                </div>
+                <div class="card-body p-0 flex-grow-1 overflow-auto">
+                    <div class="table-responsive">
+                        <table class="table table-custom mb-0">
+                        <thead>
+                            <tr>
+                                <th style="width: 80px;">Mã</th>
+                                <th>Tên Bàn</th>
+                                <th>Khu vực</th>
+                                <th>Sức chứa</th>
+                                <th>Trạng thái hệ thống</th>
+                                <th class="text-end">Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableManagementBody">
+                            <tr id="emptyStateTableMgmt" style="display: none;">
+                                <td colspan="6" class="text-center py-5">
+                                    <span class="material-symbols-outlined text-secondary" style="font-size: 3rem; opacity: 0.5;">search_off</span>
+                                    <h6 class="fw-bold mt-2 text-dark">Không tìm thấy kết quả</h6>
+                                    <p class="text-secondary small mb-0">Vui lòng thử nghiệm lại từ khóa hoặc bộ lọc của bạn.</p>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <!-- Pagination -->
+                <div class="card-footer d-flex justify-content-between align-items-center py-3 bg-white" style="border-top: 1px solid var(--sb-ceramic);">
+                    <p id="tableManagementInfo" class="text-secondary small mb-0 fw-medium">Đang tải dữ liệu bàn...</p>
+                    <nav aria-label="Page navigation">
+                        <ul id="tableManagementPagination" class="pagination pagination-sm mb-0 gap-2"></ul>
+                    </nav>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Edit Table Modal -->
+    <div class="modal fade" id="editTableModal" tabindex="-1" aria-labelledby="editTableModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content rounded-4 border-0 shadow">
+                <div class="modal-header border-bottom-0 pb-0">
+                    <h5 class="modal-title fw-bold" id="editTableModalLabel">Thông tin Bàn</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="editTableForm">
+                        <div class="mb-3">
+                            <label class="form-label fw-medium">Tên bàn</label>
+                            <input type="text" id="editTableName" class="form-control rounded-pill px-3 py-2" placeholder="VD: Bàn 01" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-medium">Khu vực</label>
+                            <select id="editTableLocation" class="form-select rounded-pill px-3 py-2" required>
+                                <option value="Tầng 1">Tầng 1</option>
+                                <option value="Sân vườn">Sân vườn</option>
+                                <option value="Khu VIP">Khu VIP</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-medium">Sức chứa (người)</label>
+                            <input type="number" id="editTableCapacity" class="form-control rounded-pill px-3 py-2" placeholder="VD: 4" min="1" max="20" required>
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label fw-medium">Trạng thái hệ thống</label>
+                            <select id="editTableStatus" class="form-select rounded-pill px-3 py-2" required>
+                                <option value="Trống">Trống</option>
+                                <option value="Đang phục vụ">Đang phục vụ</option>
+                                <option value="Đã đặt">Đã đặt</option>
+                                <option value="Chờ dọn dẹp">Chờ dọn dẹp</option>
+                            </select>
+                        </div>
+                        <div class="d-flex gap-2 mt-4">
+                            <button type="button" class="btn btn-secondary fw-medium w-50" data-bs-dismiss="modal">Hủy</button>
+                            <button type="submit" class="btn btn-primary fw-medium w-50">Lưu thông tin</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- QR Modal -->
+    <div class="modal fade" id="qrModal" tabindex="-1" aria-labelledby="qrModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-sm">
+            <div class="modal-content rounded-4 border-0 shadow">
+                <div class="modal-header border-bottom-0 pb-0">
+                    <h5 class="modal-title fw-bold" id="qrModalLabel">Mã QR Gọi Món</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body text-center pb-4">
+                    <p class="text-secondary small mb-3 qr-table-name">Bàn ...</p>
+                    <div class="bg-light p-3 rounded-4 d-inline-block mb-3 position-relative">
+                        <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=bistroapp.com/order" alt="QR Code" width="150" height="150">
+                        <a id="qrTestLinkMgmt" href="#" class="position-absolute top-0 start-0 w-100 h-100" style="opacity: 0;" title="Bấm để thử nghiệm đặt món"></a>
+                    </div>
+                    <p class="text-secondary small mb-0">Quét mã để xem thực đơn & gọi món</p>
+                    <a id="qrDirectLink2" href="#" class="btn btn-warning text-dark w-100 fw-semibold rounded-pill d-flex align-items-center justify-content-center gap-2 mt-3 py-2 shadow-sm">
+                        <span class="material-symbols-outlined fs-5">touch_app</span> Demo Đặt Món
+                    </a>
+                </div>
+                <div class="modal-footer border-top-0 d-flex justify-content-center pt-0">
+                    <button type="button" class="btn btn-outline-primary fw-medium rounded-pill px-4 d-flex align-items-center gap-1" onclick="window.print()">
+                        <span class="material-symbols-outlined fs-6">print</span> In mã
+                    </button>
+                    <button type="button" class="btn btn-primary fw-medium rounded-pill px-4 d-flex align-items-center gap-1">
+                        <span class="material-symbols-outlined fs-6">download</span> Tải về
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Floating Action Button (Frap) -->
+    <a href="/orders.html" class="btn btn-primary d-flex align-items-center justify-content-center p-0 position-fixed" 
+       style="width: 56px; height: 56px; border-radius: 50%; bottom: 32px; right: 32px; z-index: 1050; box-shadow: 0 0 6px rgba(0,0,0,0.24), 0 8px 12px rgba(0,0,0,0.14) !important;">
+        <span class="material-symbols-outlined" style="font-size: 24px;">add_shopping_cart</span>
+    </a>
+
+    <!-- Delete Confirmation Modal -->
+    <div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-labelledby="deleteConfirmModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-body text-center p-4">
+                    <span class="material-symbols-outlined text-danger mb-3" style="font-size: 3rem;">delete</span>
+                    <h5 class="fw-bold text-danger mb-3">Xóa bàn?</h5>
+                    <p class="text-secondary mb-4">Bạn có chắc chắn muốn xóa bàn này khỏi hệ thống? Hành động này không thể hoàn tác.</p>
+                    <div class="d-flex justify-content-center gap-2">
+                        <button type="button" class="btn btn-secondary w-50 fw-medium" data-bs-dismiss="modal">Hủy</button>
+                        <button type="button" class="btn btn-danger w-50 fw-medium d-flex align-items-center justify-content-center gap-1" id="confirmDeleteBtn">
+                            <span class="material-symbols-outlined fs-6">delete</span> Xóa bàn
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification Container -->
+    <div class="toast-container position-fixed bottom-0 start-0 p-3" style="z-index: 1080;">
+        <div id="liveToast" class="toast align-items-center text-white bg-success border-0" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="d-flex">
+                <div class="toast-body d-flex align-items-center gap-2">
+                    <span class="material-symbols-outlined fs-5">check_circle</span>
+                    <span id="toastMessage">Thao tác thành công</span>
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="./js/table-management.js"></script>
+</body>
+</html>
