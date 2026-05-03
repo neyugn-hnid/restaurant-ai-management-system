@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "Z6kWX0FWuTI=",
+  "dgSpecHash": "qOV+bjBgcBc=",
   "success": true,
-  "projectFilePath": "C:\\Users\\VanDinh\\OneDrive\\Máy tính\\restaurant-ai-management-system\\server\\server\\server.csproj",
+  "projectFilePath": "\\\\wsl.localhost\\Ubuntu\\home\\van_dev\\restaurant-ai-management-system\\server\\server\\server.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\VanDinh\\.nuget\\packages\\azure.core\\1.38.0\\azure.core.1.38.0.nupkg.sha512",
     "C:\\Users\\VanDinh\\.nuget\\packages\\azure.identity\\1.11.4\\azure.identity.1.11.4.nupkg.sha512",

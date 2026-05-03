@@ -32,9 +32,14 @@ namespace server.Controllers
             if (!string.IsNullOrWhiteSpace(request.SearchTerm))
             {
                 var searchTerm = request.SearchTerm.Trim();
-                query = query.Where(table =>
-                    (table.Id != null && table.Id.Contains(searchTerm)) ||
-                    (table.Zone != null && table.Zone.Contains(searchTerm)));
+                if (int.TryParse(searchTerm, out var tableId))
+                {
+                    query = query.Where(table => table.Id == tableId || (table.Zone != null && table.Zone.Contains(searchTerm)));
+                }
+                else
+                {
+                    query = query.Where(table => table.Zone != null && table.Zone.Contains(searchTerm));
+                }
             }
 
             if (!string.IsNullOrWhiteSpace(request.Location) &&
@@ -61,7 +66,7 @@ namespace server.Controllers
 
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<RestaurantTable>> GetRestaurantTable(string id)
+        public async Task<ActionResult<RestaurantTable>> GetRestaurantTable(int id)
         {
             var restaurantTable = await _context.RestaurantTable.FindAsync(id);
 
@@ -76,7 +81,7 @@ namespace server.Controllers
 
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutRestaurantTable(string id, RestaurantTable restaurantTable)
+        public async Task<IActionResult> PutRestaurantTable(int id, RestaurantTable restaurantTable)
         {
             if (id != restaurantTable.Id)
             {
@@ -131,7 +136,7 @@ namespace server.Controllers
 
 
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteRestaurantTable(string id)
+        public async Task<IActionResult> DeleteRestaurantTable(int id)
         {
             var restaurantTable = await _context.RestaurantTable.FindAsync(id);
             if (restaurantTable == null)
@@ -145,7 +150,7 @@ namespace server.Controllers
             return NoContent();
         }
 
-        private bool RestaurantTableExists(string id)
+        private bool RestaurantTableExists(int id)
         {
             return _context.RestaurantTable.Any(e => e.Id == id);
         }

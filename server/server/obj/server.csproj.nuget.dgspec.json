@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\VanDinh\\OneDrive\\Máy tính\\restaurant-ai-management-system\\server\\server\\server.csproj": {}
+    "\\\\wsl.localhost\\Ubuntu\\home\\van_dev\\restaurant-ai-management-system\\server\\server\\server.csproj": {}
   },
   "projects": {
-    "C:\\Users\\VanDinh\\OneDrive\\Máy tính\\restaurant-ai-management-system\\server\\server\\server.csproj": {
+    "\\\\wsl.localhost\\Ubuntu\\home\\van_dev\\restaurant-ai-management-system\\server\\server\\server.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\VanDinh\\OneDrive\\Máy tính\\restaurant-ai-management-system\\server\\server\\server.csproj",
+        "projectUniqueName": "\\\\wsl.localhost\\Ubuntu\\home\\van_dev\\restaurant-ai-management-system\\server\\server\\server.csproj",
         "projectName": "server",
-        "projectPath": "C:\\Users\\VanDinh\\OneDrive\\Máy tính\\restaurant-ai-management-system\\server\\server\\server.csproj",
+        "projectPath": "\\\\wsl.localhost\\Ubuntu\\home\\van_dev\\restaurant-ai-management-system\\server\\server\\server.csproj",
         "packagesPath": "C:\\Users\\VanDinh\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\VanDinh\\OneDrive\\Máy tính\\restaurant-ai-management-system\\server\\server\\obj\\",
+        "outputPath": "\\\\wsl.localhost\\Ubuntu\\home\\van_dev\\restaurant-ai-management-system\\server\\server\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"

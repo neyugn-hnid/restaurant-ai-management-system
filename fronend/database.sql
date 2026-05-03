@@ -198,14 +198,14 @@ INSERT INTO Customers (id, phone, full_name, email, visits, total_spent, tier, c
 -- Tables
 INSERT INTO RestaurantTables (id, zone, capacity, status, created_at, updated_at) VALUES
 INSERT INTO RestaurantTables (zone, capacity, status, created_at, updated_at) VALUES
-(N'Tầng 1', 4, N'Trống', '2025-01-01 00:00:00', '2025-01-01 00:00:00'),
-(N'Tầng 1', 4, N'Trống', '2025-01-01 00:00:00', '2025-01-01 00:00:00'),
-(N'Tầng 1', 2, N'Trống', '2025-01-01 00:00:00', '2025-01-01 00:00:00'),
-(N'Tầng 1', 2, N'Trống', '2025-01-01 00:00:00', '2025-01-01 00:00:00'),
-(N'Sân vườn', 6, N'Trống', '2025-01-01 00:00:00', '2025-01-01 00:00:00'),
-(N'Sân vườn', 4, N'Trống', '2025-01-01 00:00:00', '2025-01-01 00:00:00'),
-(N'Khu VIP', 8, N'Trống', '2025-01-01 00:00:00', '2025-01-01 00:00:00'),
-(N'Khu VIP', 8, N'Trống', '2025-01-01 00:00:00', '2025-01-01 00:00:00');
+(N'Tầng 1', 4, N'Trống', GETDATE(), GETDATE()),
+(N'Tầng 1', 4, N'Trống', GETDATE(), GETDATE()),
+(N'Tầng 1', 2, N'Trống', GETDATE(), GETDATE()),
+(N'Tầng 1', 2, N'Trống', GETDATE(), GETDATE()),
+(N'Sân vườn', 6, N'Trống', GETDATE(), GETDATE()),
+(N'Sân vườn', 4, N'Trống', GETDATE(), GETDATE()),
+(N'Khu VIP', 8, N'Trống', GETDATE(), GETDATE()),
+(N'Khu VIP', 8, N'Trống', GETDATE(), GETDATE());
 
 -- Reservations
 SET IDENTITY_INSERT Reservations ON;
