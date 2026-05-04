@@ -54,5 +54,19 @@ namespace server.Infrastructure
 
             throw new ArgumentException($"Không thể ánh xạ giá trị '{rawValue}' sang enum {typeof(TEnum).Name}.");
         }
+
+        public static bool TryParse<TEnum>(string? rawValue, out TEnum result) where TEnum : struct, Enum
+        {
+            try
+            {
+                result = Parse<TEnum>(rawValue);
+                return true;
+            }
+            catch
+            {
+                result = default;
+                return false;
+            }
+        }
     }
 }

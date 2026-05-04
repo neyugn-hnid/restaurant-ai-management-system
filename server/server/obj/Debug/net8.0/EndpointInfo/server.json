@@ -2054,17 +2054,17 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/RestaurantTable"
+                "$ref": "#/components/schemas/UpdateTableRequest"
               }
             },
             "text/json": {
               "schema": {
-                "$ref": "#/components/schemas/RestaurantTable"
+                "$ref": "#/components/schemas/UpdateTableRequest"
               }
             },
             "application/*+json": {
               "schema": {
-                "$ref": "#/components/schemas/RestaurantTable"
+                "$ref": "#/components/schemas/UpdateTableRequest"
               }
             }
           }
@@ -3070,6 +3070,25 @@
         "properties": {
           "fullName": {
             "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "UpdateTableRequest": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "nullable": true
+          },
+          "zone": {
+            "type": "string",
+            "nullable": true
+          },
+          "capacity": {
+            "type": "integer",
+            "format": "int32",
             "nullable": true
           }
         },

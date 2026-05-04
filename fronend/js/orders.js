@@ -358,13 +358,10 @@ document.addEventListener('DOMContentLoaded', async () => {
                 try { await request(`${ORDERS_API_URL}/${encodeURIComponent(state.orders[idx].id)}`, { method: 'PUT', body: JSON.stringify(state.orders[idx]) }); } catch (_) {}
                 if (state.orders[idx].tableId) {
                     try {
-                        const tableResp = await request(`${API_BASE_URL}/RestaurantTables/${state.orders[idx].tableId}`);
-                        if (tableResp) {
-                            await request(`${API_BASE_URL}/RestaurantTables/${state.orders[idx].tableId}`, {
-                                method: 'PUT',
-                                body: JSON.stringify({ ...tableResp, status: TABLE_STATUSES.CLEANING, updatedAt: new Date().toISOString() })
-                            });
-                        }
+                        await request(`${API_BASE_URL}/RestaurantTables/${state.orders[idx].tableId}`, {
+                            method: 'PUT',
+                            body: JSON.stringify({ status: TABLE_STATUSES.CLEANING })
+                        });
                     } catch (_) {}
                 }
                 localStorage.setItem('bistro_orders', JSON.stringify(state.orders));

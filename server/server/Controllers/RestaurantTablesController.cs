@@ -83,31 +83,26 @@ namespace server.Controllers
 
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutRestaurantTable(int id, RestaurantTable restaurantTable)
+        public async Task<IActionResult> PutRestaurantTable(int id, [FromBody] UpdateTableRequest request)
         {
-            if (id != restaurantTable.Id)
-            {
-                return BadRequest();
-            }
+            var table = await _context.RestaurantTable.FindAsync(id);
+            if (table == null) return NotFound();
 
-            _context.Entry(restaurantTable).State = EntityState.Modified;
-
-            try
+            if (!string.IsNullOrWhiteSpace(request.Status))
             {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!RestaurantTableExists(id))
+                var normalized = request.Status.Trim();
+                if (EnumMemberValueHelper.TryParse<RestaurantTableStatus>(normalized, out var parsedStatus))
                 {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
+                    table.Status = parsedStatus;
                 }
             }
+            if (!string.IsNullOrWhiteSpace(request.Zone))
+                table.Zone = request.Zone;
+            if (request.Capacity.HasValue && request.Capacity.Value > 0)
+                table.Capacity = request.Capacity.Value;
+            table.UpdatedAt = DateTime.UtcNow;
 
+            await _context.SaveChangesAsync();
             return NoContent();
         }
 
@@ -172,5 +167,12 @@ namespace server.Controllers
                 _ => isAscending ? query.OrderBy(table => table.CreatedAt) : query.OrderByDescending(table => table.CreatedAt)
             };
         }
+    }
+
+    public class UpdateTableRequest
+    {
+        public string? Status { get; set; }
+        public string? Zone { get; set; }
+        public int? Capacity { get; set; }
     }
 }

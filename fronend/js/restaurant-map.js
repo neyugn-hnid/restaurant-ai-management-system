@@ -71,26 +71,19 @@ document.addEventListener('DOMContentLoaded', () => {
             tables.forEach(t => {
                 statuses[t.id] = normalizeStatus(t.status);
             });
-
-            console.log('🔍 getTableStatuses: tables=', tables.length, 'statuses=', JSON.stringify(statuses));
             return statuses;
         } catch (err) {
-            console.warn('⚠️ getTableStatuses FAILED:', err.message);
+            console.warn('getTableStatuses FAILED:', err.message);
             return {};
         }
     }
 
     async function updateTableStatus(tableId, status) {
         try {
-            const resp = await apiFetch(`${TABLES_URL}?page=1&pageSize=200`);
-            const tables = resp?.items || [];
-            const table = tables.find(t => String(t.id) === String(tableId));
-            if (table) {
-                const payload = { ...table, status: status, updatedAt: new Date().toISOString() };
-                await apiFetch(`${TABLES_URL}/${encodeURIComponent(tableId)}`, {
-                    method: 'PUT', body: JSON.stringify(payload)
-                });
-            }
+            await apiFetch(`${TABLES_URL}/${encodeURIComponent(tableId)}`, {
+                method: 'PUT',
+                body: JSON.stringify({ status: status })
+            });
         } catch (err) {
             console.warn('Không thể cập nhật trạng thái bàn lên API:', err.message);
         }

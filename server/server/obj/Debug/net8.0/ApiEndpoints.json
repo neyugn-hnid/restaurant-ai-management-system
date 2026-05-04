@@ -1290,8 +1290,8 @@
         "IsRequired": true
       },
       {
-        "Name": "restaurantTable",
-        "Type": "server.Modal.RestaurantTable",
+        "Name": "request",
+        "Type": "server.Controllers.UpdateTableRequest",
         "IsRequired": true
       }
     ],
