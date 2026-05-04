@@ -13,6 +13,10 @@ namespace server.Modal
         [Column("id")]
         public int Id { get; set; }
 
+        [MaxLength(255)]
+        [Column("name")]
+        public string? Name { get; set; }
+
         [MaxLength(100)]
         [Column("zone")]
         public string? Zone { get; set; }

@@ -302,7 +302,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="card border-0 shadow-sm rounded-4 h-100 p-4 table-card ${statusConfig.className} position-relative overflow-hidden"
                      style="${statusConfig.cardStyle}">
                     <div class="d-flex justify-content-between align-items-start mb-3">
-                        <h5 class="fw-bold mb-0 text-dark">${table.id}</h5>
+                        <h5 class="fw-bold mb-0 text-dark">${table.name || table.id}</h5>
                         <div class="d-flex flex-column align-items-end gap-1 mt-n1">
                             <span class="badge" style="${statusConfig.badgeStyle}">${displayStatus}</span>
                         </div>
@@ -364,31 +364,42 @@ document.addEventListener('DOMContentLoaded', () => {
     function renderTables() {
         if (!elements.tableList || !elements.emptyState) return;
 
-        elements.tableList.innerHTML = '';
+        const html = state.tables.map(table => createTableMarkup(table)).join('');
+        elements.tableList.innerHTML = html || '';
         elements.tableList.appendChild(elements.emptyState);
-
-        state.tables.forEach(table => {
-            elements.tableList.insertAdjacentHTML('beforeend', createTableMarkup(table));
-        });
 
         state.tableItems = Array.from(elements.tableList.querySelectorAll('.table-item'));
         updateFilterOptions();
         updateStats();
-        renderVisibleTableItems();
+        applyTableFilters();
     }
 
-    function renderVisibleTableItems() {
-        if (!elements.tableList || !elements.emptyState) return;
+    function applyTableFilters() {
+        if (!elements.emptyState) return;
 
-        const sortedItems = sortTableItems(state.tableItems);
+        const selectedLocation = getSelectedLocation();
+        const selectedStatus = getSelectedStatus();
+        const searchTerm = getSearchTerm().toLowerCase();
 
-        sortedItems.forEach(item => {
-            elements.tableList.appendChild(item);
-            item.style.display = 'block';
-            item.style.opacity = '1';
+        let visibleCount = 0;
+        state.tableItems.forEach(item => {
+            const zone = (item.dataset.zone || '').toLowerCase();
+            const status = item.dataset.status || '';
+            const tableId = (item.dataset.tableId || '').toLowerCase();
+
+            const matchLocation = selectedLocation === ALL_OPTION || zone === selectedLocation.toLowerCase();
+            const matchStatus = selectedStatus === ALL_OPTION || status === selectedStatus;
+            const matchSearch = !searchTerm || tableId.includes(searchTerm) || zone.includes(searchTerm);
+
+            if (matchLocation && matchStatus && matchSearch) {
+                item.style.display = 'block';
+                visibleCount++;
+            } else {
+                item.style.display = 'none';
+            }
         });
 
-        elements.emptyState.style.display = sortedItems.length === 0 ? 'block' : 'none';
+        elements.emptyState.style.display = visibleCount === 0 ? 'block' : 'none';
     }
 
     async function request(url, options = {}) {
@@ -422,21 +433,19 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function updateTableOnServer(table, overrides) {
-        const payload = {
-            id: table.id,
-            zone: overrides.zone ?? table.zone,
-            capacity: overrides.capacity ?? table.capacity,
-            status: normalizeStatus(overrides.status ?? table.status),
-            createdAt: table.createdAt || table.created_at || new Date().toISOString(),
-            updatedAt: new Date().toISOString()
-        };
+        const payload = {};
+
+        if (overrides.status !== undefined) payload.status = normalizeStatus(overrides.status);
+        if (overrides.zone !== undefined) payload.zone = overrides.zone;
+        if (overrides.capacity !== undefined) payload.capacity = overrides.capacity;
+        if (overrides.name !== undefined) payload.name = overrides.name;
 
         await request(`${TABLES_API_URL}/${encodeURIComponent(table.id)}`, {
             method: 'PUT',
             body: JSON.stringify(payload)
         });
 
-        return { ...table, ...payload };
+        return { ...table, ...overrides };
     }
 
     async function loadTables() {
@@ -663,6 +672,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         const payload = {
+            name: tableName,
             zone: tableLocation,
             capacity: tableCapacity,
             status: TABLE_STATUSES.AVAILABLE
@@ -712,8 +722,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function bindEvents() {
-        elements.locationFilter?.addEventListener('change', scheduleReloadTables);
-        elements.statusFilter?.addEventListener('change', scheduleReloadTables);
+        elements.locationFilter?.addEventListener('change', () => applyTableFilters());
+        elements.statusFilter?.addEventListener('change', () => applyTableFilters());
         elements.sortFilter?.addEventListener('change', scheduleReloadTables);
         elements.searchInput?.addEventListener('input', scheduleReloadTables);
         elements.addTableForm?.addEventListener('submit', handleAddTableSubmit);

@@ -147,7 +147,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (state.statusFilter !== ALL_OPTION && t.status !== state.statusFilter) return false;
             if (state.searchTerm) {
                 const s = state.searchTerm.toLowerCase();
-                return (t.id || '').toLowerCase().includes(s) || (t.zone || '').toLowerCase().includes(s);
+                return (t.name || '').toLowerCase().includes(s) || String(t.id || '').toLowerCase().includes(s) || (t.zone || '').toLowerCase().includes(s);
             }
             return true;
         });
@@ -171,11 +171,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
         elements.tableBody.innerHTML = pageData.map(t => `
             <tr>
-                <td class="ps-3 fw-semibold">${t.id || '-'}</td>
+                <td class="fw-semibold">${t.name || t.id || '-'}</td>
                 <td>${t.zone || '-'}</td>
                 <td>${t.capacity || 0} người</td>
                 <td>${getStatusBadge(t.status)}</td>
-                <td class="small text-muted">${t.updatedAt ? new Date(t.updatedAt).toLocaleDateString('vi-VN') : '-'}</td>
                 <td class="text-end pe-3">
                     <div class="d-flex justify-content-end gap-2">
                         <button class="btn btn-light btn-icon shadow-sm p-0 d-flex align-items-center justify-content-center edit-btn" data-id="${t.id}" style="width:32px;height:32px;border-radius:50%;color:var(--text-soft) !important;background-color:#fff !important;" title="Sửa">
@@ -199,7 +198,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (!t) return;
 
                 elements.editModalLabel.textContent = 'Sửa thông tin Bàn';
-                elements.editTableName.value = t.id || '';
+                elements.editTableName.value = t.name || t.id || '';
                 elements.editTableCapacity.value = t.capacity || 4;
                 renderSelectOptions(elements.editTableLocation, getLocationOptions(), t.zone || '');
                 renderSelectOptions(elements.editTableStatus, FORM_STATUS_OPTIONS, t.status || TABLE_STATUSES.AVAILABLE);
@@ -280,22 +279,22 @@ document.addEventListener('DOMContentLoaded', () => {
             const editId = elements.editForm.dataset.editId;
 
             const payload = {
-                id: elements.editTableName.value.trim(),
+                name: elements.editTableName.value.trim(),
                 zone: elements.editTableLocation.value,
                 capacity: parseInt(elements.editTableCapacity.value) || 4,
-                status: elements.editTableStatus.value,
-                updatedAt: new Date().toISOString()
+                status: elements.editTableStatus.value
             };
 
             try {
                 if (editId) {
-                    const table = state.tables.find(t => String(t.id) === String(editId));
                     await apiFetch(`${TABLES_URL}/${encodeURIComponent(editId)}`, {
-                        method: 'PUT', body: JSON.stringify({ ...table, ...payload })
+                        method: 'PUT', body: JSON.stringify(payload)
                     });
                     showToast('Đã cập nhật bàn!');
                 } else {
-                    await apiFetch(TABLES_URL, { method: 'POST', body: JSON.stringify({ ...payload, createdAt: new Date().toISOString() }) });
+                    await apiFetch(TABLES_URL, {
+                        method: 'POST', body: JSON.stringify(payload)
+                    });
                     showToast('Đã thêm bàn mới!');
                 }
             } catch (err) { showToast(err.message, 'danger'); }

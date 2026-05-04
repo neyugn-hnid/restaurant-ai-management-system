@@ -2984,6 +2984,11 @@
             "type": "integer",
             "format": "int32"
           },
+          "name": {
+            "maxLength": 255,
+            "type": "string",
+            "nullable": true
+          },
           "zone": {
             "maxLength": 100,
             "type": "string",
@@ -3078,6 +3083,10 @@
       "UpdateTableRequest": {
         "type": "object",
         "properties": {
+          "name": {
+            "type": "string",
+            "nullable": true
+          },
           "status": {
             "type": "string",
             "nullable": true

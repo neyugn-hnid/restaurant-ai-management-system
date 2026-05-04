@@ -49,6 +49,7 @@ CREATE TABLE Customers (
 -- 5. Tables Table
 CREATE TABLE RestaurantTables (
     id INT PRIMARY KEY IDENTITY(1,1),
+    name NVARCHAR(255),
     zone NVARCHAR(100),
     capacity INT DEFAULT 4,
     status NVARCHAR(50),
@@ -196,15 +197,15 @@ INSERT INTO Customers (id, phone, full_name, email, visits, total_spent, tier, c
 ('KH105', '0977889900', N'Đỗ Mỹ E', 'domye@yahoo.com', 2, 3200000, 'new', GETDATE(), GETDATE() );
 
 -- Table
-INSERT INTO RestaurantTables (zone, capacity, status, created_at, updated_at) VALUES
-(N'Tầng 1', 4, N'Trống', GETDATE(), GETDATE()),
-(N'Tầng 1', 4, N'Trống', GETDATE(), GETDATE()),
-(N'Tầng 1', 2, N'Trống', GETDATE(), GETDATE()),
-(N'Tầng 1', 2, N'Trống', GETDATE(), GETDATE()),
-(N'Sân vườn', 6, N'Trống', GETDATE(), GETDATE()),
-(N'Sân vườn', 4, N'Trống', GETDATE(), GETDATE()),
-(N'Khu VIP', 8, N'Trống', GETDATE(), GETDATE()),
-(N'Khu VIP', 8, N'Trống', GETDATE(), GETDATE());
+INSERT INTO RestaurantTables (name, zone, capacity, status, created_at, updated_at) VALUES
+(N'Bàn T101', N'Tầng 1', 4, N'Trống', GETDATE(), GETDATE()),
+(N'Bàn T102', N'Tầng 1', 4, N'Trống', GETDATE(), GETDATE()),
+(N'Bàn T103', N'Tầng 1', 2, N'Trống', GETDATE(), GETDATE()),
+(N'Bàn T104', N'Tầng 1', 2, N'Trống', GETDATE(), GETDATE()),
+(N'Bàn Sân vườn 1', N'Sân vườn', 6, N'Trống', GETDATE(), GETDATE()),
+(N'Bàn Sân vườn 2', N'Sân vườn', 4, N'Trống', GETDATE(), GETDATE()),
+(N'Bàn Khu VIP 1', N'Khu VIP', 8, N'Trống', GETDATE(), GETDATE()),
+(N'Bàn Khu VIP 2', N'Khu VIP', 8, N'Trống', GETDATE(), GETDATE());
 
 -- Reservations
 SET IDENTITY_INSERT Reservations ON;

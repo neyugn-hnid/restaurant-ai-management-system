@@ -43,8 +43,8 @@
 }
 
 .legend-box.selected {
-    background: var(--color-gold);
-    border-color: var(--color-gold);
+    background: var(--color-accent);
+    border-color: var(--color-accent);
 }
 
 .table-layout {
@@ -116,11 +116,21 @@
     pointer-events: none;
 }
 
-.tbl-2 { width: 80px; height: 80px; border-radius: 8px; }
+.tbl-2 { width: 90px; height: 90px; border-radius: 8px; }
 .tbl-4 { width: 100px; height: 100px; border-radius: 8px; }
 .tbl-6 { width: 140px; height: 100px; border-radius: 8px; }
 .tbl-8 { width: 140px; height: 140px; border-radius: 50%; }
 .tbl-vip { width: 160px; height: 160px; border-radius: 50%; }
+
+.tbl.dimmed {
+    background: #f5f5f5;
+    color: #bbb;
+    border: 2px solid #e8e8e8;
+    cursor: default;
+    pointer-events: none;
+    box-shadow: none;
+    opacity: 0.5;
+}
 
 .tbl.available {
     border: 2px solid var(--color-house-green);
@@ -129,8 +139,8 @@
 }
 
 .tbl.available:hover {
-    border-color: var(--color-gold);
-    color: var(--color-gold);
+    border-color: var(--color-accent);
+    color: var(--color-accent);
     box-shadow: 0 12px 24px rgba(203, 162, 88, 0.15);
     transform: translateY(-4px) scale(1.02);
 }
@@ -144,9 +154,9 @@
 }
 
 .tbl.selected {
-    background: var(--color-gold);
+    background: var(--color-accent);
     color: #fff;
-    border: 2px solid var(--color-gold);
+    border: 2px solid var(--color-accent);
     box-shadow: 0 12px 24px rgba(203, 162, 88, 0.25);
     transform: translateY(-4px) scale(1.05);
 }
@@ -208,7 +218,7 @@
 .res-group label {
     font-size: 1.1rem;
     font-weight: 600;
-    color: var(--color-gold);
+    color: var(--color-accent);
     text-transform: uppercase;
     letter-spacing: 0.1em;
     margin-bottom: 0.8rem;
@@ -295,7 +305,7 @@
     height: 80px;
     border-radius: 50%;
     background: rgba(212, 175, 55, 0.1);
-    color: var(--color-gold);
+    color: var(--color-accent);
     display: flex;
     align-items: center;
     justify-content: center;

@@ -35,11 +35,15 @@ namespace server.Controllers
                 var searchTerm = request.SearchTerm.Trim();
                 if (int.TryParse(searchTerm, out var tableId))
                 {
-                    query = query.Where(table => table.Id == tableId || (table.Zone != null && table.Zone.Contains(searchTerm)));
+                    query = query.Where(table => table.Id == tableId
+                        || (table.Name != null && table.Name.Contains(searchTerm))
+                        || (table.Zone != null && table.Zone.Contains(searchTerm)));
                 }
                 else
                 {
-                    query = query.Where(table => table.Zone != null && table.Zone.Contains(searchTerm));
+                    query = query.Where(table =>
+                        (table.Name != null && table.Name.Contains(searchTerm))
+                        || (table.Zone != null && table.Zone.Contains(searchTerm)));
                 }
             }
 
@@ -96,6 +100,8 @@ namespace server.Controllers
                     table.Status = parsedStatus;
                 }
             }
+            if (!string.IsNullOrWhiteSpace(request.Name))
+                table.Name = request.Name;
             if (!string.IsNullOrWhiteSpace(request.Zone))
                 table.Zone = request.Zone;
             if (request.Capacity.HasValue && request.Capacity.Value > 0)
@@ -171,6 +177,7 @@ namespace server.Controllers
 
     public class UpdateTableRequest
     {
+        public string? Name { get; set; }
         public string? Status { get; set; }
         public string? Zone { get; set; }
         public int? Capacity { get; set; }

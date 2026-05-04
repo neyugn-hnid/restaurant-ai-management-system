@@ -208,7 +208,7 @@ namespace server.Controllers
                 CustomerName = order.Customer?.FullName,
                 AccountId = order.AccountId,
                 TableId = order.TableId,
-                TableName = order.RestaurantTable != null ? $"Bàn {order.RestaurantTable.Id}" : (order.TableId != null ? $"Bàn {order.TableId}" : null),
+                TableName = order.RestaurantTable?.Name ?? (order.TableId != null ? $"Bàn {order.TableId}" : null),
                 ItemsCount = items.Sum(i => i.Quantity),
                 Status = order.Status,
                 Subtotal = order.Subtotal,

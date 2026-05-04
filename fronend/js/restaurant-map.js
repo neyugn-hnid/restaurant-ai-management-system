@@ -29,6 +29,73 @@ document.addEventListener('DOMContentLoaded', () => {
         elements.dateInput.value = today;
     }
 
+    // Load và hiển thị toàn bộ bàn (dimmed) khi trang load
+    loadAndRenderAllTablesDimmed();
+
+    async function loadAndRenderAllTablesDimmed() {
+        try {
+            const tables = await loadTables();
+            renderTableMap(tables, {}, true); // dimmed = true
+        } catch (_) {
+            elements.tableLayout.innerHTML = '<div style="text-align:center;padding:3rem;color:var(--color-text-muted);">Đang tải sơ đồ bàn...</div>';
+        }
+    }
+
+    function renderTableMap(tables, statuses, dimmed = false) {
+        elements.tableLayout.innerHTML = '';
+
+        const zones = {};
+        tables.forEach(t => {
+            if (!zones[t.zone || 'Khu chung']) zones[t.zone || 'Khu chung'] = [];
+            zones[t.zone || 'Khu chung'].push(t);
+        });
+
+        for (const [zoneName, zoneTables] of Object.entries(zones)) {
+            const zoneDiv = document.createElement('div');
+            zoneDiv.className = 'layout-zone';
+
+            const title = document.createElement('div');
+            title.className = 'zone-title';
+            title.textContent = zoneName;
+            zoneDiv.appendChild(title);
+
+            zoneTables.forEach(t => {
+                const capacity = t.capacity || 4;
+                let sizeClass = 'tbl-4';
+                if (capacity <= 2) sizeClass = 'tbl-2';
+                else if (capacity >= 8) sizeClass = 'tbl-vip';
+                else if (capacity >= 6) sizeClass = 'tbl-6';
+
+                const tbl = document.createElement('div');
+                const status = statuses[t.id] || t.status || 'Trống';
+                const isAvailable = !dimmed && status === 'Trống';
+
+                tbl.className = `tbl ${sizeClass}`;
+                if (isAvailable) tbl.classList.add('available');
+                else if (dimmed) tbl.classList.add('dimmed');
+                else tbl.classList.add('occupied');
+
+                if ((t.zone || '').toLowerCase().includes('vip') || capacity >= 8) tbl.classList.add('tbl-vip');
+                tbl.id = `table-${String(t.id).replace(/\s+/g, '-')}`;
+
+                if (isAvailable) {
+                    tbl.addEventListener('click', function () {
+                        if (!this.classList.contains('available')) return;
+                        document.querySelectorAll('.tbl').forEach(el => el.classList.remove('selected'));
+                        this.classList.add('selected');
+                        selectedTableId = t.id;
+                        elements.confirmBtn.disabled = false;
+                    });
+                }
+
+                tbl.innerHTML = `${t.name || t.id} <span>${capacity} ghế</span>`;
+                zoneDiv.appendChild(tbl);
+            });
+
+            elements.tableLayout.appendChild(zoneDiv);
+        }
+    }
+
     async function apiFetch(url, options = {}) {
         const resp = await fetch(url, {
             headers: { 'Content-Type': 'application/json', ...(options.headers || {}) },
@@ -169,71 +236,13 @@ document.addEventListener('DOMContentLoaded', () => {
         elements.actionBtn.disabled = true;
 
         const [tables, statuses] = await Promise.all([loadTables(), getTableStatuses()]);
-        tables.forEach(t => {
-            const statusFromStatuses = statuses[t.id];
-            const finalStatus = statusFromStatuses || t.status || 'Trống';
-            console.log(`  Bàn ${t.id}: statuses[${t.id}]=${statusFromStatuses}, t.status=${t.status}, final=${finalStatus}`);
-        });
 
         elements.actionBtn.innerText = 'Kéo xuống để chọn bàn';
         elements.actionBtn.disabled = false;
-        elements.mapSection.classList.add('active');
-        elements.tableLayout.innerHTML = '';
+        elements.confirmBtn.disabled = true;
+        selectedTableId = null;
 
-        const zones = {};
-        tables.forEach(t => {
-            if (!zones[t.zone || 'Khu chung']) zones[t.zone || 'Khu chung'] = [];
-            zones[t.zone || 'Khu chung'].push(t);
-        });
-
-        for (const [zoneName, zoneTables] of Object.entries(zones)) {
-            const zoneDiv = document.createElement('div');
-            zoneDiv.className = 'layout-zone';
-
-            const title = document.createElement('div');
-            title.className = 'zone-title';
-            title.textContent = zoneName;
-            zoneDiv.appendChild(title);
-
-            const availableTables = zoneTables.filter(t => {
-                const status = statuses[t.id] || t.status || 'Trống';
-                return status === 'Trống';
-            });
-
-
-            if (availableTables.length === 0) {
-                const empty = document.createElement('div');
-                empty.style.cssText = 'width:100%;text-align:center;padding:2rem;color:var(--color-text-muted);font-size:1.4rem;';
-                empty.textContent = 'Không có bàn trống trong khu vực này';
-                zoneDiv.appendChild(empty);
-            }
-
-            availableTables.forEach(t => {
-                const capacity = t.capacity || 4;
-                let sizeClass = 'tbl-4';
-                if (capacity <= 2) sizeClass = 'tbl-2';
-                else if (capacity >= 8) sizeClass = 'tbl-vip';
-                else if (capacity >= 6) sizeClass = 'tbl-6';
-
-                const tbl = document.createElement('div');
-                tbl.className = `tbl ${sizeClass} available`;
-                if ((t.zone || '').toLowerCase().includes('vip') || capacity >= 8) tbl.classList.add('tbl-vip');
-                tbl.id = `table-${String(t.id).replace(/\s+/g, '-')}`;
-
-                tbl.addEventListener('click', function () {
-                    if (!this.classList.contains('available')) return;
-                    document.querySelectorAll('.tbl').forEach(el => el.classList.remove('selected'));
-                    this.classList.add('selected');
-                    selectedTableId = t.id;
-                    elements.confirmBtn.disabled = false;
-                });
-
-                tbl.innerHTML = `${t.id} <span>${capacity} ghế</span>`;
-                zoneDiv.appendChild(tbl);
-            });
-
-            elements.tableLayout.appendChild(zoneDiv);
-        }
+        renderTableMap(tables, statuses, false); // dimmed=false → làm sáng bàn trống
 
         elements.mapSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
     });
