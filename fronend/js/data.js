@@ -688,18 +688,6 @@ function initializeMockData() {
     if (!localStorage.getItem('bistro_customers') || JSON.parse(localStorage.getItem('bistro_customers')).length < 5) {
         localStorage.setItem('bistro_customers', JSON.stringify(MOCK_CUSTOMERS));
     }
-    if (!localStorage.getItem('bistro_tables') || JSON.parse(localStorage.getItem('bistro_tables'))[0].id !== 'Bàn 01') {
-        localStorage.setItem('bistro_tables', JSON.stringify(MOCK_TABLES));
-        localStorage.setItem('bistro_table_statuses', JSON.stringify(MOCK_TABLE_STATUSES));
-        localStorage.setItem('bistro_reservations', JSON.stringify(MOCK_RESERVATIONS));
-        localStorage.setItem('bistro_orders', JSON.stringify(MOCK_ORDERS));
-    }
-    if (!localStorage.getItem('bistro_table_statuses') || Object.keys(JSON.parse(localStorage.getItem('bistro_table_statuses'))).length < 7) {
-        localStorage.setItem('bistro_table_statuses', JSON.stringify(MOCK_TABLE_STATUSES));
-    }
-    if (!localStorage.getItem('bistro_reservations')) {
-        localStorage.setItem('bistro_reservations', JSON.stringify(MOCK_RESERVATIONS));
-    }
     if (!localStorage.getItem('bistro_orders') || JSON.parse(localStorage.getItem('bistro_orders')).length < 3) {
         localStorage.setItem('bistro_orders', JSON.stringify(MOCK_ORDERS));
     }

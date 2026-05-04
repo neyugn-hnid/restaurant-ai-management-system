@@ -23,6 +23,7 @@ namespace server.Data
         public DbSet<server.Modal.RestaurantTable> RestaurantTable { get; set; } = default!;
         public DbSet<server.Modal.Reservation> Reservation { get; set; } = default!;
         public DbSet<server.Modal.Order> Order { get; set; } = default!;
+        public DbSet<server.Modal.PaymentSetting> PaymentSetting { get; set; } = default!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

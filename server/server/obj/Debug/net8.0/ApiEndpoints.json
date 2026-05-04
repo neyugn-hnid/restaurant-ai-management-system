@@ -150,6 +150,48 @@
     "ReturnTypes": []
   },
   {
+    "ContainingType": "server.Controllers.AccountsController",
+    "Method": "ChangePassword",
+    "RelativePath": "api/Accounts/{id}/password",
+    "HttpMethod": "PUT",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Int32",
+        "IsRequired": true
+      },
+      {
+        "Name": "request",
+        "Type": "server.Controllers.ChangePasswordRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "server.Controllers.AccountsController",
+    "Method": "UpdateProfile",
+    "RelativePath": "api/Accounts/{id}/profile",
+    "HttpMethod": "PUT",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Int32",
+        "IsRequired": true
+      },
+      {
+        "Name": "request",
+        "Type": "server.Controllers.UpdateProfileRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
     "ContainingType": "server.Controllers.AuthController",
     "Method": "Login",
     "RelativePath": "api/Auth/login",
@@ -163,6 +205,16 @@
         "IsRequired": true
       }
     ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "server.Controllers.AuthController",
+    "Method": "Logout",
+    "RelativePath": "api/Auth/logout",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
     "ReturnTypes": []
   },
   {
@@ -666,7 +718,7 @@
     ],
     "ReturnTypes": [
       {
-        "Type": "server.Models.Pagination.PagedResponse\u00601[[server.Modal.Order, server, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]",
+        "Type": "server.Models.Pagination.PagedResponse\u00601[[server.Controllers.OrdersController\u002BOrderResponseDto, server, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]",
         "MediaTypes": [
           "text/plain",
           "application/json",
@@ -692,7 +744,7 @@
     ],
     "ReturnTypes": [
       {
-        "Type": "server.Modal.Order",
+        "Type": "server.Controllers.OrdersController\u002BOrderResponseDto",
         "MediaTypes": [
           "text/plain",
           "application/json",
@@ -718,7 +770,7 @@
     ],
     "ReturnTypes": [
       {
-        "Type": "server.Modal.Order",
+        "Type": "server.Controllers.OrdersController\u002BOrderResponseDto",
         "MediaTypes": [
           "text/plain",
           "application/json",
@@ -764,6 +816,52 @@
       }
     ],
     "ReturnTypes": []
+  },
+  {
+    "ContainingType": "server.Controllers.PaymentSettingsController",
+    "Method": "GetPaymentSettings",
+    "RelativePath": "api/PaymentSettings",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": [
+      {
+        "Type": "server.Controllers.PaymentSettingDto",
+        "MediaTypes": [
+          "text/plain",
+          "application/json",
+          "text/json"
+        ],
+        "StatusCode": 200
+      }
+    ]
+  },
+  {
+    "ContainingType": "server.Controllers.PaymentSettingsController",
+    "Method": "UpdatePaymentSettings",
+    "RelativePath": "api/PaymentSettings",
+    "HttpMethod": "PUT",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "dto",
+        "Type": "server.Controllers.PaymentSettingDto",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": [
+      {
+        "Type": "server.Controllers.PaymentSettingDto",
+        "MediaTypes": [
+          "text/plain",
+          "application/json",
+          "text/json"
+        ],
+        "StatusCode": 200
+      }
+    ]
   },
   {
     "ContainingType": "server.Controllers.ProductsController",
@@ -1162,7 +1260,7 @@
     "Parameters": [
       {
         "Name": "id",
-        "Type": "System.String",
+        "Type": "System.Int32",
         "IsRequired": true
       }
     ],
@@ -1188,7 +1286,7 @@
     "Parameters": [
       {
         "Name": "id",
-        "Type": "System.String",
+        "Type": "System.Int32",
         "IsRequired": true
       },
       {
@@ -1209,7 +1307,7 @@
     "Parameters": [
       {
         "Name": "id",
-        "Type": "System.String",
+        "Type": "System.Int32",
         "IsRequired": true
       }
     ],

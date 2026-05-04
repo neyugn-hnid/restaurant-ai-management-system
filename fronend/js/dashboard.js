@@ -29,10 +29,6 @@ document.addEventListener('DOMContentLoaded', async function() {
         orders = ordResp?.items || [];
         customers = custResp?.items || [];
         tables = tableResp?.items || [];
-
-        localStorage.setItem('bistro_orders', JSON.stringify(orders));
-        localStorage.setItem('bistro_customers', JSON.stringify(customers));
-        localStorage.setItem('bistro_tables', JSON.stringify(tables));
     } catch (err) {
         console.warn('API unavailable, using localStorage cache:', err.message);
         orders = JSON.parse(localStorage.getItem('bistro_orders') || '[]');

@@ -21,14 +21,14 @@
             </div>
         </div>
         <div class="flex-grow-1 px-3">
-            <a class="nav-link" href="/dashboard.html"><span class="material-symbols-outlined">dashboard</span> Tổng quan</a>
-            <a class="nav-link" href="/tables.html"><span class="material-symbols-outlined">table_restaurant</span> Quản lý bàn</a>
-            <a class="nav-link" href="/menu.html"><span class="material-symbols-outlined">restaurant_menu</span> Quản lý thực đơn</a>
-            <a class="nav-link" href="/orders.html"><span class="material-symbols-outlined">receipt_long</span> Quản lý đơn hàng</a>
-            <a class="nav-link" href="/customers.html"><span class="material-symbols-outlined">group</span> Quản lý khách hàng</a>
-            <a class="nav-link" href="/accounts.html"><span class="material-symbols-outlined">manage_accounts</span> Quản lý tài khoản</a>
-            <a class="nav-link" href="/analytics.html"><span class="material-symbols-outlined">analytics</span> Thống kê</a>
-            <a class="nav-link active" href="/settings.html"><span class="material-symbols-outlined">settings</span> Cài đặt</a>
+            <a class="nav-link" href="./dashboard.html"><span class="material-symbols-outlined">dashboard</span> Tổng quan</a>
+            <a class="nav-link" href="./tables.html"><span class="material-symbols-outlined">table_restaurant</span> Quản lý bàn</a>
+            <a class="nav-link" href="./menu.html"><span class="material-symbols-outlined">restaurant_menu</span> Quản lý thực đơn</a>
+            <a class="nav-link" href="./orders.html"><span class="material-symbols-outlined">receipt_long</span> Quản lý đơn hàng</a>
+            <a class="nav-link" href="./customers.html"><span class="material-symbols-outlined">group</span> Quản lý khách hàng</a>
+            <a class="nav-link" href="./accounts.html"><span class="material-symbols-outlined">manage_accounts</span> Quản lý tài khoản</a>
+            <a class="nav-link" href="./analytics.html"><span class="material-symbols-outlined">analytics</span> Thống kê</a>
+            <a class="nav-link active" href="./settings.html"><span class="material-symbols-outlined">settings</span> Cài đặt</a>
         </div>
         <div class="px-3 mt-auto pt-3 border-top border-light border-opacity-10">
             <a class="nav-link" href="#" onclick="Auth.logout(); return false;"><span class="material-symbols-outlined">logout</span> Đăng xuất</a>
@@ -142,44 +142,42 @@
 
                         <div id="section-account_circle" class="p-4 p-md-5 settings-section d-none">
                             <h5 class="fw-bold mb-4">Tài khoản quản trị</h5>
-                            <form>
+                            <form id="profileForm">
                                 <div class="row g-3 mb-4">
                                     <div class="col-md-6">
                                         <label class="form-label">Họ và tên</label>
-                                        <input type="text" class="form-control p-2" value="Nguyễn Văn Admin">
+                                        <input type="text" class="form-control p-2" id="profileFullName" value="Nguyễn Văn Admin">
                                     </div>
                                     <div class="col-md-6">
                                         <label class="form-label">Chức vụ</label>
                                         <input type="text" class="form-control p-2" value="Quản lý cửa hàng" disabled>
                                     </div>
-                                    <div class="col-md-6">
-                                        <label class="form-label">Email</label>
-                                        <input type="email" class="form-control p-2" value="admin@bistro.com">
-                                    </div>
-                                    <div class="col-md-6">
-                                        <label class="form-label">Số điện thoại</label>
-                                        <input type="text" class="form-control p-2" value="0987 654 321">
-                                    </div>
                                 </div>
 
-                                <h6 class="fw-semibold mb-3 border-top pt-4">Bảo mật</h6>
+                                <div class="d-flex justify-content-end mt-5 border-top pt-4">
+                                    <button type="submit" class="btn btn-primary px-4 fw-medium">Lưu thay đổi</button>
+                                </div>
+                            </form>
+
+                            <h6 class="fw-semibold mb-3 border-top pt-4 mt-5">Bảo mật</h6>
+                            <form id="passwordForm">
                                 <div class="row g-3 mb-4">
                                     <div class="col-md-12">
                                         <label class="form-label">Mật khẩu hiện tại</label>
-                                        <input type="password" class="form-control p-2" placeholder="••••••••">
+                                        <input type="password" class="form-control p-2" id="currentPassword" placeholder="••••••••" required>
                                     </div>
                                     <div class="col-md-6">
                                         <label class="form-label">Mật khẩu mới</label>
-                                        <input type="password" class="form-control p-2" placeholder="Nhập mật khẩu mới">
+                                        <input type="password" class="form-control p-2" id="newPassword" placeholder="Nhập mật khẩu mới" required>
                                     </div>
                                     <div class="col-md-6">
                                         <label class="form-label">Xác nhận mật khẩu mới</label>
-                                        <input type="password" class="form-control p-2" placeholder="Nhập lại mật khẩu mới">
+                                        <input type="password" class="form-control p-2" id="confirmNewPassword" placeholder="Nhập lại mật khẩu mới" required>
                                     </div>
                                 </div>
 
                                 <div class="d-flex justify-content-end mt-5 border-top pt-4">
-                                    <button type="button" class="btn btn-primary px-4 fw-medium">Lưu thay đổi</button>
+                                    <button type="submit" class="btn btn-primary px-4 fw-medium">Đổi mật khẩu</button>
                                 </div>
                             </form>
                         </div>

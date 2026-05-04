@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using server.Data;
 using server.Extensions;
+using server.Infrastructure;
 using server.Modal;
 using server.Models.Pagination;
 
@@ -54,8 +55,9 @@ namespace server.Controllers
             if (!string.IsNullOrWhiteSpace(request.Status) &&
                 !string.Equals(request.Status, "Tất cả", StringComparison.OrdinalIgnoreCase))
             {
-                var status = request.Status.Trim().ToLowerInvariant();
-                query = query.Where(table => table.Status.ToString().ToLower() == status);
+                var status = request.Status.Trim();
+                query = query.Where(table =>
+                    EF.Property<string>(table, "Status") == status);
             }
 
             query = ApplySorting(query, request);

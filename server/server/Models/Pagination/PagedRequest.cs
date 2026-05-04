@@ -4,7 +4,7 @@ namespace server.Models.Pagination
     {
         private const int DefaultPageNumber = 1;
         private const int DefaultPageSize = 10;
-        private const int MaxPageSize = 100;
+        private const int MaxPageSize = 500;
 
         public int Page { get; set; } = DefaultPageNumber;
 

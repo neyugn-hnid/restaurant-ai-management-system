@@ -119,7 +119,6 @@ document.addEventListener('DOMContentLoaded', () => {
             state.tables = resp?.items || [];
             state.totalItems = resp?.totalItemCount || state.tables.length;
             state.totalPages = Math.ceil(state.totalItems / ITEMS_PER_PAGE) || 1;
-            localStorage.setItem('bistro_tables', JSON.stringify(state.tables));
 
             updateLocationFilter();
         } catch (err) {

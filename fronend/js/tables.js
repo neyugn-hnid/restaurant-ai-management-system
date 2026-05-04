@@ -66,7 +66,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // ensure the backend is the single source of truth for table state.
 
     function persistTables() {
-        writeJson(STORAGE_KEYS.tables, state.tables);
+        // Không lưu vào localStorage - backend là nguồn dữ liệu duy nhất
     }
 
     function showToast(message, type = 'success') {

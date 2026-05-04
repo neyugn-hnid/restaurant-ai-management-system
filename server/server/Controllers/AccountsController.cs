@@ -139,6 +139,52 @@ namespace server.Controllers
             return NoContent();
         }
 
+
+        [HttpPut("{id}/profile")]
+        public async Task<IActionResult> UpdateProfile(int id, [FromBody] UpdateProfileRequest request)
+        {
+            var account = await _context.Account.FindAsync(id);
+            if (account == null) return NotFound();
+
+            if (!string.IsNullOrWhiteSpace(request.FullName))
+            {
+                account.FullName = request.FullName;
+            }
+            account.UpdatedAt = DateTime.UtcNow;
+
+            await _context.SaveChangesAsync();
+            return Ok(new { id = account.Id, fullName = account.FullName, message = "Cập nhật thông tin thành công" });
+        }
+
+
+        [HttpPut("{id}/password")]
+        public async Task<IActionResult> ChangePassword(int id, [FromBody] ChangePasswordRequest request)
+        {
+            var account = await _context.Account.FindAsync(id);
+            if (account == null) return NotFound();
+
+            if (!BCrypt.Net.BCrypt.Verify(request.CurrentPassword, account.PasswordHash))
+            {
+                return BadRequest(new { message = "Mật khẩu hiện tại không đúng" });
+            }
+
+            if (string.IsNullOrWhiteSpace(request.NewPassword) || request.NewPassword.Length < 6)
+            {
+                return BadRequest(new { message = "Mật khẩu mới phải có ít nhất 6 ký tự" });
+            }
+
+            if (request.NewPassword != request.ConfirmPassword)
+            {
+                return BadRequest(new { message = "Xác nhận mật khẩu mới không khớp" });
+            }
+
+            account.PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.NewPassword);
+            account.UpdatedAt = DateTime.UtcNow;
+
+            await _context.SaveChangesAsync();
+            return Ok(new { message = "Đổi mật khẩu thành công" });
+        }
+
         private bool AccountExists(int id)
         {
             return _context.Account.Any(e => e.Id == id);
@@ -161,5 +207,17 @@ namespace server.Controllers
                 _ => isAscending ? query.OrderBy(account => account.CreatedAt) : query.OrderByDescending(account => account.CreatedAt)
             };
         }
+    }
+
+    public class UpdateProfileRequest
+    {
+        public string? FullName { get; set; }
+    }
+
+    public class ChangePasswordRequest
+    {
+        public string CurrentPassword { get; set; } = string.Empty;
+        public string NewPassword { get; set; } = string.Empty;
+        public string ConfirmPassword { get; set; } = string.Empty;
     }
 }

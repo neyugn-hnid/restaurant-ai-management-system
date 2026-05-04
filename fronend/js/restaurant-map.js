@@ -45,9 +45,7 @@ document.addEventListener('DOMContentLoaded', () => {
     async function loadTables() {
         try {
             const resp = await apiFetch(`${TABLES_URL}?page=1&pageSize=200&sortBy=id&sortOrder=asc`);
-            const tables = resp?.items || [];
-            localStorage.setItem('bistro_tables', JSON.stringify(tables));
-            return tables;
+            return resp?.items || [];
         } catch (err) {
             console.warn('API không khả dụng, dùng cache:', err.message);
             return JSON.parse(localStorage.getItem('bistro_tables') || '[]');
@@ -56,13 +54,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function getTableStatuses() {
         try {
-            const [tablesResp, reservationsResp] = await Promise.all([
-                apiFetch(`${TABLES_URL}?page=1&pageSize=200&sortBy=id&sortOrder=asc`),
-                apiFetch(`${RESERVATIONS_URL}?page=1&pageSize=500`)
-            ]);
-
+            const tablesResp = await apiFetch(`${TABLES_URL}?page=1&pageSize=200&sortBy=id&sortOrder=asc`);
             const tables = tablesResp?.items || [];
-            const reservations = reservationsResp?.items || [];
             const statuses = {};
 
             const normalizeStatus = (s) => {
@@ -76,25 +69,21 @@ document.addEventListener('DOMContentLoaded', () => {
             };
 
             tables.forEach(t => {
-                const hasActiveReservation = reservations.some(r =>
-                    String(r.tableId) === String(t.id) &&
-                    (r.status === 'Đã xác nhận' || r.status === 'Chờ xử lý')
-                );
-                const tableStatus = normalizeStatus(t.status);
-                statuses[t.id] = hasActiveReservation ? 'Đã đặt' : tableStatus;
+                statuses[t.id] = normalizeStatus(t.status);
             });
 
-            localStorage.setItem('bistro_table_statuses', JSON.stringify(statuses));
+            console.log('🔍 getTableStatuses: tables=', tables.length, 'statuses=', JSON.stringify(statuses));
             return statuses;
         } catch (err) {
-            console.warn('Dùng cache table statuses:', err.message);
-            return JSON.parse(localStorage.getItem('bistro_table_statuses') || '{}');
+            console.warn('⚠️ getTableStatuses FAILED:', err.message);
+            return {};
         }
     }
 
     async function updateTableStatus(tableId, status) {
         try {
-            const tables = JSON.parse(localStorage.getItem('bistro_tables') || '[]');
+            const resp = await apiFetch(`${TABLES_URL}?page=1&pageSize=200`);
+            const tables = resp?.items || [];
             const table = tables.find(t => String(t.id) === String(tableId));
             if (table) {
                 const payload = { ...table, status: status, updatedAt: new Date().toISOString() };
@@ -105,9 +94,6 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (err) {
             console.warn('Không thể cập nhật trạng thái bàn lên API:', err.message);
         }
-        const statuses = JSON.parse(localStorage.getItem('bistro_table_statuses') || '{}');
-        statuses[tableId] = status;
-        localStorage.setItem('bistro_table_statuses', JSON.stringify(statuses));
     }
 
     async function saveReservation(data, customerId) {
@@ -190,6 +176,11 @@ document.addEventListener('DOMContentLoaded', () => {
         elements.actionBtn.disabled = true;
 
         const [tables, statuses] = await Promise.all([loadTables(), getTableStatuses()]);
+        tables.forEach(t => {
+            const statusFromStatuses = statuses[t.id];
+            const finalStatus = statusFromStatuses || t.status || 'Trống';
+            console.log(`  Bàn ${t.id}: statuses[${t.id}]=${statusFromStatuses}, t.status=${t.status}, final=${finalStatus}`);
+        });
 
         elements.actionBtn.innerText = 'Kéo xuống để chọn bàn';
         elements.actionBtn.disabled = false;
@@ -215,6 +206,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const status = statuses[t.id] || t.status || 'Trống';
                 return status === 'Trống';
             });
+
 
             if (availableTables.length === 0) {
                 const empty = document.createElement('div');

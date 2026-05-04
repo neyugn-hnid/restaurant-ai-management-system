@@ -31,6 +31,8 @@ namespace server.Controllers
             var query = _context.Order
                 .AsNoTracking()
                 .Include(order => order.OrderItems)
+                .Include(order => order.Customer)
+                .Include(order => order.RestaurantTable)
                 .AsQueryable();
 
             if (!string.IsNullOrWhiteSpace(request.SearchTerm))
@@ -59,6 +61,8 @@ namespace server.Controllers
             var order = await _context.Order
                 .AsNoTracking()
                 .Include(entity => entity.OrderItems)
+                .Include(entity => entity.Customer)
+                .Include(entity => entity.RestaurantTable)
                 .FirstOrDefaultAsync(entity => entity.Id == id);
 
             if (order == null)
@@ -184,12 +188,28 @@ namespace server.Controllers
 
         private static OrderResponseDto MapOrder(Order order)
         {
+            var items = order.OrderItems?.Select(item => new OrderItemResponseDto
+            {
+                Id = item.Id,
+                OrderId = item.OrderId,
+                ProductId = item.ProductId,
+                ProductName = item.ProductName,
+                Quantity = item.Quantity,
+                UnitPrice = item.UnitPrice,
+                TotalPrice = item.TotalPrice,
+                Notes = item.Notes,
+                CreatedAt = item.CreatedAt
+            }).ToList() ?? new List<OrderItemResponseDto>();
+
             return new OrderResponseDto
             {
                 Id = order.Id,
                 CustomerId = order.CustomerId,
+                CustomerName = order.Customer?.FullName,
                 AccountId = order.AccountId,
                 TableId = order.TableId,
+                TableName = order.RestaurantTable != null ? $"Bàn {order.RestaurantTable.Id}" : (order.TableId != null ? $"Bàn {order.TableId}" : null),
+                ItemsCount = items.Sum(i => i.Quantity),
                 Status = order.Status,
                 Subtotal = order.Subtotal,
                 Discount = order.Discount,
@@ -199,18 +219,7 @@ namespace server.Controllers
                 Notes = order.Notes,
                 CreatedAt = order.CreatedAt,
                 UpdatedAt = order.UpdatedAt,
-                Items = order.OrderItems?.Select(item => new OrderItemResponseDto
-                {
-                    Id = item.Id,
-                    OrderId = item.OrderId,
-                    ProductId = item.ProductId,
-                    ProductName = item.ProductName,
-                    Quantity = item.Quantity,
-                    UnitPrice = item.UnitPrice,
-                    TotalPrice = item.TotalPrice,
-                    Notes = item.Notes,
-                    CreatedAt = item.CreatedAt
-                }).ToList() ?? new List<OrderItemResponseDto>()
+                Items = items
             };
         }
 
@@ -218,8 +227,11 @@ namespace server.Controllers
         {
             public string? Id { get; set; }
             public string? CustomerId { get; set; }
+            public string? CustomerName { get; set; }
             public int? AccountId { get; set; }
             public int? TableId { get; set; }
+            public string? TableName { get; set; }
+            public int ItemsCount { get; set; }
             public OrderStatus Status { get; set; }
             public decimal Subtotal { get; set; }
             public decimal Discount { get; set; }

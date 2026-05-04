@@ -111,7 +111,7 @@ body { font-family: 'Inter', sans-serif; background-color: var(--sb-warm); color
 
 .topbar-actions .btn-icon { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--text-soft); }
 .topbar-actions .btn-icon:hover { background-color: #f9f9f9; }
-.avatar { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; }
+.avatar { width: 30px; height: 30px; border-radius: 50%; object-fit: cover; }
 
 .btn { border-radius: var(--pill-radius) !important; padding: 7px 16px; font-weight: 600; letter-spacing: -0.01em; transition: transform 0.2s ease, background-color 0.2s ease, border-color 0.2s ease; }
 .btn:active { transform: scale(0.95); }

@@ -3,6 +3,7 @@ import { ORDER_STATUSES, TABLE_STATUSES } from './status-constants.js';
 document.addEventListener('DOMContentLoaded', async () => {
     const API_BASE_URL = 'http://localhost:7071/api';
     const ORDERS_API_URL = `${API_BASE_URL}/Orders`;
+    const PAYMENT_SETTINGS_URL = `${API_BASE_URL}/PaymentSettings`;
     const ITEMS_PER_PAGE = 10;
 
     const STATUS_FILTER_OPTIONS = [
@@ -122,7 +123,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             const s = state.currentSearch.toLowerCase();
             const matchesSearch = !s ||
                 (order.id || '').toLowerCase().includes(s) ||
-                (order.customer || '').toLowerCase().includes(s);
+                (order.customerName || '').toLowerCase().includes(s) ||
+                (order.tableName || '').toLowerCase().includes(s);
             return matchesFilter && matchesSearch;
         });
     }
@@ -143,17 +145,23 @@ document.addEventListener('DOMContentLoaded', async () => {
         elements.tableBody.innerHTML = pageData.map(o => {
             const badgeClass = getStatusBadgeClass(o.status);
             const total = Number(o.total || 0).toLocaleString('vi-VN');
+            const customerName = o.customerName || '-';
+            const tableName = o.tableName || '';
+            const subtext = tableName && o.customerName ? tableName : '';
+            const icon = o.customerName ? 'person' : 'table_restaurant';
+            const createdAt = o.createdAt ? new Date(o.createdAt) : null;
+            const timeStr = createdAt ? createdAt.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) : '';
+            const dateStr = createdAt ? createdAt.toLocaleDateString('vi-VN') : '';
             return `
                 <tr>
                     <td class="ps-4"><a href="#" class="text-decoration-none fw-semibold order-detail-link" data-id="${o.id}">#${o.id}</a></td>
-                    <td><div class="small">${o.time || ''} <span class="text-muted">${o.date || ''}</span></div></td>
+                    <td><div class="small">${timeStr} <span class="text-muted">${dateStr}</span></div></td>
                     <td>
                         <div class="d-flex align-items-center gap-2">
-                            <span class="material-symbols-outlined icon-sm text-muted">${o.customerIcon || 'receipt_long'}</span>
-                            <div><div class="fw-medium">${o.customer || o.table_id || o.tableId || '-'}</div><small class="text-muted">${o.customerSubtext || ''}</small></div>
+                            <div><div class="fw-medium">${customerName}</div><small class="text-muted">${subtext}</small></div>
                         </div>
                     </td>
-                    <td class="text-center"><span class="badge bg-light text-dark">${o.itemsCount || 0} món</span></td>
+                    <td><span class="badge bg-light text-dark">${o.itemsCount || 0} món</span></td>
                     <td class="fw-semibold">${total} ₫</td>
                     <td><span class="badge ${badgeClass}">${o.status || 'N/A'}</span></td>
                     <td class="text-end pe-4">
@@ -161,7 +169,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                             <button class="btn btn-light btn-icon shadow-sm p-0 d-flex align-items-center justify-content-center payment-btn" data-id="${o.id}" title="Thanh toán" style="width:32px;height:32px;border-radius:50%;color:var(--text-soft) !important;background-color:#fff !important;">
                                 <span class="material-symbols-outlined icon-sm">payments</span>
                             </button>
-                            <button class="btn btn-light btn-icon shadow-sm p-0 d-flex align-items-center justify-content-center status-btn" data-id="${o.id}" title="Cập nhật" style="width:32px;height:32px;border-radius:50%;color:var(--sb-accent) !important;background-color:#fff !important;">
+                            <button class="btn btn-light btn-icon shadow-sm p-0 d-flex align-items-center justify-content-center status-btn" data-id="${o.id}" title="Cập nhật" style="width:32px;height:32px;border-radius:50%;color:var(--text-soft) !important;background-color:#fff !important;">
                                 <span class="material-symbols-outlined icon-sm">edit</span>
                             </button>
                             <button class="btn btn-light btn-icon shadow-sm p-0 d-flex align-items-center justify-content-center delete-btn" data-id="${o.id}" title="Xóa" style="width:32px;height:32px;border-radius:50%;color:#dc3545 !important;background-color:#fff !important;">
@@ -183,25 +191,50 @@ document.addEventListener('DOMContentLoaded', async () => {
                 state.currentOrderDetailsId = link.dataset.id;
                 const order = state.orders.find(o => o.id === state.currentOrderDetailsId);
                 if (!order) return;
+                const createdAt = order.createdAt ? new Date(order.createdAt) : null;
                 document.getElementById('detailsModalOrderId').textContent = `#${order.id}`;
-                document.getElementById('detailsModalCustomer').textContent = order.customer || '-';
-                document.getElementById('detailsModalTable').textContent = order.tableId || order.table_id || '-';
-                document.getElementById('detailsModalTime').textContent = `${order.date || ''} ${order.time || ''}`;
+                document.getElementById('detailsModalCustomer').textContent = order.customerName || '-';
+                document.getElementById('detailsModalTable').textContent = order.tableName || '-';
+                document.getElementById('detailsModalTime').textContent = createdAt
+                    ? `${createdAt.toLocaleDateString('vi-VN')} ${createdAt.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}`
+                    : '-';
                 renderOrderItems(document.getElementById('detailsModalItems'), order);
                 new bootstrap.Modal(document.getElementById('orderDetailsModal')).show();
             });
         });
 
         document.querySelectorAll('.payment-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
+            btn.addEventListener('click', async () => {
                 state.currentPaymentOrderId = btn.dataset.id;
                 const order = state.orders.find(o => o.id === state.currentPaymentOrderId);
                 if (!order) return;
+                const createdAt = order.createdAt ? new Date(order.createdAt) : null;
+                const total = Number(order.total || 0).toLocaleString('vi-VN');
                 document.getElementById('paymentModalOrderId').textContent = `#${order.id}`;
-                document.getElementById('paymentModalCustomer').textContent = order.customer || '-';
-                document.getElementById('paymentModalTable').textContent = order.tableId || order.table_id || '-';
-                document.getElementById('paymentModalTime').textContent = `${order.date || ''} ${order.time || ''}`;
+                document.getElementById('paymentModalCustomer').textContent = order.customerName || '-';
+                document.getElementById('paymentModalTable').textContent = order.tableName || '-';
+                document.getElementById('paymentModalTime').textContent = createdAt
+                    ? `${createdAt.toLocaleDateString('vi-VN')} ${createdAt.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}`
+                    : '-';
+                document.getElementById('paymentModalTotal').textContent = `${total} ₫`;
                 renderOrderItems(document.getElementById('paymentModalItems'), order);
+
+                // Load QR từ cài đặt thanh toán
+                const qrImg = document.getElementById('paymentModalQr');
+                try {
+                    const settings = await request(PAYMENT_SETTINGS_URL);
+                    if (settings?.qrCodeUrl) {
+                        const qrUrl = new URL(settings.qrCodeUrl);
+                        qrUrl.searchParams.set('amount', order.total || 0);
+                        qrUrl.searchParams.set('addInfo', `Thanh toan don ${order.id}`);
+                        qrImg.src = qrUrl.toString();
+                    } else {
+                        qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(`ThanhToan:${order.id}|${order.total || 0}VND`)}`;
+                    }
+                } catch (_) {
+                    qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(`ThanhToan:${order.id}|${order.total || 0}VND`)}`;
+                }
+
                 new bootstrap.Modal(document.getElementById('paymentModal')).show();
             });
         });
@@ -323,10 +356,16 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (idx !== -1) {
                 state.orders[idx].status = ORDER_STATUSES.COMPLETED;
                 try { await request(`${ORDERS_API_URL}/${encodeURIComponent(state.orders[idx].id)}`, { method: 'PUT', body: JSON.stringify(state.orders[idx]) }); } catch (_) {}
-                if (state.orders[idx].customerIcon === 'table_restaurant' && state.orders[idx].customer) {
-                    const ts = JSON.parse(localStorage.getItem('bistro_table_statuses') || '{}');
-                    ts[state.orders[idx].customer] = TABLE_STATUSES.CLEANING;
-                    localStorage.setItem('bistro_table_statuses', JSON.stringify(ts));
+                if (state.orders[idx].tableId) {
+                    try {
+                        const tableResp = await request(`${API_BASE_URL}/RestaurantTables/${state.orders[idx].tableId}`);
+                        if (tableResp) {
+                            await request(`${API_BASE_URL}/RestaurantTables/${state.orders[idx].tableId}`, {
+                                method: 'PUT',
+                                body: JSON.stringify({ ...tableResp, status: TABLE_STATUSES.CLEANING, updatedAt: new Date().toISOString() })
+                            });
+                        }
+                    } catch (_) {}
                 }
                 localStorage.setItem('bistro_orders', JSON.stringify(state.orders));
             }
@@ -338,18 +377,24 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         elements.addOrderForm?.addEventListener('submit', async (e) => {
             e.preventDefault();
-            const customer = document.getElementById('newOrderCustomer').value;
+            const customerInput = document.getElementById('newOrderCustomer').value.trim();
             const totalStr = document.getElementById('newOrderTotal').value;
             const status = document.getElementById('newOrderStatus').value;
+
+            const isTable = customerInput.toLowerCase().includes('bàn');
+            const tableNumber = isTable ? customerInput.replace(/bàn\s*/i, '').trim() : '';
             const newOrder = {
                 id: `ORD-${Math.floor(Math.random() * 9000) + 1000}`,
-                time: new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }),
-                date: new Date().toLocaleDateString('vi-VN'),
-                customer, customerIcon: customer.toLowerCase().includes('bàn') ? 'table_restaurant' : 'local_mall',
-                customerSubtext: '', itemsCount: 1,
-                subtotal: parseInt(totalStr, 10) || 0, discount: 0,
+                customerName: isTable ? null : customerInput,
+                tableId: isTable && tableNumber ? parseInt(tableNumber, 10) : null,
+                tableName: isTable ? customerInput : null,
+                itemsCount: 1,
+                subtotal: parseInt(totalStr, 10) || 0,
+                discount: 0,
                 total: parseInt(totalStr, 10) || 0,
-                status, payment_method: 'cash', payment_status: 'pending'
+                status,
+                paymentMethod: 'cash',
+                paymentStatus: 'Pending'
             };
             try {
                 const created = await request(ORDERS_API_URL, { method: 'POST', body: JSON.stringify(newOrder) });
