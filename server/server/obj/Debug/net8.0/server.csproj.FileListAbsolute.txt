@@ -496,7 +496,6 @@ C:/Users/VanDinh/OneDrive/Máy tính/restaurant-ai-management-system/server/serv
 C:/Users/VanDinh/OneDrive/Máy tính/restaurant-ai-management-system/server/server/bin/Debug/net8.0/temp_build_output/server.deps.json
 C:/Users/VanDinh/OneDrive/Máy tính/restaurant-ai-management-system/server/server/bin/Debug/net8.0/temp_build_output/server.runtimeconfig.json
 C:/Users/VanDinh/OneDrive/Máy tính/restaurant-ai-management-system/server/server/bin/Debug/net8.0/temp_build_output/server.staticwebassets.endpoints.json
-C:/Users/VanDinh/OneDrive/Máy tính/restaurant-ai-management-system/server/server/obj/Debug/net8.0/staticwebassets.upToDateCheck.txt
 //wsl.localhost/Ubuntu/home/van_dev/restaurant-ai-management-system/server/server/obj/Debug/net8.0/server.csproj.AssemblyReference.cache
 //wsl.localhost/Ubuntu/home/van_dev/restaurant-ai-management-system/server/server/obj/Debug/net8.0/rpswa.dswa.cache.json
 //wsl.localhost/Ubuntu/home/van_dev/restaurant-ai-management-system/server/server/obj/Debug/net8.0/server.GeneratedMSBuildEditorConfig.editorconfig
@@ -1278,10 +1277,11 @@ C:\Users\VanDinh\OneDrive\Máy tính\restaurant-ai-management-system\server\serv
 C:\Users\VanDinh\OneDrive\Máy tính\restaurant-ai-management-system\server\server\obj\Debug\net8.0\staticwebassets.build.json.cache
 C:\Users\VanDinh\OneDrive\Máy tính\restaurant-ai-management-system\server\server\obj\Debug\net8.0\staticwebassets.development.json
 C:\Users\VanDinh\OneDrive\Máy tính\restaurant-ai-management-system\server\server\obj\Debug\net8.0\staticwebassets.build.endpoints.json
-C:\Users\VanDinh\OneDrive\Máy tính\restaurant-ai-management-system\server\server\obj\Debug\net8.0\staticwebassets.upToDateCheck.txt
 C:\Users\VanDinh\OneDrive\Máy tính\restaurant-ai-management-system\server\server\obj\Debug\net8.0\server.csproj.Up2Date
 C:\Users\VanDinh\OneDrive\Máy tính\restaurant-ai-management-system\server\server\obj\Debug\net8.0\server.dll
 C:\Users\VanDinh\OneDrive\Máy tính\restaurant-ai-management-system\server\server\obj\Debug\net8.0\refint\server.dll
 C:\Users\VanDinh\OneDrive\Máy tính\restaurant-ai-management-system\server\server\obj\Debug\net8.0\server.pdb
 C:\Users\VanDinh\OneDrive\Máy tính\restaurant-ai-management-system\server\server\obj\Debug\net8.0\server.genruntimeconfig.cache
 C:\Users\VanDinh\OneDrive\Máy tính\restaurant-ai-management-system\server\server\obj\Debug\net8.0\ref\server.dll
+C:\Users\VanDinh\OneDrive\Máy tính\restaurant-ai-management-system\server\server\bin\Debug\net8.0\Microsoft.AspNetCore.Authentication.JwtBearer.dll
+C:\Users\VanDinh\OneDrive\Máy tính\restaurant-ai-management-system\server\server\obj\Debug\net8.0\staticwebassets.upToDateCheck.txt

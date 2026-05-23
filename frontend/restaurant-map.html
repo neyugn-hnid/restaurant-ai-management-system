@@ -7,13 +7,12 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" /> />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="./css/customer-menu.css" />
     <link rel="stylesheet" href="./css/restaurant-map.css" />
   </head>
   <body>
-
     <nav class="navbar">
       <a href="./index.html" class="nav-brand">DeaGun</a>
       <div class="nav-links">
@@ -38,11 +37,12 @@
           <div class="res-group">
             <label for="b-date">Ngày *</label>
             <input type="date" id="b-date" class="res-input" required />
+            <small id="b-date-error" style="color: #d32f2f; display: none;">Vui lòng chọn ngày hợp lệ</small>
           </div>
           <div class="res-group">
             <label for="b-time">Giờ *</label>
             <select id="b-time" class="res-input" required>
-              <option value="19:00" disabled selected>Chọn giờ</option>
+              <option value="" disabled selected>Chọn giờ</option>
               <optgroup label="Bữa Trưa">
                 <option value="11:00">11:00</option>
                 <option value="11:30">11:30</option>
@@ -56,21 +56,25 @@
                 <option value="20:00">20:00</option>
               </optgroup>
             </select>
+            <small id="b-time-error" style="color: #d32f2f; display: none;">Vui lòng chọn giờ</small>
           </div>
           <div class="res-group">
             <label for="b-guests">Số lượng *</label>
             <input type="number" id="b-guests" class="res-input" value="4" min="1" max="20" placeholder="Số lượng" required />
+            <small id="b-guests-error" style="color: #d32f2f; display: none;">Số lượng phải từ 1 đến 20 khách</small>
           </div>
         </div>
 
         <div class="res-row">
           <div class="res-group">
             <label for="b-name">Người Đặt *</label>
-            <input type="text" id="b-name" class="res-input" placeholder="VD: Nguyễn Văn A" value="Nguyễn Văn Đình" required />
+            <input type="text" id="b-name" class="res-input" placeholder="VD: Nguyễn Văn A" value="Nguyễn Văn Đình" minlength="3" required />
+            <small id="b-name-error" style="color: #d32f2f; display: none;">Tên phải có ít nhất 3 ký tự</small>
           </div>
           <div class="res-group">
             <label for="b-phone">Liên Hệ *</label>
-            <input type="tel" id="b-phone" class="res-input" placeholder="0901234567" value="0868886886" required />
+            <input type="tel" id="b-phone" class="res-input" placeholder="0901234567" value="0868886886" pattern="^0[3578]\d{8}$|^02\d{8,10}$" required />
+            <small id="b-phone-error" style="color: #d32f2f; display: none;">Số điện thoại không hợp lệ</small>
           </div>
           <div class="res-group">
             <label for="b-preference">Ghi chú</label>
@@ -80,6 +84,16 @@
 
         <button type="submit" class="res-submit-btn" id="bookingActionBtn">Kiểm Tra Bàn Trống</button>
       </form>
+      <div class="ai-table-section" id="aiTableSection" style="display: none;">
+        <div class="ai-table-header">
+          <div>
+            <span class="subheading">AI Table Match</span>
+            <h3>Gợi ý bàn phù hợp</h3>
+            <p id="aiTableSummary" class="body-text">Đang phân tích yêu cầu đặt bàn của bạn.</p>
+          </div>
+        </div>
+        <div class="ai-table-list" id="aiTableList"></div>
+      </div>
     </section>
 
 

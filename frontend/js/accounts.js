@@ -74,8 +74,13 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function request(url, options = {}) {
+        const token = localStorage.getItem('auth_token');
         const response = await fetch(url, {
-            headers: { 'Content-Type': 'application/json', ...(options.headers || {}) },
+            headers: {
+                'Content-Type': 'application/json',
+                ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+                ...(options.headers || {})
+            },
             ...options
         });
         if (!response.ok) {
@@ -183,7 +188,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <td class="fw-medium text-dark">@${acc.username || '-'}</td>
                     <td>${getRoleBadge(acc.role)}</td>
                     <td>${getStatusBadge(acc.status)}</td>
-                    <td class="small text-muted">${acc.lastAccess || '-'}</td>
+                    <td class="small text-muted">${acc.lastLogin ? new Date(acc.lastLogin).toLocaleString('vi-VN') : '-'}</td>
                     <td class="text-end pe-4">
                         <div class="d-flex justify-content-end gap-2">
                             <button class="btn btn-light btn-icon shadow-sm p-0 d-flex align-items-center justify-content-center edit-btn" data-id="${acc.id}" title="Sửa" style="width:32px;height:32px;border-radius:50%;color:var(--text-soft) !important;background-color:#fff !important;">
@@ -223,7 +228,7 @@ document.addEventListener('DOMContentLoaded', () => {
             btn.addEventListener('click', () => {
                 const id = btn.dataset.id;
                 const acc = state.accounts.find(a => String(a.id) === String(id));
-                if (acc && acc.id === 'ACC-001') {
+                if (acc && Number(acc.id) === 1 && acc.role === 'admin') {
                     alert('Không thể xóa quản trị viên mặc định.');
                     return;
                 }

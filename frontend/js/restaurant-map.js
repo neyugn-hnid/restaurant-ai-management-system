@@ -2,25 +2,62 @@ const API_BASE = 'http://localhost:7071/api';
 const TABLES_URL = `${API_BASE}/RestaurantTables`;
 const RESERVATIONS_URL = `${API_BASE}/Reservations`;
 const CUSTOMERS_URL = `${API_BASE}/Customers`;
+const AI_RECOMMENDATIONS_URL = `${API_BASE}/AiRecommendations`;
 
 let pendingBookingData = null;
 let selectedTableId = null;
+
+function validateVietnamesePhone(phone) {
+    const mobilePattern = /^0[3578]\d{8}$/;
+    const landlinePattern = /^02\d{8,10}$/;
+    return mobilePattern.test(phone) || landlinePattern.test(phone);
+}
+
+// Validation functions for all fields
+function validateName(name) {
+    return name.trim().length >= 3;
+}
+
+function validateDate(date) {
+    if (!date) return false;
+    const selectedDate = new Date(date);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return selectedDate >= today;
+}
+
+function validateTime(time) {
+    return time && time !== '';
+}
+
+function validateGuests(guests) {
+    const num = parseInt(guests);
+    return num >= 1 && num <= 20;
+}
 
 document.addEventListener('DOMContentLoaded', () => {
     const elements = {
         reservationForm: document.getElementById('reservationForm'),
         dateInput: document.getElementById('b-date'),
+        dateError: document.getElementById('b-date-error'),
         timeInput: document.getElementById('b-time'),
+        timeError: document.getElementById('b-time-error'),
         guestsInput: document.getElementById('b-guests'),
+        guestsError: document.getElementById('b-guests-error'),
         nameInput: document.getElementById('b-name'),
+        nameError: document.getElementById('b-name-error'),
         phoneInput: document.getElementById('b-phone'),
+        phoneError: document.getElementById('b-phone-error'),
         prefInput: document.getElementById('b-preference'),
         actionBtn: document.getElementById('bookingActionBtn'),
         mapSection: document.getElementById('mapSection'),
         tableLayout: document.getElementById('standaloneTableLayout'),
         confirmBtn: document.getElementById('confirmTableBtn'),
         bookingModal: document.getElementById('bookingModal'),
-        bookingMsg: document.getElementById('bookingMsg')
+        bookingMsg: document.getElementById('bookingMsg'),
+        aiTableSection: document.getElementById('aiTableSection'),
+        aiTableSummary: document.getElementById('aiTableSummary'),
+        aiTableList: document.getElementById('aiTableList')
     };
 
     if (elements.dateInput) {
@@ -29,7 +66,55 @@ document.addEventListener('DOMContentLoaded', () => {
         elements.dateInput.value = today;
     }
 
-    // Load và hiển thị toàn bộ bàn (dimmed) khi trang load
+    // Real-time validation for all fields
+    elements.nameInput.addEventListener('input', function() {
+        const isValid = this.value.length === 0 || validateName(this.value);
+        elements.nameError.style.display = isValid ? 'none' : 'block';
+    });
+
+    elements.nameInput.addEventListener('blur', function() {
+        if (this.value.trim().length > 0 && !validateName(this.value)) {
+            elements.nameError.style.display = 'block';
+            this.focus();
+        }
+    });
+
+    elements.dateInput.addEventListener('change', function() {
+        const isValid = this.value === '' || validateDate(this.value);
+        elements.dateError.style.display = isValid ? 'none' : 'block';
+    });
+
+    elements.timeInput.addEventListener('change', function() {
+        const isValid = validateTime(this.value);
+        elements.timeError.style.display = isValid ? 'none' : 'block';
+    });
+
+    elements.guestsInput.addEventListener('change', function() {
+        const isValid = validateGuests(this.value);
+        elements.guestsError.style.display = isValid ? 'none' : 'block';
+    });
+
+    elements.phoneInput.addEventListener('input', function() {
+        const phone = this.value.trim();
+        if (phone.length === 0) {
+            elements.phoneError.style.display = 'none';
+            return;
+        }
+        
+        if (!validateVietnamesePhone(phone)) {
+            elements.phoneError.style.display = 'block';
+        } else {
+            elements.phoneError.style.display = 'none';
+        }
+    });
+
+    elements.phoneInput.addEventListener('blur', function() {
+        const phone = this.value.trim();
+        if (phone.length > 0 && !validateVietnamesePhone(phone)) {
+            elements.phoneInput.focus();
+        }
+    });
+
     loadAndRenderAllTablesDimmed();
 
     async function loadAndRenderAllTablesDimmed() {
@@ -43,6 +128,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function renderTableMap(tables, statuses, dimmed = false) {
         elements.tableLayout.innerHTML = '';
+        const requiredGuests = Number(pendingBookingData?.guests || 0);
 
         const zones = {};
         tables.forEach(t => {
@@ -68,7 +154,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 const tbl = document.createElement('div');
                 const status = statuses[t.id] || t.status || 'Trống';
-                const isAvailable = !dimmed && status === 'Trống';
+                const canFit = requiredGuests <= 0 || capacity >= requiredGuests;
+                const isAvailable = !dimmed && status === 'Trống' && canFit;
 
                 tbl.className = `tbl ${sizeClass}`;
                 if (isAvailable) tbl.classList.add('available');
@@ -77,6 +164,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 if ((t.zone || '').toLowerCase().includes('vip') || capacity >= 8) tbl.classList.add('tbl-vip');
                 tbl.id = `table-${String(t.id).replace(/\s+/g, '-')}`;
+                tbl.dataset.tableId = String(t.id);
 
                 if (isAvailable) {
                     tbl.addEventListener('click', function () {
@@ -215,20 +303,147 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    function renderTableRecommendations(data) {
+        if (!elements.aiTableSection || !elements.aiTableList || !elements.aiTableSummary) return;
+
+        const tables = data?.tables || [];
+        elements.aiTableSection.style.display = 'block';
+        elements.aiTableSummary.textContent = data?.summary || 'AI đang đề xuất các bàn phù hợp nhất.';
+
+        if (tables.length === 0) {
+            elements.aiTableList.innerHTML = '<div class="body-text">Không có bàn phù hợp để gợi ý thêm.</div>';
+            return;
+        }
+
+        elements.aiTableList.innerHTML = tables.map(table => `
+            <div class="ai-table-card">
+                <h4>${table.name || `Bàn ${table.tableId}`}</h4>
+                <div class="ai-table-meta">
+                    <span>${table.zone || 'Khu chung'}</span>
+                    <span>${table.capacity || 0} ghế</span>
+                    <span>${(table.provider || data.provider || 'AI').toUpperCase()}</span>
+                </div>
+                <p>${table.reason || 'Phù hợp với yêu cầu hiện tại.'}</p>
+                <button type="button" class="btn btn-primary ai-select-table-btn" data-table-id="${table.tableId}">Chọn bàn này</button>
+            </div>
+        `).join('');
+
+        elements.aiTableList.querySelectorAll('.ai-select-table-btn').forEach(button => {
+            button.addEventListener('click', () => {
+                selectTable(button.dataset.tableId);
+            });
+        });
+    }
+
+    function selectTable(tableId) {
+        const targetId = String(tableId);
+        const tableElement = elements.tableLayout.querySelector(`.tbl[data-table-id="${targetId}"]`);
+        if (!tableElement || !tableElement.classList.contains('available')) return;
+
+        elements.tableLayout.querySelectorAll('.tbl').forEach(el => el.classList.remove('selected'));
+        tableElement.classList.add('selected');
+        selectedTableId = Number.isNaN(Number(targetId)) ? targetId : Number(targetId);
+        elements.confirmBtn.disabled = false;
+        tableElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+
+    async function loadTableRecommendations() {
+        if (!pendingBookingData) return;
+
+        if (elements.aiTableSection) elements.aiTableSection.style.display = 'block';
+        if (elements.aiTableSummary) {
+            elements.aiTableSummary.textContent = 'AI đang phân tích sức chứa, trạng thái bàn và ghi chú của bạn...';
+        }
+        if (elements.aiTableList) {
+            elements.aiTableList.innerHTML = '<div class="body-text">Đang tạo gợi ý bàn...</div>';
+        }
+
+        try {
+            const response = await apiFetch(`${AI_RECOMMENDATIONS_URL}/tables`, {
+                method: 'POST',
+                body: JSON.stringify({
+                    reservationDate: pendingBookingData.date,
+                    reservationTime: pendingBookingData.time,
+                    guestCount: Number(pendingBookingData.guests || 1),
+                    customerName: pendingBookingData.name,
+                    preference: pendingBookingData.preference,
+                    maxResults: 3
+                })
+            });
+            renderTableRecommendations(response);
+        } catch (err) {
+            console.warn('Không thể tải gợi ý bàn AI:', err.message);
+            if (elements.aiTableSummary) {
+                elements.aiTableSummary.textContent = 'Không tải được gợi ý AI, bạn vẫn có thể chọn bàn trống trực tiếp bên dưới.';
+            }
+            if (elements.aiTableList) {
+                elements.aiTableList.innerHTML = '';
+            }
+        }
+    }
+
     elements.reservationForm.addEventListener('submit', async (e) => {
         e.preventDefault();
 
-        if (!elements.reservationForm.checkValidity()) {
-            elements.reservationForm.reportValidity();
+        // Validate all fields
+        const name = elements.nameInput.value.trim();
+        const date = elements.dateInput.value;
+        const time = elements.timeInput.value;
+        const guests = elements.guestsInput.value;
+        const phone = elements.phoneInput.value.trim();
+
+        let hasError = false;
+
+        // Validate name
+        if (!validateName(name)) {
+            elements.nameError.style.display = 'block';
+            hasError = true;
+        } else {
+            elements.nameError.style.display = 'none';
+        }
+
+        // Validate date
+        if (!validateDate(date)) {
+            elements.dateError.style.display = 'block';
+            hasError = true;
+        } else {
+            elements.dateError.style.display = 'none';
+        }
+
+        // Validate time
+        if (!validateTime(time)) {
+            elements.timeError.style.display = 'block';
+            hasError = true;
+        } else {
+            elements.timeError.style.display = 'none';
+        }
+
+        // Validate guests
+        if (!validateGuests(guests)) {
+            elements.guestsError.style.display = 'block';
+            hasError = true;
+        } else {
+            elements.guestsError.style.display = 'none';
+        }
+
+        // Validate phone
+        if (!validateVietnamesePhone(phone)) {
+            elements.phoneError.style.display = 'block';
+            hasError = true;
+        } else {
+            elements.phoneError.style.display = 'none';
+        }
+
+        if (hasError) {
             return;
         }
 
         pendingBookingData = {
-            name: elements.nameInput.value,
-            phone: elements.phoneInput.value,
-            date: elements.dateInput.value,
-            time: elements.timeInput.value,
-            guests: elements.guestsInput.value,
+            name: name,
+            phone: phone,
+            date: date,
+            time: time,
+            guests: guests,
             preference: elements.prefInput.value || 'Không có'
         };
 
@@ -242,7 +457,8 @@ document.addEventListener('DOMContentLoaded', () => {
         elements.confirmBtn.disabled = true;
         selectedTableId = null;
 
-        renderTableMap(tables, statuses, false); // dimmed=false → làm sáng bàn trống
+        renderTableMap(tables, statuses, false);
+        await loadTableRecommendations();
 
         elements.mapSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
     });

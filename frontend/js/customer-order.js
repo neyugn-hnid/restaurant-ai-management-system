@@ -1,17 +1,7 @@
-
-import { GoogleGenAI, Type } from "@google/genai";
 import { ORDER_STATUSES } from './status-constants.js';
 
 document.addEventListener("DOMContentLoaded", async () => {
-    let ai = null;
-    try {
-        const apiKey = typeof process !== 'undefined' && process.env ? process.env.GEMINI_API_KEY : '';
-        if (apiKey) {
-            ai = new GoogleGenAI({ apiKey });
-        }
-    } catch (e) {
-        console.warn("Could not initialize AI", e);
-    }
+    let currentCustomer = null;
 
     const urlParams = new URLSearchParams(window.location.search);
     const tableParam = urlParams.get("table");
@@ -23,6 +13,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     const PRODUCTS_API_URL = `${API_BASE_URL}/Products`;
     const CUSTOMERS_API_URL = `${API_BASE_URL}/Customers`;
     const ORDERS_API_URL = `${API_BASE_URL}/Orders`;
+    const AI_RECOMMENDATIONS_URL = `${API_BASE_URL}/AiRecommendations`;
 
     async function request(url, options = {}) {
         const response = await fetch(url, {
@@ -190,56 +181,22 @@ document.addEventListener("DOMContentLoaded", async () => {
         const topPopular = getTopPopular();
 
         try {
-            if (!ai) {
-
-                if (topPopular.length > 0) {
-                    const popularItems = menuItems.filter(item => topPopular.includes(item.name));
-                    if (popularItems.length > 0) {
-                        suggestionSection.style.display = "block";
-                        suggestionsList.innerHTML = popularItems.slice(0, 3).map(item => `
-                            <div class="bg-white rounded-4 p-3 shadow-sm d-flex flex-column gap-2 ai-suggestion-card">
-                                <div class="position-relative">
-                                    <img src="${item.img}" class="rounded-3 ai-suggestion-img">
-                                    <div class="position-absolute top-0 start-0 m-1">
-                                        <span class="badge rounded-pill bg-primary ai-suggestion-badge">Phổ biến</span>
-                                    </div>
-                                </div>
-                                <div>
-                                    <div class="fw-bold small text-truncate ai-suggestion-name">${item.name}</div>
-                                    <div class="text-success fw-bold small">${new Intl.NumberFormat("vi-VN").format(item.price)}đ</div>
-                                </div>
-                                <button class="btn btn-sm btn-outline-success rounded-pill fw-bold" onclick="addToCart(${item.id}, event)">+ Thêm ngay</button>
-                            </div>
-                        `).join("");
-                    }
-                }
-                return;
-            }
-
-            const prompt = `Bạn là chuyên gia gợi ý thực đơn.
-CONTEXT:
-- Thời gian: ${timeContext}
-- Giỏ hàng hiện tại: ${currentCartNames.join(", ") || "Trống"}
-- Lịch sử khách đã gọi: ${historyNames.join(", ") || "Khách mới"}
-- Top món bán chạy: ${topPopular.join(", ") || "Chưa có"}
-
-MENU CỦA QUÁN:
-${JSON.stringify(menuItems.map(m => ({ id: m.id, name: m.name, category: m.category })))}
-
-Hãy chọn ra 3 món tốt nhất. Chỉ trả về JSON mảng ID các món.
-JSON Format: [id1, id2, id3]`;
-
-            const response = await ai.models.generateContent({
-                model: "gemini-3-flash-preview",
-                contents: prompt,
-                config: {
-                    responseMimeType: "application/json",
-                    responseSchema: { type: Type.ARRAY, items: { type: Type.INTEGER } }
-                }
+            const response = await request(`${AI_RECOMMENDATIONS_URL}/dishes`, {
+                method: 'POST',
+                body: JSON.stringify({
+                    currentCartProductIds: cart.map(item => Number(item.id)).filter(Number.isFinite),
+                    customerName: currentCustomer?.name || null,
+                    customerPhone: currentCustomer?.phone || null,
+                    diningTime: new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }),
+                    tableId: typeof tableNum === 'number' ? tableNum : null,
+                    maxResults: 3
+                })
             });
 
-            const recommendedIds = JSON.parse(response.text.trim());
-            const recommendedItems = menuItems.filter(item => recommendedIds.includes(item.id));
+            const recommendedItems = (response?.items || []).map(item => {
+                const source = menuItems.find(menuItem => Number(menuItem.id) === Number(item.id));
+                return source ? { ...source, aiReason: item.reason } : null;
+            }).filter(Boolean);
 
             if (recommendedItems.length > 0) {
                 suggestionSection.style.display = "block";
@@ -248,7 +205,33 @@ JSON Format: [id1, id2, id3]`;
                         <div class="position-relative">
                             <img src="${item.img}" class="rounded-3 ai-suggestion-img">
                             <div class="position-absolute top-0 start-0 m-1">
-                                <span class="badge rounded-pill bg-primary ai-suggestion-badge">AI Gợi ý</span>
+                                <span class="badge rounded-pill bg-primary ai-suggestion-badge">DeepSeek</span>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="fw-bold small text-truncate ai-suggestion-name">${item.name}</div>
+                            <div class="text-success fw-bold small">${new Intl.NumberFormat("vi-VN").format(item.price)}đ</div>
+                            <div class="text-muted small mt-1">${item.aiReason || 'Phù hợp với lựa chọn hiện tại.'}</div>
+                        </div>
+                        <button class="btn btn-sm btn-outline-success rounded-pill fw-bold" onclick="addToCart(${item.id}, event)">+ Thêm ngay</button>
+                    </div>
+                `).join("");
+                return;
+            }
+        } catch (error) {
+            console.error("AI Recommendation Error:", error);
+        }
+
+        if (topPopular.length > 0) {
+            const popularItems = menuItems.filter(item => topPopular.includes(item.name));
+            if (popularItems.length > 0) {
+                suggestionSection.style.display = "block";
+                suggestionsList.innerHTML = popularItems.slice(0, 3).map(item => `
+                    <div class="bg-white rounded-4 p-3 shadow-sm d-flex flex-column gap-2 ai-suggestion-card">
+                        <div class="position-relative">
+                            <img src="${item.img}" class="rounded-3 ai-suggestion-img">
+                            <div class="position-absolute top-0 start-0 m-1">
+                                <span class="badge rounded-pill bg-primary ai-suggestion-badge">Phổ biến</span>
                             </div>
                         </div>
                         <div>
@@ -259,8 +242,6 @@ JSON Format: [id1, id2, id3]`;
                     </div>
                 `).join("");
             }
-        } catch (error) {
-            console.error("AI Recommendation Error:", error);
         }
     }
 
@@ -377,7 +358,6 @@ JSON Format: [id1, id2, id3]`;
     }
 
 
-    let currentCustomer = null;
     const demoModalEl = document.getElementById("customerDemoModal");
     if (demoModalEl) {
         const customerDemoModal = new bootstrap.Modal(demoModalEl);

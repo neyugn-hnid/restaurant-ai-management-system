@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.CodeAnalysis.Scripting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using server.Data;
@@ -33,6 +32,10 @@ namespace server.Controllers
                 return Unauthorized(new { message = "Email hoặc mật khẩu không đúng" });
             }
 
+            user.LastLogin = DateTime.UtcNow;
+            user.UpdatedAt = DateTime.UtcNow;
+            await _context.SaveChangesAsync();
+
             var token = GenerateJwtToken(user);
             return Ok(new { token, user = new { id = user.Id, username = user.Username, role = user.Role, fullName = user.FullName } });
         }
@@ -47,14 +50,19 @@ namespace server.Controllers
 
         private string GenerateJwtToken(Account user)
         {
+            var username = user.Username ?? string.Empty;
+            var role = user.Role ?? "staff";
+            var keyValue = _configuration["Jwt:Key"]
+                ?? throw new InvalidOperationException("JWT key is not configured.");
+
             var claims = new[]
                 {
                     new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
-                    new Claim(ClaimTypes.Name, user.Username),
-                    new Claim(ClaimTypes.Role, user.Role)
+                    new Claim(ClaimTypes.Name, username),
+                    new Claim(ClaimTypes.Role, role)
                 };
 
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]));
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(keyValue));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
             var expires = DateTime.UtcNow.AddHours(6);
 

@@ -192,6 +192,58 @@
     "ReturnTypes": []
   },
   {
+    "ContainingType": "server.Controllers.AiRecommendationsController",
+    "Method": "RecommendDishes",
+    "RelativePath": "api/AiRecommendations/dishes",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "server.Controllers.DishRecommendationRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": [
+      {
+        "Type": "server.Controllers.DishRecommendationResponse",
+        "MediaTypes": [
+          "text/plain",
+          "application/json",
+          "text/json"
+        ],
+        "StatusCode": 200
+      }
+    ]
+  },
+  {
+    "ContainingType": "server.Controllers.AiRecommendationsController",
+    "Method": "RecommendTables",
+    "RelativePath": "api/AiRecommendations/tables",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "server.Controllers.TableRecommendationRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": [
+      {
+        "Type": "server.Controllers.TableRecommendationResponse",
+        "MediaTypes": [
+          "text/plain",
+          "application/json",
+          "text/json"
+        ],
+        "StatusCode": 200
+      }
+    ]
+  },
+  {
     "ContainingType": "server.Controllers.AuthController",
     "Method": "Login",
     "RelativePath": "api/Auth/login",

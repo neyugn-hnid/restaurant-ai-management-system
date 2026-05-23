@@ -13,6 +13,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     const CATEGORIES_API_URL = `${API_BASE_URL}/Categories`;
     const PRODUCTS_API_URL = `${API_BASE_URL}/Products`;
     const ORDERS_API_URL = `${API_BASE_URL}/Orders`;
+    const AI_RECOMMENDATIONS_URL = `${API_BASE_URL}/AiRecommendations`;
 
     async function request(url, options = {}) {
         const response = await fetch(url, {
@@ -33,6 +34,107 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     let categories = [];
     let products = [];
+    let aiSuggestionSection = null;
+
+    function ensureAiSuggestionSection() {
+        if (aiSuggestionSection) return aiSuggestionSection;
+
+        aiSuggestionSection = document.createElement('section');
+        aiSuggestionSection.className = 'menu-stage';
+        aiSuggestionSection.id = 'ai-dish-recommendations';
+        aiSuggestionSection.innerHTML = `
+            <div class="stage-header">
+                <div>
+                    <span class="subheading">DeepSeek Picks</span>
+                    <h2 class="stage-title">Gợi Ý Món Ăn</h2>
+                </div>
+                <span class="stage-desc" id="ai-dish-summary">Đang chuẩn bị gợi ý cho bạn</span>
+            </div>
+            <div class="menu-grid" id="ai-dish-list"></div>
+        `;
+
+        menuContainer.prepend(aiSuggestionSection);
+        return aiSuggestionSection;
+    }
+
+    function getCurrentCart() {
+        return JSON.parse(localStorage.getItem('bistro_customer_cart') || '[]');
+    }
+
+    function renderDishRecommendations(response) {
+        const section = ensureAiSuggestionSection();
+        const summaryEl = section.querySelector('#ai-dish-summary');
+        const listEl = section.querySelector('#ai-dish-list');
+        const items = response?.items || [];
+
+        if (summaryEl) {
+            summaryEl.textContent = response?.summary || 'AI đang ưu tiên các món phù hợp với lựa chọn hiện tại.';
+        }
+
+        if (!listEl) return;
+
+        if (items.length === 0) {
+            listEl.innerHTML = '<p class="body-text" style="grid-column: 1 / -1;">Chưa có gợi ý phù hợp ở thời điểm này.</p>';
+            return;
+        }
+
+        listEl.innerHTML = items.map(item => `
+            <article class="menu-row">
+                <div class="img-wrap">
+                    <img src="${item.imageUrl || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=200&h=200&fit=crop'}" alt="${item.name}" loading="lazy">
+                </div>
+                <div class="item-content">
+                    <div class="item-header">
+                        <div class="item-title-block">
+                            <h3 class="item-title">${item.name}</h3>
+                        </div>
+                        <div class="item-action">
+                            <div class="item-price">${Number(item.price || 0).toLocaleString('vi-VN')} ₫</div>
+                            <button class="add-to-cart-btn" data-id="${item.id}" title="Thêm vào giỏ">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                            </button>
+                        </div>
+                    </div>
+                    <p class="body-text">${item.reason || item.category || 'Món được AI đề xuất cho bạn.'}</p>
+                </div>
+            </article>
+        `).join('');
+    }
+
+    async function loadDishRecommendations() {
+        const section = ensureAiSuggestionSection();
+        const summaryEl = section.querySelector('#ai-dish-summary');
+        const listEl = section.querySelector('#ai-dish-list');
+        if (summaryEl) {
+            summaryEl.textContent = 'DeepSeek đang phân tích các món phù hợp với giỏ hàng và bối cảnh hiện tại.';
+        }
+        if (listEl) {
+            listEl.innerHTML = '<p class="body-text" style="grid-column: 1 / -1;">Đang tạo gợi ý món ăn...</p>';
+        }
+
+        try {
+            const cart = getCurrentCart();
+            const response = await request(`${AI_RECOMMENDATIONS_URL}/dishes`, {
+                method: 'POST',
+                body: JSON.stringify({
+                    currentCartProductIds: cart.map(item => Number(item.id)).filter(Number.isFinite),
+                    customerName: sessionStorage.getItem('customerName') || null,
+                    diningTime: new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }),
+                    tableId: Number(sessionStorage.getItem('bookedTable') || 0) || null,
+                    maxResults: 3
+                })
+            });
+            renderDishRecommendations(response);
+        } catch (err) {
+            console.warn('Không thể tải gợi ý món AI:', err.message);
+            if (summaryEl) {
+                summaryEl.textContent = 'Không tải được gợi ý AI lúc này.';
+            }
+            if (listEl) {
+                listEl.innerHTML = '<p class="body-text" style="grid-column: 1 / -1;">Bạn vẫn có thể chọn món trực tiếp từ thực đơn bên dưới.</p>';
+            }
+        }
+    }
 
     async function loadMenuData() {
         try {
@@ -149,6 +251,8 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
     });
 
+    await loadDishRecommendations();
+
 
     const filterIslandWrap = document.querySelector('.menu-filter-island');
     if (filterIslandWrap) {
@@ -255,6 +359,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         localStorage.setItem('bistro_customer_cart', JSON.stringify(currentCart));
 
         if (typeof updateCartUI === "function") updateCartUI();
+        loadDishRecommendations();
     });
 
 
@@ -395,6 +500,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         localStorage.setItem('bistro_customer_cart', JSON.stringify(cart));
         renderCartItems();
         window.updateCartUI();
+        loadDishRecommendations();
     });
 
 
@@ -499,6 +605,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         localStorage.setItem('bistro_customer_cart', JSON.stringify([]));
         window.updateCartUI();
+        loadDishRecommendations();
         document.getElementById('close-cart').click();
     });
 

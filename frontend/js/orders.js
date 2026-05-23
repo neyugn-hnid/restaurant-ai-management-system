@@ -106,7 +106,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             const resp = await request(`${ORDERS_API_URL}?${query}`);
             if (resp?.items) {
                 state.orders = resp.items;
-                state.totalPages = Math.ceil((resp.totalItemCount || resp.items.length) / ITEMS_PER_PAGE) || 1;
+                state.totalPages = resp.pageCount || Math.ceil((resp.totalItemCount || resp.items.length) / ITEMS_PER_PAGE) || 1;
                 localStorage.setItem('bistro_orders', JSON.stringify(state.orders));
             }
         } catch (err) {
@@ -133,8 +133,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (!elements.tableBody) return;
 
         const filtered = getFilteredOrders();
-        const start = (state.currentPage - 1) * ITEMS_PER_PAGE;
-        const pageData = filtered.slice(start, start + ITEMS_PER_PAGE);
+        const pageData = filtered;
 
         if (pageData.length === 0) {
             elements.tableBody.innerHTML = '<tr><td colspan="7" class="text-center py-4 text-muted">Không tìm thấy đơn hàng nào.</td></tr>';
@@ -259,7 +258,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (!container) return;
 
         const filtered = getFilteredOrders();
-        const totalPages = Math.max(1, Math.ceil(filtered.length / ITEMS_PER_PAGE));
+        const totalPages = state.currentFilter === 'Tất cả'
+            ? Math.max(1, state.totalPages)
+            : Math.max(1, Math.ceil(filtered.length / ITEMS_PER_PAGE));
         container.innerHTML = '';
 
         const addBtn = (label, page, disabled) => {
@@ -286,7 +287,11 @@ document.addEventListener('DOMContentLoaded', async () => {
                 if (page === 'prev' && state.currentPage > 1) state.currentPage--;
                 else if (page === 'next' && state.currentPage < totalPages) state.currentPage++;
                 else if (page !== 'prev' && page !== 'next') state.currentPage = parseInt(page, 10);
-                renderOrders();
+                if (state.currentFilter === 'Tất cả') {
+                    loadAndRenderOrders();
+                } else {
+                    renderOrders();
+                }
             });
         });
     }
@@ -355,6 +360,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             const idx = state.orders.findIndex(o => o.id === state.currentPaymentOrderId);
             if (idx !== -1) {
                 state.orders[idx].status = ORDER_STATUSES.COMPLETED;
+                state.orders[idx].paymentStatus = 'completed';
                 try { await request(`${ORDERS_API_URL}/${encodeURIComponent(state.orders[idx].id)}`, { method: 'PUT', body: JSON.stringify(state.orders[idx]) }); } catch (_) {}
                 if (state.orders[idx].tableId) {
                     try {

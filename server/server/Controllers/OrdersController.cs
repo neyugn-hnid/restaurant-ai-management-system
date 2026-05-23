@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -25,6 +26,7 @@ namespace server.Controllers
         }
 
 
+        [Authorize]
         [HttpGet]
         public async Task<ActionResult<PagedResponse<OrderResponseDto>>> GetOrder([FromQuery] PagedRequest request)
         {
@@ -55,6 +57,7 @@ namespace server.Controllers
         }
 
 
+        [Authorize]
         [HttpGet("{id}")]
         public async Task<ActionResult<OrderResponseDto>> GetOrder(string id)
         {
@@ -75,6 +78,7 @@ namespace server.Controllers
 
 
 
+        [Authorize]
         [HttpPut("{id}")]
         public async Task<IActionResult> PutOrder(string id, Order order)
         {
@@ -130,6 +134,7 @@ namespace server.Controllers
         }
 
 
+        [Authorize]
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteOrder(string id)
         {
