@@ -43,17 +43,16 @@ document.addEventListener("DOMContentLoaded", async () => {
         if (aiSuggestionSection) return aiSuggestionSection;
 
         aiSuggestionSection = document.createElement('section');
-        aiSuggestionSection.className = 'menu-stage';
+        aiSuggestionSection.className = 'ai-dish-section';
         aiSuggestionSection.id = 'ai-dish-recommendations';
         aiSuggestionSection.innerHTML = `
-            <div class="stage-header">
+            <div class="ai-dish-header">
                 <div>
-                    <span class="subheading">DeepSeek Picks</span>
-                    <h2 class="stage-title">Gợi Ý Món Ăn</h2>
+                    <h2>Món ăn dành riêng cho bạn</h2>
                 </div>
-                <span class="stage-desc" id="ai-dish-summary">Đang chuẩn bị gợi ý cho bạn</span>
+                <p class="ai-dish-summary" id="ai-dish-summary" style="display:none;"></p>
             </div>
-            <div class="menu-grid" id="ai-dish-list"></div>
+            <div class="ai-dish-grid" id="ai-dish-list"></div>
         `;
 
         menuContainer.prepend(aiSuggestionSection);
@@ -164,37 +163,37 @@ document.addEventListener("DOMContentLoaded", async () => {
         const items = response?.items || [];
 
         if (summaryEl) {
-            summaryEl.textContent = response?.summary || 'AI đang ưu tiên các món phù hợp với lựa chọn hiện tại.';
+            summaryEl.textContent = response?.summary || 'AI ưu tiên các món phù hợp với lựa chọn hiện tại.';
         }
 
         if (!listEl) return;
 
         if (items.length === 0) {
-            listEl.innerHTML = '<p class="body-text" style="grid-column: 1 / -1;">Chưa có gợi ý phù hợp ở thời điểm này.</p>';
+            listEl.innerHTML = '<p class="body-text" style="grid-column: 1 / -1; text-align:center;">Chưa có gợi ý phù hợp.</p>';
             return;
         }
 
-        listEl.innerHTML = items.map(item => `
-            <article class="menu-row">
-                <div class="img-wrap">
-                    <img src="${item.imageUrl || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=200&h=200&fit=crop'}" alt="${item.name}" loading="lazy">
-                </div>
-                <div class="item-content">
-                    <div class="item-header">
-                        <div class="item-title-block">
-                            <h3 class="item-title">${item.name}</h3>
-                        </div>
-                        <div class="item-action">
-                            <div class="item-price">${Number(item.price || 0).toLocaleString('vi-VN')} ₫</div>
+        listEl.innerHTML = items.map((item, index) => {
+            const price = Number(item.price || 0);
+            return `
+                <div class="ai-dish-card ${index === 0 ? 'featured' : ''}">
+                    <div class="ai-dish-img">
+                        <img src="${item.imageUrl || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=300&h=200&fit=crop'}" alt="${item.name}" loading="lazy">
+                        ${index === 0 ? '<span class="ai-dish-top-badge">Gợi ý hàng đầu</span>' : ''}
+                    </div>
+                    <div class="ai-dish-body">
+                        <h3>${item.name}</h3>
+                        <p class="ai-dish-reason">${item.reason || item.category || 'Món được AI đề xuất cho bạn.'}</p>
+                        <div class="ai-dish-bottom">
+                            <span class="ai-dish-price">${price.toLocaleString('vi-VN')} ₫</span>
                             <button class="add-to-cart-btn" data-id="${item.id}" title="Thêm vào giỏ">
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
                             </button>
                         </div>
                     </div>
-                    <p class="body-text">${item.reason || item.category || 'Món được AI đề xuất cho bạn.'}</p>
                 </div>
-            </article>
-        `).join('');
+            `;
+        }).join('');
     }
 
     async function loadDishRecommendations() {
@@ -202,10 +201,10 @@ document.addEventListener("DOMContentLoaded", async () => {
         const summaryEl = section.querySelector('#ai-dish-summary');
         const listEl = section.querySelector('#ai-dish-list');
         if (summaryEl) {
-            summaryEl.textContent = 'DeepSeek đang phân tích các món phù hợp với giỏ hàng và bối cảnh hiện tại.';
+            summaryEl.textContent = 'AI đang phân tích món phù hợp với bạn...';
         }
         if (listEl) {
-            listEl.innerHTML = '<p class="body-text" style="grid-column: 1 / -1;">Đang tạo gợi ý món ăn...</p>';
+            listEl.innerHTML = '<p class="body-text" style="grid-column:1/-1;text-align:center;">Đang tạo gợi ý món ăn...</p>';
         }
 
         try {
@@ -229,6 +228,25 @@ document.addEventListener("DOMContentLoaded", async () => {
             if (listEl) {
                 listEl.innerHTML = '<p class="body-text" style="grid-column: 1 / -1;">Bạn vẫn có thể chọn món trực tiếp từ thực đơn bên dưới.</p>';
             }
+        }
+    }
+
+    async function refreshDishRecommendations() {
+        try {
+            const cart = getCurrentCart();
+            const response = await request(`${AI_RECOMMENDATIONS_URL}/dishes`, {
+                method: 'POST',
+                body: JSON.stringify({
+                    currentCartProductIds: cart.map(item => Number(item.id)).filter(Number.isFinite),
+                    customerName: sessionStorage.getItem('customerName') || null,
+                    diningTime: new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }),
+                    tableId: Number(sessionStorage.getItem('bookedTable') || 0) || null,
+                    maxResults: 3
+                })
+            });
+            renderDishRecommendations(response);
+        } catch (_) {
+            // silent fail on background refresh
         }
     }
 
@@ -409,7 +427,10 @@ document.addEventListener("DOMContentLoaded", async () => {
         if (!product) return;
 
         const article = btn.closest('article');
-        const img = article ? article.querySelector('.img-wrap img') : null;
+        const aiCard = btn.closest('.ai-dish-card');
+        const img = article ? article.querySelector('.img-wrap img')
+                   : aiCard ? aiCard.querySelector('.ai-dish-img img')
+                   : null;
         const cartBtn = document.getElementById("floating-cart");
 
         if (img && cartBtn) {
@@ -455,7 +476,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         localStorage.setItem('bistro_customer_cart', JSON.stringify(currentCart));
 
         if (typeof updateCartUI === "function") updateCartUI();
-        loadDishRecommendations();
+        refreshDishRecommendations();
     });
 
 
@@ -540,7 +561,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         const summaryEl = document.getElementById('cart-summary');
 
         if (cart.length === 0) {
-            listEl.innerHTML = '<p style="text-align: center; color: var(--color-text-muted); padding: 3rem;">Giỏ hàng trống</p>';
+            listEl.innerHTML = '<p class="cart-empty">Giỏ hàng trống</p>';
             summaryEl.innerHTML = '';
             return;
         }
@@ -548,36 +569,43 @@ document.addEventListener("DOMContentLoaded", async () => {
         const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
 
         listEl.innerHTML = cart.map((item, idx) => `
-            <div style="display: flex; align-items: center; gap: 1rem; padding: 1rem 0; border-bottom: 1px solid #eee;">
-                <img src="${item.image || item.imageUrl || ''}" style="width: 48px; height: 48px; border-radius: 8px; object-fit: cover;">
-                <div style="flex: 1;">
-                    <div style="font-weight: 600; color: var(--color-house-green);">${item.name}</div>
-                    <div style="font-size: 1.2rem; color: var(--color-text-muted);">${(item.price).toLocaleString('vi-VN')} ₫</div>
+            <div class="cart-item">
+                <img class="cart-item-img" src="${item.image || item.imageUrl || ''}" alt="${item.name}">
+                <div class="cart-item-info">
+                    <div class="cart-item-name">${item.name}</div>
+                    <div class="cart-item-price">${(item.price).toLocaleString('vi-VN')} ₫</div>
                 </div>
-                <div style="display: flex; align-items: center; gap: 0.8rem;">
-                    <button class="qty-btn" data-idx="${idx}" data-action="minus" style="width: 28px; height: 28px; border-radius: 50%; border: 1px solid var(--color-house-green); background: white; cursor: pointer; display: flex; align-items: center; justify-content: center;">−</button>
-                    <span>${item.quantity}</span>
-                    <button class="qty-btn" data-idx="${idx}" data-action="plus" style="width: 28px; height: 28px; border-radius: 50%; border: 1px solid var(--color-house-green); background: white; cursor: pointer; display: flex; align-items: center; justify-content: center;">+</button>
-                    <button class="qty-btn" data-idx="${idx}" data-action="remove" style="margin-left: 0.5rem; color: #dc3545; border: none; background: none; cursor: pointer;">🗑</button>
+                <div class="cart-item-qty">
+                    <button class="cart-qty-btn" data-idx="${idx}" data-action="minus">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                    </button>
+                    <span class="cart-qty-num">${item.quantity}</span>
+                    <button class="cart-qty-btn" data-idx="${idx}" data-action="plus">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                    </button>
                 </div>
+                <div class="cart-item-total">${(item.price * item.quantity).toLocaleString('vi-VN')} ₫</div>
+                <button class="cart-remove-btn" data-idx="${idx}" data-action="remove" title="Xóa">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                </button>
             </div>
         `).join('');
 
         summaryEl.innerHTML = `
-            <div style="display: flex; justify-content: space-between; margin-bottom: 0.8rem;">
-                <span style="color: var(--color-text-muted);">Tạm tính</span>
-                <span style="font-weight: 600;">${total.toLocaleString('vi-VN')} ₫</span>
+            <div class="cart-summary-row">
+                <span>Tạm tính</span>
+                <span>${total.toLocaleString('vi-VN')} ₫</span>
             </div>
-            <div style="display: flex; justify-content: space-between; font-size: 1.4rem; font-weight: 700;">
-                <span style="color: var(--color-house-green);">Tổng cộng</span>
-                <span style="color: var(--color-accent);">${total.toLocaleString('vi-VN')} ₫</span>
+            <div class="cart-summary-total">
+                <span>Tổng cộng</span>
+                <span>${total.toLocaleString('vi-VN')} ₫</span>
             </div>
         `;
     }
 
 
     document.getElementById('cart-items-list').addEventListener('click', (e) => {
-        const btn = e.target.closest('.qty-btn');
+        const btn = e.target.closest('.cart-qty-btn, .cart-remove-btn');
         if (!btn) return;
 
         const idx = parseInt(btn.dataset.idx);

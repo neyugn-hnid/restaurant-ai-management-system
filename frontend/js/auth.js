@@ -58,12 +58,19 @@
         if (rawRole === 'ADMIN' || rawRole === 'QUANTRI' || rawRole === 'QUAN_TRI') return 'Admin';
         if (rawRole === 'MANAGER' || rawRole === 'QUANLY' || rawRole === 'QUAN_LY') return 'Manager';
         if (rawRole === 'STAFF' || rawRole === 'EMPLOYEE' || rawRole === 'NHANVIEN' || rawRole === 'NHAN_VIEN') return 'Staff';
+        if (rawRole === 'CUSTOMER' || rawRole === 'KHACH' || rawRole === 'KHACHHANG' || rawRole === 'KHACH_HANG') return 'Customer';
 
         return rawRole.charAt(0) + rawRole.slice(1).toLowerCase();
     }
 
     function getDefaultPageByRole(role) {
+        if (role === 'Customer') return './index.html';
         return role === 'Staff' ? './orders.html' : './dashboard.html';
+    }
+
+    function isCustomerPage() {
+        var path = window.location.pathname.split('/').pop() || '';
+        return ['index.html', 'customer-menu.html', 'restaurant-map.html', ''].includes(path);
     }
 
     window.Auth = {
@@ -115,8 +122,26 @@
             return data;
         },
 
+        async register(fullName, email, username, password, confirmPassword) {
+            const resp = await fetch(`${API_BASE}/Auth/register`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ fullName, email, username: username || email, password, confirmPassword, role: 'Customer' })
+            });
+            if (!resp.ok) {
+                const body = await resp.json().catch(() => ({}));
+                throw new Error(body.message || body.title || 'Đăng ký thất bại!');
+            }
+            return await resp.json();
+        },
+
         requireAuth() {
             if (!this.isLoggedIn()) {
+                window.location.href = './index.html';
+                return false;
+            }
+            var role = this.getRole();
+            if (role === 'Customer') {
                 window.location.href = './index.html';
                 return false;
             }
@@ -277,57 +302,64 @@
             FV?.enableInstantClear(registerForm);
             registerForm.addEventListener('submit', async function(e) {
                 e.preventDefault();
+                var fullNameField = document.getElementById('registerFullName');
+                var emailField = document.getElementById('registerEmail');
                 var usernameField = document.getElementById('registerUsername');
                 var passwordField = document.getElementById('registerPassword');
                 var confirmPasswordField = document.getElementById('registerConfirmPassword');
-                var u = usernameField.value.trim();
+
+                var fn = (fullNameField?.value || '').trim();
+                var em = (emailField?.value || '').trim();
+                var u = (usernameField?.value || '').trim();
                 var p = passwordField.value.trim();
                 var cp = confirmPasswordField.value.trim();
                 var err = document.getElementById('registerError');
                 var btn = registerForm.querySelector('button[type=submit]');
-    
+
                 FV?.clearFormErrors(registerForm);
-    
-                if (!u) {
-                    FV?.setFieldError(usernameField, 'Vui lòng nhập tên đăng nhập.');
-                } else {
-                    FV?.markFieldValid(usernameField);
+
+                var hasError = false;
+                if (!fn) {
+                    if (fullNameField) FV?.setFieldError(fullNameField, 'Vui lòng nhập họ tên.');
+                    hasError = true;
                 }
-    
+                if (!em) {
+                    if (emailField) FV?.setFieldError(emailField, 'Vui lòng nhập email.');
+                    hasError = true;
+                } else if (!/^[a-zA-Z0-9._%+-]+@gmail\.com$/.test(em)) {
+                    if (emailField) FV?.setFieldError(emailField, 'Email phải là Gmail hợp lệ.');
+                    hasError = true;
+                }
                 if (!p) {
                     FV?.setFieldError(passwordField, 'Vui lòng nhập mật khẩu.');
-                } else if (p.length < 6) {
-                    FV?.setFieldError(passwordField, 'Mật khẩu phải có ít nhất 6 ký tự.');
-                } else {
-                    FV?.markFieldValid(passwordField);
+                    hasError = true;
+                } else if (p.length < 9) {
+                    FV?.setFieldError(passwordField, 'Mật khẩu phải có ít nhất 9 ký tự.');
+                    hasError = true;
                 }
-
                 if (!cp) {
-                    FV?.setFieldError(confirmPasswordField, 'Vui lòng xác nhận lại mật khẩu.');
+                    FV?.setFieldError(confirmPasswordField, 'Vui lòng xác nhận mật khẩu.');
+                    hasError = true;
                 } else if (cp !== p) {
                     FV?.setFieldError(confirmPasswordField, 'Mật khẩu xác nhận không khớp.');
-                } else {
-                    FV?.markFieldValid(confirmPasswordField);
+                    hasError = true;
                 }
-    
-                if (!u || !p || p.length < 6 || !cp || cp !== p) {
+
+                if (hasError) {
                     if (err) { err.textContent = 'Vui lòng kiểm tra lại thông tin đăng ký.'; err.classList.remove('d-none'); }
                     return;
                 }
-    
+
                 if (btn) { btn.disabled = true; btn.textContent = 'Đang đăng ký...'; }
                 if (err) err.classList.add('d-none');
-    
+
                 try {
-                    // TODO: Implement actual register API call
-                    // await Auth.register(u, p);
-                    
-                    // Giả lập thành công cho tĩnh (nếu chưa có API)
-                    if (err) { 
+                    await Auth.register(fn, em, u || em, p, cp);
+                    if (err) {
                         err.classList.remove('alert-danger');
                         err.classList.add('alert-success');
-                        err.textContent = 'Đăng ký thành công! Đang chuyển qua đăng nhập...'; 
-                        err.classList.remove('d-none'); 
+                        err.textContent = 'Đăng ký thành công! Đang chuyển qua đăng nhập...';
+                        err.classList.remove('d-none');
                     }
                     setTimeout(() => {
                         var loginModalEl = document.getElementById('loginModal');
@@ -347,5 +379,58 @@
                 }
             });
         }
+
+        // --- Navbar user state ---
+        function updateNavUserUI() {
+            var loginBtn = document.getElementById('navLoginBtn');
+            var userDropdown = document.getElementById('navUserDropdown');
+            var userNameEl = document.getElementById('navDropdownUser');
+
+            if (!userDropdown) return;
+
+            if (Auth.isLoggedIn()) {
+                var user = Auth.getUser();
+                var name = user?.fullName || user?.username || user?.email || 'Người dùng';
+                if (loginBtn) loginBtn.style.display = 'none';
+                userDropdown.style.display = 'block';
+                if (userNameEl) userNameEl.textContent = name;
+            } else {
+                if (loginBtn) loginBtn.style.display = '';
+                userDropdown.style.display = 'none';
+            }
+        }
+
+        // Toggle dropdown
+        var avatarBtn = document.getElementById('navAvatarBtn');
+        if (avatarBtn) {
+            avatarBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                var dd = document.getElementById('navUserDropdown');
+                if (dd) dd.classList.toggle('open');
+            });
+        }
+
+        // Logout
+        var logoutBtn = document.getElementById('navLogoutBtn');
+        if (logoutBtn) {
+            logoutBtn.addEventListener('click', function() {
+                Auth.logout();
+            });
+        }
+
+        // Close dropdown on outside click
+        document.addEventListener('click', function(e) {
+            var dd = document.getElementById('navUserDropdown');
+            if (dd && !dd.contains(e.target)) {
+                dd.classList.remove('open');
+            }
+        });
+
+        updateNavUserUI();
+
+        // Listen for storage changes (login from another tab)
+        window.addEventListener('storage', function(e) {
+            if (e.key === 'auth_token') updateNavUserUI();
+        });
     });
 })();

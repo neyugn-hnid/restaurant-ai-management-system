@@ -3,12 +3,12 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Sơ Đồ Nhà Hàng | Đặt Bàn</title>
+    <title>Đặt Bàn Thông Minh | DEAGUN</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="./css/customer-menu.css" />
     <link rel="stylesheet" href="./css/restaurant-map.css" />
   </head>
@@ -18,96 +18,211 @@
       <div class="nav-links">
         <a href="./index.html" class="nav-label">Trang chủ</a>
         <a href="./customer-menu.html" class="nav-label">Thực đơn</a>
-        <a href="/#about" class="nav-label">Trải nghiệm</a>
-        <a href="/restaurant-map.html" class="btn btn-primary">Đặt bàn</a>
+        <a href="./index.html#about" class="nav-label">Trải nghiệm</a>
+        <a href="./restaurant-map.html" class="btn btn-primary nav-booking-btn">Đặt bàn</a>
+        <div class="nav-user-dropdown" id="navUserDropdown" style="display:none;">
+            <button class="nav-avatar-btn" id="navAvatarBtn" title="Tài khoản">
+                <span class="material-symbols-outlined">person</span>
+            </button>
+            <div class="nav-dropdown-menu" id="navDropdownMenu">
+                <span class="nav-dropdown-user" id="navDropdownUser">Khách</span>
+                <button class="nav-dropdown-item" id="navLogoutBtn">Đăng xuất</button>
+            </div>
+        </div>
       </div>
     </nav>
 
-
-    <header class="menu-hero hero-bg-overlay">
-      <span class="subheading" style="color: var(--color-gold); margin-bottom: 1.6rem">Reservations</span>
-      <h1 class="display-hero" style="color: #ffffff">Đặt Bàn Của Bạn</h1>
-      <p class="body-lead" style="color: rgba(255, 255, 255, 0.7)">Khai mở trải nghiệm ẩm thực thượng lưu. Điền thông tin bên dưới để kiểm tra bàn trống trước khi chọn vị trí.</p>
+    <!-- Page banner đơn giản -->
+    <header class="page-banner">
+      <div class="banner-content">
+        <h1>Đặt bàn thông minh</h1>
+        <p>AI đề xuất bàn phù hợp theo số khách, thời gian và nhu cầu của bạn.</p>
+      </div>
     </header>
 
+    <main class="reservation-wrapper" id="reservations">
+      <div class="reservation-shell">
+        <!-- Cột chính: Form + AI + Sơ đồ -->
+        <div class="reservation-main">
+          <!-- Form đặt bàn -->
+          <section class="content-card">
+            <div class="card-head">
+              <span class="subheading">Thông tin đặt bàn</span>
+              <h2>Nhập thông tin đặt bàn</h2>
+            </div>
+            <form class="reservation-form" id="reservationForm">
+              <div class="res-row">
+                <div class="res-group">
+                  <label for="b-date">Ngày *</label>
+                  <input type="date" id="b-date" class="res-input" required />
+                  <small id="b-date-error" class="field-error">Vui lòng chọn ngày hợp lệ</small>
+                </div>
+                <div class="res-group">
+                  <label for="b-time">Giờ *</label>
+                  <select id="b-time" class="res-input" >
+                    <option value="" disabled selected>Chọn giờ</option>
+                    <optgroup label="Bữa trưa">
+                      <option value="11:00">11:00</option>
+                      <option value="11:30">11:30</option>
+                      <option value="12:00">12:00</option>
+                      <option value="12:30">12:30</option>
+                    </optgroup>
+                    <optgroup label="Bữa tối">
+                      <option value="17:00">17:00</option>
+                      <option value="18:00">18:00</option>
+                      <option value="19:00">19:00</option>
+                      <option value="20:00">20:00</option>
+                    </optgroup>
+                  </select>
+                  <small id="b-time-error" class="field-error">Vui lòng chọn giờ</small>
+                </div>
+                <div class="res-group">
+                  <label for="b-guests">Số khách *</label>
+                  <input type="number" id="b-guests" class="res-input" value="4" min="1" max="20"  />
+                  <small id="b-guests-error" class="field-error">Số lượng phải từ 1 đến 20 khách</small>
+                </div>
+              </div>
+              <div class="res-row">
+                <div class="res-group">
+                  <label for="b-name">Người đặt *</label>
+                  <input type="text" id="b-name" class="res-input" placeholder="VD: Nguyễn Văn A" minlength="3"  />
+                  <small id="b-name-error" class="field-error">Tên phải có ít nhất 3 ký tự</small>
+                </div>
+                <div class="res-group">
+                  <label for="b-phone">Số điện thoại *</label>
+                  <input type="tel" id="b-phone" class="res-input" placeholder="0901234567"  />
+                  <small id="b-phone-error" class="field-error">Số điện thoại không hợp lệ</small>
+                </div>
+                <div class="res-group">
+                  <label for="b-preference">Ghi chú</label>
+                  <input type="text" id="b-preference" class="res-input" placeholder="Gần cửa sổ, yên tĩnh..." />
+                </div>
+              </div>
+              <div class="reservation-actions">
+                <p class="reservation-note">AI sẽ ưu tiên bàn phù hợp nhất với số khách, trạng thái trống và yêu cầu của bạn.</p>
+                <button type="submit" class="res-submit-btn" id="bookingActionBtn">Kiểm tra bàn trống</button>
+              </div>
+            </form>
+          </section>
 
-    <section class="reservation-wrapper" id="reservations">
-      <form class="reservation-bar" id="reservationForm">
-        <div class="res-row">
-          <div class="res-group">
-            <label for="b-date">Ngày *</label>
-            <input type="date" id="b-date" class="res-input" required />
-            <small id="b-date-error" style="color: #d32f2f; display: none;">Vui lòng chọn ngày hợp lệ</small>
-          </div>
-          <div class="res-group">
-            <label for="b-time">Giờ *</label>
-            <select id="b-time" class="res-input" required>
-              <option value="" disabled selected>Chọn giờ</option>
-              <optgroup label="Bữa Trưa">
-                <option value="11:00">11:00</option>
-                <option value="11:30">11:30</option>
-                <option value="12:00">12:00</option>
-                <option value="13:00">12:30</option>
-              </optgroup>
-              <optgroup label="Bữa Tối">
-                <option value="17:00">17:00</option>
-                <option value="18:00">18:00</option>
-                <option value="19:00">19:00</option>
-                <option value="20:00">20:00</option>
-              </optgroup>
-            </select>
-            <small id="b-time-error" style="color: #d32f2f; display: none;">Vui lòng chọn giờ</small>
-          </div>
-          <div class="res-group">
-            <label for="b-guests">Số lượng *</label>
-            <input type="number" id="b-guests" class="res-input" value="4" min="1" max="20" placeholder="Số lượng" required />
-            <small id="b-guests-error" style="color: #d32f2f; display: none;">Số lượng phải từ 1 đến 20 khách</small>
-          </div>
+          <!-- AI gợi ý -->
+          <section class="content-card ai-table-section" id="aiTableSection" style="display: none;">
+            <div class="card-head ai-head">
+              <div>
+                <span class="subheading">AI Recommendation</span>
+                <h2>AI gợi ý bàn phù hợp</h2>
+                <p id="aiTableSummary" class="body-text">Đang phân tích yêu cầu đặt bàn của bạn.</p>
+              </div>
+            </div>
+
+            <!-- Spotlight: best match -->
+            <div class="ai-spotlight" id="aiSpotlightCard">
+              <div class="ai-spotlight-main">
+                <div class="spotlight-top">
+                  <div class="spotlight-info">
+                    <span class="spotlight-label">Gợi ý tốt nhất</span>
+                    <h3 id="aiBestTableName">Đang chờ gợi ý</h3>
+                    <div class="spotlight-meta-row">
+                      <span class="spotlight-meta-tag" id="aiBestZone">Khu vực</span>
+                      <span class="spotlight-meta-tag" id="aiBestCapacity">0 ghế</span>
+                      <span class="spotlight-meta-tag" id="aiBestFeature">--</span>
+                    </div>
+                  </div>
+                  <div class="spotlight-score-ring">
+                    <strong id="aiBestScore">--</strong>
+                    <span>phù hợp</span>
+                  </div>
+                </div>
+                <p id="aiBestReason" class="body-text">Hoàn tất thông tin để nhận gợi ý bàn phù hợp nhất từ AI.</p>
+                <div class="ai-chip-row" id="aiBestTags">
+                  <span class="ai-chip">Đề xuất tốt nhất</span>
+                </div>
+                <div class="ai-reason-list" id="aiBestReasonList">
+                  <div class="ai-reason-item">Phù hợp số lượng khách</div>
+                  <div class="ai-reason-item">Đúng khung giờ</div>
+                </div>
+                <button type="button" class="btn btn-primary ai-spotlight-btn" id="aiBestSelectBtn" disabled>Chọn bàn này</button>
+              </div>
+              <div class="ai-spotlight-side" style="display:none;">
+                <strong id="aiSuggestCount">0</strong>
+                <strong id="aiBestZoneShort">--</strong>
+              </div>
+            </div>
+
+            <div class="ai-table-list" id="aiTableList"></div>
+          </section>
+
+          <!-- Sơ đồ bàn -->
+          <section class="content-card">
+            <div class="card-head map-head">
+              <div>
+                <span class="subheading">Sơ đồ bàn</span>
+                <h2>Chọn bàn trên sơ đồ</h2>
+              </div>
+              <div class="table-legend">
+                <div class="legend-item"><span class="legend-box available"></span>Trống</div>
+                <div class="legend-item"><span class="legend-box occupied"></span>Đang bận</div>
+                <div class="legend-item"><span class="legend-box selected"></span>Đã chọn</div>
+                <div class="legend-item"><span class="legend-box suggested"></span>AI đề xuất</div>
+              </div>
+            </div>
+            <div class="table-layout-shell">
+              <div class="table-layout" id="standaloneTableLayout"></div>
+            </div>
+          </section>
         </div>
 
-        <div class="res-row">
-          <div class="res-group">
-            <label for="b-name">Người Đặt *</label>
-            <input type="text" id="b-name" class="res-input" placeholder="VD: Nguyễn Văn A" value="Nguyễn Văn Đình" minlength="3" required />
-            <small id="b-name-error" style="color: #d32f2f; display: none;">Tên phải có ít nhất 3 ký tự</small>
-          </div>
-          <div class="res-group">
-            <label for="b-phone">Liên Hệ *</label>
-            <input type="tel" id="b-phone" class="res-input" placeholder="0901234567" value="0868886886" pattern="^0[3578]\d{8}$|^02\d{8,10}$" required />
-            <small id="b-phone-error" style="color: #d32f2f; display: none;">Số điện thoại không hợp lệ</small>
-          </div>
-          <div class="res-group">
-            <label for="b-preference">Ghi chú</label>
-            <input type="text" id="b-preference" class="res-input" placeholder="Ghế trẻ em, v.v." />
-          </div>
-        </div>
-
-        <button type="submit" class="res-submit-btn" id="bookingActionBtn">Kiểm Tra Bàn Trống</button>
-      </form>
-      <div class="ai-table-section" id="aiTableSection" style="display: none;">
-        <div class="ai-table-header">
-          <div>
-            <span class="subheading">AI Table Match</span>
-            <h3>Gợi ý bàn phù hợp</h3>
-            <p id="aiTableSummary" class="body-text">Đang phân tích yêu cầu đặt bàn của bạn.</p>
-          </div>
-        </div>
-        <div class="ai-table-list" id="aiTableList"></div>
-      </div>
-    </section>
-
-
-    <main class="map-section" id="mapSection">
-      <div class="table-layout" id="standaloneTableLayout">
-
-      </div>
-
-      <div style="text-align: center; margin-top: 6rem;">
-        <button class="btn btn-success confirm-table-btn" id="confirmTableBtn" disabled>Đặt Bàn</button>
+        <!-- Hidden elements for JS -->
+        <span id="realtimeStatusMap" class="badge rounded-pill text-bg-secondary" style="display:none;">Realtime: mat ket noi</span>
+        <span id="availableCount" style="display:none;">0</span>
+        <span id="occupiedCount" style="display:none;">0</span>
+        <span id="suggestedCount" style="display:none;">0</span>
+        <span id="selectedTableText" style="display:none;"></span>
+        <span id="selectedTableHint" style="display:none;"></span>
+        <span id="selectedZoneText" style="display:none;"></span>
+        <span id="selectedCapacityText" style="display:none;"></span>
+        <span id="selectedScoreText" style="display:none;"></span>
+        <span id="confirmSummaryText" style="display:none;"></span>
+        <span id="confirmSummaryHint" style="display:none;"></span>
+        <span id="summaryDate" style="display:none;"></span>
+        <span id="summaryTime" style="display:none;"></span>
+        <span id="summaryGuests" style="display:none;"></span>
+        <span id="summaryName" style="display:none;"></span>
+        <span id="summaryPhone" style="display:none;"></span>
+        <span id="summaryPreference" style="display:none;"></span>
       </div>
     </main>
 
+    <!-- Toast realtime -->
+    <div class="realtime-toast" id="realtimeToastMap" style="display: none;">
+      <span class="material-symbols-outlined">notifications</span>
+      <span id="realtimeToastMapMessage">Dữ liệu vừa được đồng bộ realtime.</span>
+    </div>
 
+    <!-- Modal chi tiết bàn -->
+    <div class="booking-modal" id="tableDetailModal">
+      <div class="booking-dialog table-detail-dialog">
+        <h2 class="booking-title">Chi tiết bàn đã chọn</h2>
+        <div class="table-detail-grid">
+          <div class="detail-item"><span>Tên bàn</span><strong id="modalTableName">--</strong></div>
+          <div class="detail-item"><span>Khu vực</span><strong id="modalZone">--</strong></div>
+          <div class="detail-item"><span>Số ghế</span><strong id="modalCapacity">--</strong></div>
+          <div class="detail-item"><span>Điểm AI</span><strong id="modalScore">--%</strong></div>
+          <div class="detail-item"><span>Ngày</span><strong id="modalDate">--</strong></div>
+          <div class="detail-item"><span>Giờ</span><strong id="modalTime">--</strong></div>
+          <div class="detail-item"><span>Số khách</span><strong id="modalGuests">--</strong></div>
+          <div class="detail-item"><span>Người đặt</span><strong id="modalName">--</strong></div>
+          <div class="detail-item"><span>SĐT</span><strong id="modalPhone">--</strong></div>
+          <div class="detail-item"><span>Ghi chú</span><strong id="modalNote">--</strong></div>
+        </div>
+        <div class="booking-dialog-actions">
+          <button class="btn btn-outline booking-secondary-btn" onclick="closeTableDetailModal()">Hủy</button>
+          <button class="btn btn-success confirm-table-btn" id="confirmTableBtn" disabled>Xác nhận đặt bàn</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal thành công -->
     <div class="booking-modal" id="bookingModal">
       <div class="booking-dialog">
         <div class="booking-icon">
@@ -116,26 +231,80 @@
             <polyline points="22 4 12 14.01 9 11.01"></polyline>
           </svg>
         </div>
-        <h2 class="heading-2" style="font-size: 3.2rem; margin-bottom: 1.6rem; color: var(--color-house-green);">Đặt Bàn Thành Công!</h2>
-        <p class="body-text" id="bookingMsg" style="margin-bottom: 2.4rem; color: var(--color-text-muted)"></p>
-        <p style="font-size: 1.8rem; font-weight: 600; color: var(--color-text); margin-bottom: 3.2rem;">Bạn muốn gọi món luôn hay gọi món sau?</p>
-        <div style="display: flex; gap: 1.6rem; justify-content: center;">
-          <button class="btn btn-outline" style="flex: 1; padding: 1.2rem 2.4rem;" onclick="closeBookingModal()">Gọi Món Sau</button>
-          <a href="./customer-menu.html" class="btn btn-primary" style="flex: 1; text-decoration: none; padding: 1.2rem 2.4rem;">Gọi Món Luôn</a>
+        <h2 class="booking-title">Đặt bàn thành công</h2>
+        <p class="body-text booking-message" id="bookingMsg"></p>
+        <p class="booking-question">Bạn muốn gọi món luôn hay gọi món sau?</p>
+        <div class="booking-dialog-actions">
+          <button class="btn btn-outline booking-secondary-btn" onclick="closeBookingModal()">Gọi món sau</button>
+          <a href="./customer-menu.html" class="btn btn-primary booking-primary-btn">Gọi món luôn</a>
         </div>
       </div>
     </div>
 
     <footer>
-      <a href="/" class="footer-logo">DEAGUN</a>
-      <div class="body-text" style="font-size: 1.4rem; color: rgba(255, 255, 255, 0.5)">&copy; 2026 Bản quyền thuộc về DEAGUN. Không gian di sản.</div>
+      <a href="./index.html" class="footer-logo">DEAGUN</a>
+      <div class="body-text footer-copy">&copy; 2026 Bản quyền thuộc về DEAGUN. Không gian di sản.</div>
     </footer>
 
-    
+    <!-- Login Modal -->
+    <div class="modal fade" id="loginModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered login-modal-dialog">
+            <div class="modal-content border-0 shadow-lg overflow-hidden login-modal-content">
+                <div class="row g-0">
+                    <div class="col-md-5 d-none d-md-block" style="background: url('https://images.unsplash.com/photo-1559925393-8be0ec4767c8?auto=format&fit=crop&q=80&w=1000') center/cover;">
+                        <div class="h-100 w-100 d-flex flex-column justify-content-end p-4 p-lg-5" style="background: linear-gradient(to top, rgba(30,57,50,0.95) 0%, rgba(30,57,50,0.4) 50%, transparent 100%);">
+                            <h3 class="text-white fw-bold mb-2">Deagun</h3>
+                            <p class="text-white-50 mb-0" style="font-size: 1.4rem;">Hệ thống quản lý thông minh</p>
+                        </div>
+                    </div>
+                    <div class="col-12 col-md-7 position-relative">
+                        <button type="button" class="btn-close position-absolute top-0 end-0 m-4" data-bs-dismiss="modal" aria-label="Close"></button>
+                        <div class="login-form-panel">
+                            <div class="mb-4">
+                                <span class="login-form-kicker">Quản trị nhà hàng</span>
+                                <h4 class="fw-bold mb-2 mt-1" style="color: var(--color-house-green); font-size: 2.2rem;" id="loginModalLabel">Đăng nhập hệ thống</h4>
+                                <p class="text-muted mb-0" style="font-size: 1.4rem;">Truy cập để sử dụng các tính năng nội bộ.</p>
+                            </div>
+                            <form id="loginForm" class="login-form">
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold text-secondary" style="font-size: 1.3rem;">Tên đăng nhập</label>
+                                    <div class="login-input-wrapper position-relative">
+                                        <input type="text" class="form-control login-input bg-light py-3 border" style="border-radius: 12px; font-size: 1.5rem; padding-left: 4.5rem;" id="loginUsername" placeholder="Nhập username" >
+                                    </div>
+                                </div>
+                                <div class="mb-4">
+                                    <label class="form-label fw-semibold text-secondary" style="font-size: 1.3rem;">Mật khẩu</label>
+                                    <div class="login-input-wrapper position-relative">
+                                        <input type="password" class="form-control login-input bg-light py-3 border" style="border-radius: 12px; font-size: 1.5rem; padding-left: 4.5rem; padding-right: 4.5rem;" id="loginPassword" placeholder="Nhập mật khẩu" >
+                                        <span class="material-symbols-outlined position-absolute text-muted toggle-password" style="top: 1.3rem; right: 1.5rem; cursor: pointer; font-size: 1.8rem; z-index: 10;" title="Hiện/ẩn mật khẩu">visibility_off</span>
+                                    </div>
+                                </div>
+                                <div id="loginError" class="alert alert-danger d-none rounded-3 py-2 mb-3" style="font-size: 1.3rem;"></div>
+                                <button type="submit" class="btn w-100 fw-bold py-3 shadow-sm d-flex align-items-center justify-content-center gap-2 mt-2" style="background-color: var(--color-brand); color: white; border-radius: 12px; font-size: 1.5rem; transition: all 0.3s ease;" onmouseover="this.style.backgroundColor='var(--color-house-green)'" onmouseout="this.style.backgroundColor='var(--color-brand)'">
+                                    <span class="material-symbols-outlined fs-5">login</span>
+                                    <span>Đăng nhập</span>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="./js/auth.js"></script>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="./js/auth.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@microsoft/signalr@8.0.7/dist/browser/signalr.min.js"></script>
     <script src="./js/realtime-client.js"></script>
     <script src="./js/sidebar.js"></script>
     <script src="./js/restaurant-map.js"></script>
-      <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-</body>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  </body>
 </html>

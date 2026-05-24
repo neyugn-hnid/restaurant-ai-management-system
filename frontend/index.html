@@ -20,7 +20,16 @@
             <a href="#about" class="nav-label">Trải nghiệm</a>
             <div class="nav-cta-group">
                 <a href="./restaurant-map.html" class="btn btn-primary nav-cta-btn">Đặt bàn</a>
-                <a href="#" class="btn btn-outline login-nav-btn nav-cta-btn" data-bs-toggle="modal" data-bs-target="#loginModal">Đăng nhập</a>
+                <a href="#" class="btn btn-outline login-nav-btn nav-cta-btn" id="navLoginBtn" data-bs-toggle="modal" data-bs-target="#loginModal">Đăng nhập</a>
+                <div class="nav-user-dropdown" id="navUserDropdown" style="display:none;">
+                    <button class="nav-avatar-btn" id="navAvatarBtn" title="Tài khoản">
+                        <span class="material-symbols-outlined">person</span>
+                    </button>
+                    <div class="nav-dropdown-menu" id="navDropdownMenu">
+                        <span class="nav-dropdown-user" id="navDropdownUser">Khách</span>
+                        <button class="nav-dropdown-item" id="navLogoutBtn">Đăng xuất</button>
+                    </div>
+                </div>
             </div>
         </div>
     </nav>
@@ -241,6 +250,18 @@
                             </div>
 
                             <form id="registerForm" class="login-form">
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold text-secondary" style="font-size: 1.3rem;">Họ và tên</label>
+                                    <div class="login-input-wrapper position-relative">
+                                        <input type="text" class="form-control login-input bg-light py-3 border" style="border-radius: 12px; font-size: 1.5rem; padding-left: 4.5rem;" id="registerFullName" placeholder="Nhập họ tên" >
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold text-secondary" style="font-size: 1.3rem;">Email</label>
+                                    <div class="login-input-wrapper position-relative">
+                                        <input type="email" class="form-control login-input bg-light py-3 border" style="border-radius: 12px; font-size: 1.5rem; padding-left: 4.5rem;" id="registerEmail" placeholder="example@gmail.com" >
+                                    </div>
+                                </div>
                                 <div class="mb-3">
                                     <label class="form-label fw-semibold text-secondary" style="font-size: 1.3rem;">Tên đăng nhập</label>
                                     <div class="login-input-wrapper position-relative">
