@@ -1,6 +1,8 @@
 import { ORDER_STATUSES } from './status-constants.js';
 
 document.addEventListener("DOMContentLoaded", async () => {
+    const FV = window.FormValidation;
+    FV?.enableInstantClear(document.getElementById("customerDemoForm"));
     let currentCustomer = null;
 
     const urlParams = new URLSearchParams(window.location.search);
@@ -13,7 +15,10 @@ document.addEventListener("DOMContentLoaded", async () => {
     const PRODUCTS_API_URL = `${API_BASE_URL}/Products`;
     const CUSTOMERS_API_URL = `${API_BASE_URL}/Customers`;
     const ORDERS_API_URL = `${API_BASE_URL}/Orders`;
+    const RESERVATIONS_API_URL = `${API_BASE_URL}/Reservations`;
     const AI_RECOMMENDATIONS_URL = `${API_BASE_URL}/AiRecommendations`;
+    const PENDING_PREORDERS_KEY = 'bistro_pending_preorders';
+    const PREORDER_NOTE_TAG = '[PREORDER]';
 
     async function request(url, options = {}) {
         const response = await fetch(url, {
@@ -32,6 +37,206 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     let menuItems = [];
     let categories = [];
+
+    function readPendingPreorders() {
+        return JSON.parse(localStorage.getItem(PENDING_PREORDERS_KEY) || '[]');
+    }
+
+    function writePendingPreorders(preorders) {
+        localStorage.setItem(PENDING_PREORDERS_KEY, JSON.stringify(preorders));
+    }
+
+    function removePendingPreorder(tableId) {
+        if (!tableId || typeof tableId !== 'number') return;
+        writePendingPreorders(
+            readPendingPreorders().filter(preorder => String(preorder.tableId) !== String(tableId))
+        );
+    }
+
+    function stripPreorderFromNotes(notes) {
+        const text = String(notes || '');
+        const markerIndex = text.indexOf(PREORDER_NOTE_TAG);
+        return markerIndex >= 0 ? text.slice(0, markerIndex).trim() : text.trim();
+    }
+
+    function buildReservationNotesWithPreorder(existingNotes, preorder) {
+        const baseNotes = stripPreorderFromNotes(existingNotes);
+        const preorderPayload = JSON.stringify({
+            itemsCount: preorder.itemsCount,
+            total: preorder.total,
+            items: preorder.items
+        });
+        return baseNotes
+            ? `${baseNotes}\n\n${PREORDER_NOTE_TAG}${preorderPayload}`
+            : `${PREORDER_NOTE_TAG}${preorderPayload}`;
+    }
+
+    async function syncPreorderToReservation(tableId, preorder) {
+        if (!tableId || typeof tableId !== 'number') return;
+
+        try {
+            const response = await request(`${RESERVATIONS_API_URL}?page=1&pageSize=200&sortBy=createdAt&sortOrder=desc`);
+            const reservations = Array.isArray(response?.items) ? response.items : [];
+            const targetReservation = reservations.find(reservation =>
+                String(reservation.tableId) === String(tableId)
+                && (reservation.status === 'Đã xác nhận' || reservation.status === 'Đã đến')
+            );
+
+            if (!targetReservation) return;
+
+            const payload = {
+                id: targetReservation.id,
+                customerId: targetReservation.customerId,
+                tableId: targetReservation.tableId,
+                reservationDate: targetReservation.reservationDate,
+                reservationTime: targetReservation.reservationTime,
+                guestCount: targetReservation.guestCount,
+                status: targetReservation.status,
+                notes: buildReservationNotesWithPreorder(targetReservation.notes, preorder),
+                createdAt: targetReservation.createdAt,
+                updatedAt: new Date().toISOString()
+            };
+
+            await request(`${RESERVATIONS_API_URL}/${encodeURIComponent(targetReservation.id)}`, {
+                method: 'PUT',
+                body: JSON.stringify(payload)
+            });
+        } catch (error) {
+            console.warn('Không thể đồng bộ pre-order vào reservation:', error.message);
+        }
+    }
+
+    function hasActiveReservation(tableId) {
+        if (!tableId || typeof tableId !== 'number') return false;
+        if (String(sessionStorage.getItem('bookedTable') || '') === String(tableId)) return true;
+        const reservations = JSON.parse(localStorage.getItem('bistro_reservations') || '[]');
+        return reservations.some(reservation => String(reservation.tableId) === String(tableId));
+    }
+
+    async function fetchActiveReservationByTable(tableId) {
+        if (!tableId || typeof tableId !== 'number') return null;
+
+        try {
+            const response = await request(`${RESERVATIONS_API_URL}?page=1&pageSize=200&sortBy=createdAt&sortOrder=desc`);
+            const reservations = Array.isArray(response?.items) ? response.items : [];
+            const matched = reservations.find(reservation =>
+                String(reservation.tableId) === String(tableId)
+                && (reservation.status === 'Đã xác nhận' || reservation.status === 'Đã đến')
+            );
+            if (matched) {
+                return matched;
+            }
+        } catch (error) {
+            console.warn('Không thể tải reservation theo bàn:', error.message);
+        }
+
+        const localReservations = JSON.parse(localStorage.getItem('bistro_reservations') || '[]');
+        return localReservations.find(reservation =>
+            String(reservation.tableId) === String(tableId)
+            && (reservation.status === 'Đã xác nhận' || reservation.status === 'Đã đến')
+        ) || null;
+    }
+
+    async function fetchCustomerById(customerId) {
+        if (!customerId) return null;
+
+        try {
+            return await request(`${CUSTOMERS_API_URL}/${encodeURIComponent(customerId)}`);
+        } catch (error) {
+            console.warn('Không thể tải khách hàng theo id:', error.message);
+        }
+
+        const localCustomers = JSON.parse(localStorage.getItem('bistro_customers') || '[]');
+        return localCustomers.find(customer => String(customer.id) === String(customerId)) || null;
+    }
+
+    function buildCurrentCustomer(customerSource, reservation) {
+        const resolvedName = customerSource?.fullName
+            || customerSource?.name
+            || reservation?.customerName
+            || reservation?.CustomerName
+            || sessionStorage.getItem('customerName')
+            || 'Quý khách';
+        const resolvedPhone = customerSource?.phone
+            || reservation?.customerPhone
+            || reservation?.CustomerPhone
+            || sessionStorage.getItem('customerPhone')
+            || '';
+
+        return {
+            id: customerSource?.id || reservation?.customerId || reservation?.CustomerId || null,
+            name: resolvedName,
+            fullName: resolvedName,
+            phone: resolvedPhone,
+            email: customerSource?.email || '',
+            tier: customerSource?.tier || 'new',
+            visits: customerSource?.visits || 0,
+            totalSpent: customerSource?.totalSpent || 0
+        };
+    }
+
+    async function resolveCustomerFromBookedTable() {
+        if (typeof tableNum !== 'number') return null;
+
+        const reservation = await fetchActiveReservationByTable(tableNum);
+        if (!reservation) return null;
+
+        const customer = await fetchCustomerById(reservation.customerId || reservation.CustomerId);
+        const resolvedCustomer = buildCurrentCustomer(customer, reservation);
+
+        sessionStorage.setItem('bookedTable', String(tableNum));
+        sessionStorage.setItem('customerName', resolvedCustomer.name);
+        if (resolvedCustomer.phone) {
+            sessionStorage.setItem('customerPhone', resolvedCustomer.phone);
+        }
+        sessionStorage.setItem('current_demo_customer', JSON.stringify(resolvedCustomer));
+
+        return resolvedCustomer;
+    }
+
+    function applyCustomerToView(customer) {
+        if (!customer) return;
+
+        currentCustomer = customer;
+        const welcomeText = document.getElementById('welcomeText');
+        if (welcomeText) {
+            welcomeText.innerHTML = `Chào, ${customer.name || 'Quý khách'}!`;
+        }
+
+        const nameInput = document.getElementById("demoCustomerName");
+        const phoneInput = document.getElementById("demoCustomerPhone");
+        if (nameInput) {
+            nameInput.value = customer.name || '';
+        }
+        if (phoneInput) {
+            phoneInput.value = customer.phone || '';
+        }
+    }
+
+    function mergePendingItems(targetItems, cartItems) {
+        cartItems.forEach(cartItem => {
+            const existingItem = targetItems.find(
+                item => String(item.productId) === String(cartItem.id) || item.productName === cartItem.name
+            );
+
+            if (existingItem) {
+                existingItem.quantity += Number(cartItem.qty || 0);
+                existingItem.totalPrice = Number(existingItem.unitPrice || 0) * Number(existingItem.quantity || 0);
+                return;
+            }
+
+            const quantity = Number(cartItem.qty || 0);
+            const unitPrice = Number(cartItem.price || 0);
+            targetItems.push({
+                productId: Number(cartItem.id) || 0,
+                productName: cartItem.name,
+                quantity,
+                unitPrice,
+                totalPrice: unitPrice * quantity,
+                notes: null
+            });
+        });
+    }
 
     async function loadMenuData() {
         try {
@@ -74,6 +279,49 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     await loadMenuData();
 
+    function enableMouseDragScroll(container) {
+        if (!container) return;
+
+        let isDragging = false;
+        let startX = 0;
+        let startScrollLeft = 0;
+        let moved = false;
+
+        container.addEventListener('mousedown', (event) => {
+            if (event.button !== 0) return;
+            isDragging = true;
+            moved = false;
+            startX = event.pageX;
+            startScrollLeft = container.scrollLeft;
+            container.classList.add('is-dragging');
+        });
+
+        container.addEventListener('mousemove', (event) => {
+            if (!isDragging) return;
+            const distance = event.pageX - startX;
+            if (Math.abs(distance) > 4) {
+                moved = true;
+            }
+            container.scrollLeft = startScrollLeft - distance;
+        });
+
+        const stopDragging = () => {
+            isDragging = false;
+            container.classList.remove('is-dragging');
+        };
+
+        container.addEventListener('mouseleave', stopDragging);
+        container.addEventListener('mouseup', stopDragging);
+
+        container.addEventListener('click', (event) => {
+            if (moved) {
+                event.preventDefault();
+                event.stopPropagation();
+                moved = false;
+            }
+        }, true);
+    }
+
 
     const categoryContainer = document.querySelector('.category-scroll');
     if (categoryContainer && categories.length > 0) {
@@ -104,12 +352,28 @@ document.addEventListener("DOMContentLoaded", async () => {
         });
     }
 
+    enableMouseDragScroll(categoryContainer);
+    enableMouseDragScroll(document.getElementById('ai-suggestions-list'));
+
     let cart = [];
 
     const menuList = document.getElementById("menuList");
 
     function renderMenu(items) {
         if (!menuList) return;
+        if (!items.length) {
+            menuList.innerHTML = `
+                <div class="menu-item-card">
+                    <div class="item-info">
+                        <div class="item-cat">Tạm thời trống</div>
+                        <h6 class="item-title">Chưa có món trong danh mục này</h6>
+                        <div class="item-desc">Bạn hãy chọn danh mục khác hoặc quay lại sau khi thực đơn được cập nhật.</div>
+                    </div>
+                </div>
+            `;
+            return;
+        }
+
         menuList.innerHTML = items.map(item => `
             <div class="menu-item-card">
                 <div class="menu-item-img-wrapper">
@@ -118,6 +382,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                 <div class="item-info">
                     <div class="item-cat">${item.category}</div>
                     <h6 class="item-title">${item.name}</h6>
+                    <div class="item-desc">${item.description || 'Món được chuẩn bị theo phong cách đặc trưng của nhà hàng.'}</div>
                     <div class="item-price">${new Intl.NumberFormat("vi-VN").format(item.price)}đ</div>
                 </div>
                 <button class="add-btn" onclick="addToCart(${item.id}, event)">
@@ -204,9 +469,6 @@ document.addEventListener("DOMContentLoaded", async () => {
                     <div class="bg-white rounded-4 p-3 shadow-sm d-flex flex-column gap-2 ai-suggestion-card">
                         <div class="position-relative">
                             <img src="${item.img}" class="rounded-3 ai-suggestion-img">
-                            <div class="position-absolute top-0 start-0 m-1">
-                                <span class="badge rounded-pill bg-primary ai-suggestion-badge">DeepSeek</span>
-                            </div>
                         </div>
                         <div>
                             <div class="fw-bold small text-truncate ai-suggestion-name">${item.name}</div>
@@ -361,19 +623,56 @@ document.addEventListener("DOMContentLoaded", async () => {
     const demoModalEl = document.getElementById("customerDemoModal");
     if (demoModalEl) {
         const customerDemoModal = new bootstrap.Modal(demoModalEl);
-        customerDemoModal.show();
+        let shouldShowCustomerModal = true;
 
-        const activeCustomer = sessionStorage.getItem("current_demo_customer");
-        if (activeCustomer) {
-            currentCustomer = JSON.parse(activeCustomer);
-            document.getElementById("demoCustomerName").value = currentCustomer.name || "";
-            document.getElementById("demoCustomerPhone").value = currentCustomer.phone || "";
+        const autoResolvedCustomer = await resolveCustomerFromBookedTable();
+        if (autoResolvedCustomer) {
+            applyCustomerToView(autoResolvedCustomer);
+            shouldShowCustomerModal = false;
+        } else {
+            sessionStorage.removeItem('current_demo_customer');
+            sessionStorage.removeItem('customerName');
+            sessionStorage.removeItem('customerPhone');
+        }
+
+        if (shouldShowCustomerModal) {
+            currentCustomer = null;
+            const nameInput = document.getElementById("demoCustomerName");
+            const phoneInput = document.getElementById("demoCustomerPhone");
+            if (nameInput) nameInput.value = "";
+            if (phoneInput) phoneInput.value = "";
+            customerDemoModal.show();
         }
 
         document.getElementById("customerDemoForm").addEventListener("submit", async (e) => {
             e.preventDefault();
-            const name = document.getElementById("demoCustomerName").value.trim();
-            const phone = document.getElementById("demoCustomerPhone").value.trim();
+            const form = document.getElementById("customerDemoForm");
+            const nameField = document.getElementById("demoCustomerName");
+            const phoneField = document.getElementById("demoCustomerPhone");
+            const name = FV?.normalizeWhitespace(nameField.value) || nameField.value.trim();
+            const phone = phoneField.value.trim();
+
+            FV?.clearFormErrors(form);
+
+            if (!name) {
+                FV?.setFieldError(nameField, 'Vui lòng nhập tên khách hàng.');
+                return;
+            } else if (name.length < 2 || name.length > 100) {
+                FV?.setFieldError(nameField, 'Tên khách hàng phải từ 2 đến 100 ký tự.');
+                return;
+            }
+
+            if (!phone) {
+                FV?.setFieldError(phoneField, 'Vui lòng nhập số điện thoại.');
+                return;
+            } else if (!FV?.validateVietnamesePhone(phone)) {
+                FV?.setFieldError(phoneField, 'Số điện thoại không hợp lệ.');
+                return;
+            }
+
+            nameField.value = name;
+            FV?.markFieldValid(nameField);
+            FV?.markFieldValid(phoneField);
 
             let allCustomers = JSON.parse(localStorage.getItem("bistro_customers") || "[]");
             let cust = allCustomers.find(c => c.phone === phone);
@@ -408,6 +707,10 @@ document.addEventListener("DOMContentLoaded", async () => {
 
             localStorage.setItem("bistro_customers", JSON.stringify(allCustomers));
             sessionStorage.setItem("current_demo_customer", JSON.stringify(cust));
+            sessionStorage.setItem("customerName", cust.name || name);
+            if (cust.phone) {
+                sessionStorage.setItem("customerPhone", cust.phone);
+            }
             currentCustomer = cust;
 
             const welcomeText = document.getElementById('welcomeText');
@@ -477,23 +780,37 @@ document.addEventListener("DOMContentLoaded", async () => {
         const total = cart.reduce((sum, item) => sum + item.price * item.qty, 0);
         const customerName = currentCustomer?.name || "Khách vãng lai";
         const customerPhone = currentCustomer?.phone || "";
+        const isPreArrivalOrder = hasActiveReservation(tableNum);
 
+        const orderId = `ORD-${Math.floor(1000 + Math.random() * 9000)}`;
         const newOrder = {
-            id: `ORD-${Math.floor(1000 + Math.random() * 9000)}`,
-            customerId: currentCustomer?.id || null,
-            tableId: typeof tableNum === 'number' ? tableNum : null,
-            itemsCount: cart.reduce((sum, item) => sum + item.qty, 0),
-            items: cart.map(item => ({ name: item.name, quantity: item.qty, price: item.price })),
-            subtotal: total,
-            discount: 0,
-            total: total,
-            status: ORDER_STATUSES.PENDING_CONFIRMATION,
-            statusClass: "bg-warning bg-opacity-10 text-warning border-warning",
-            customer: String(tableNum),
+            Id: orderId,
+            CustomerId: currentCustomer?.id || null,
+            AccountId: null,
+            TableId: typeof tableNum === 'number' ? tableNum : null,
+            Status: ORDER_STATUSES.PENDING_CONFIRMATION,
+            Subtotal: total,
+            Discount: 0,
+            Total: total,
+            PaymentMethod: 'cash',
+            PaymentStatus: 'pending',
+            Notes: customerPhone ? `SDT: ${customerPhone}` : null,
             customerName: customerName,
-            customerPhone: customerPhone,
-            time: new Date().toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" }),
-            date: new Date().toLocaleDateString("vi-VN")
+            tableName: typeof tableNum === 'number' ? `Bàn ${tableNum}` : String(tableNum),
+            isPreArrivalOrder: isPreArrivalOrder,
+            IsPreArrivalOrder: isPreArrivalOrder,
+            CreatedAt: new Date().toISOString(),
+            UpdatedAt: new Date().toISOString(),
+            OrderItems: cart.map(item => ({
+                OrderId: orderId,
+                ProductId: Number(item.id) || 0,
+                ProductName: item.name,
+                Quantity: Number(item.qty || 0),
+                UnitPrice: Number(item.price || 0),
+                TotalPrice: Number(item.price || 0) * Number(item.qty || 0),
+                Notes: null,
+                CreatedAt: new Date().toISOString()
+            }))
         };
 
         let existingOrders = JSON.parse(localStorage.getItem("bistro_orders") || "[]");
@@ -516,6 +833,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
 
         localStorage.setItem("bistro_orders", JSON.stringify(existingOrders));
+        removePendingPreorder(tableNum);
 
 
         updatePopularity(cart);

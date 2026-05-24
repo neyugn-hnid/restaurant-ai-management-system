@@ -8,6 +8,17 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
     <link href="./css/common.css" rel="stylesheet">
+    <style>
+        .category-modal-input {
+            border: 1.5px solid #dee2e6 !important;
+        }
+
+        .category-modal-input:focus {
+            border-color: var(--sb-green) !important;
+            box-shadow: none !important;
+            outline: none;
+        }
+    </style>
 </head>
 <body>
     <nav class="sidebar py-4 d-flex flex-column shadow text-white">
@@ -55,7 +66,7 @@
                     <h3 class="fw-bold text-dark mb-1">Quản lý Danh mục</h3>
                 </div>
                 <div class="d-flex gap-3">
-                    <button class="btn btn-primary d-flex align-items-center gap-2 fw-medium px-4 shadow-sm" data-bs-toggle="modal" data-bs-target="#addCategoryModal">
+                    <button id="btnOpenAddModal" class="btn btn-primary d-flex align-items-center gap-2 fw-medium px-4 shadow-sm" data-bs-toggle="modal" data-bs-target="#addCategoryModal">
                         <span class="material-symbols-outlined fs-6">add</span> Thêm danh mục mới
                     </button>
                 </div>
@@ -69,6 +80,8 @@
                             <tr>
                                 <th class="ps-4">Tên danh mục</th>
                                 <th>Mô tả</th>
+                                <th>Trạng thái</th>
+                                <th>Ngày tạo</th>
                                 <th class="text-end pe-4">Hành động</th>
                             </tr>
                         </thead>
@@ -92,7 +105,7 @@
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content border-0 shadow">
                 <div class="modal-header border-bottom-0 pb-0">
-                    <h5 class="modal-title fw-bold">Thêm danh mục mới</h5>
+                    <h5 class="modal-title fw-bold" id="addCategoryModalLabel">Thêm danh mục mới</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
@@ -100,24 +113,25 @@
                         <input type="hidden" id="categoryId">
                         <div class="mb-3">
                             <label class="form-label fw-medium text-dark">Tên danh mục</label>
-                            <input type="text" id="categoryName" placeholder="Nhập tên danh mục" required>
+                            <input type="text" id="categoryName" class="form-control category-modal-input" placeholder="Nhập tên danh mục" required>
                         </div>
                         <div class="mb-3">
                             <label class="form-label fw-medium text-dark">Mô tả</label>
-                            <textarea id="categoryDescription" class="form-control" rows="2" placeholder="Ví dụ: Đồ uống tự làm..."></textarea>
+                            <textarea id="categoryDesc" class="form-control category-modal-input" rows="2" placeholder="Ví dụ: Đồ uống tự làm..."></textarea>
                         </div>
+                        <button type="submit" id="saveCategoryBtn" class="d-none">Lưu</button>
                     </form>
                 </div>
                 <div class="modal-footer border-top-0 pt-0 d-flex flex-nowrap gap-2">
                     <button type="button" class="btn btn-secondary w-50" data-bs-dismiss="modal">Hủy</button>
-                    <button type="button" class="btn btn-primary w-50" id="saveCategoryBtn">Lưu danh mục</button>
+                    <button type="submit" form="categoryForm" class="btn btn-primary w-50">Lưu danh mục</button>
                 </div>
             </div>
         </div>
     </div>
 
 
-    <div class="modal fade" id="deleteCategoryModal" tabindex="-1" aria-labelledby="deleteCategoryModalLabel" aria-hidden="true">
+    <div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-labelledby="deleteCategoryModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content border-0 shadow">
                 <div class="modal-body text-center p-4">
@@ -136,9 +150,11 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="./js/form-validation.js"></script>
     <script type="module" src="./js/data.js"></script>
     <script type="module" src="./js/categories.js"></script>
     <script src="./js/sidebar.js"></script>
     <script src="./js/auth.js"></script>
+    <script src="./js/global-reservation-alert.js"></script>
 </body>
 </html>

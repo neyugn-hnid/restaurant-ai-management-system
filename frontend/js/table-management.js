@@ -1,4 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
+    const FV = window.FormValidation;
     const API_BASE = 'http://localhost:7071/api';
     const TABLES_URL = `${API_BASE}/RestaurantTables`;
     const ALL_OPTION = 'Tất cả';
@@ -229,18 +230,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const addBtn = (label, page, disabled) => {
             const li = document.createElement('li');
             li.className = `page-item${disabled ? ' disabled' : ''}`;
-            li.innerHTML = `<a class="page-link rounded-pill border-0 text-secondary bg-light px-3" href="#" data-page="${page}">${label}</a>`;
+            li.innerHTML = `<a class="page-link border text-secondary bg-white px-3" style="border-radius:0;" href="#" data-page="${page}">${label}</a>`;
             elements.pagination.appendChild(li);
         };
 
         addBtn('Trước', 'prev', state.currentPage === 1);
-        for (let i = 1; i <= totalPages; i++) {
-            const li = document.createElement('li');
-            li.className = `page-item${state.currentPage === i ? ' active' : ''}`;
-            const cls = state.currentPage === i ? 'bg-primary text-white' : 'text-secondary bg-light';
-            li.innerHTML = `<a class="page-link rounded-pill border-0 ${cls} px-3" href="#" data-page="${i}">${i}</a>`;
-            elements.pagination.appendChild(li);
-        }
         addBtn('Sau', 'next', state.currentPage === totalPages);
 
         elements.pagination.querySelectorAll('a').forEach(a => {
@@ -249,7 +243,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 const page = a.dataset.page;
                 if (page === 'prev' && state.currentPage > 1) state.currentPage--;
                 else if (page === 'next' && state.currentPage < totalPages) state.currentPage++;
-                else if (page !== 'prev' && page !== 'next') state.currentPage = parseInt(page, 10);
                 renderTables();
             });
         });
@@ -277,11 +270,49 @@ document.addEventListener('DOMContentLoaded', () => {
         elements.editForm?.addEventListener('submit', async (e) => {
             e.preventDefault();
             const editId = elements.editForm.dataset.editId;
+            const name = FV?.normalizeWhitespace(elements.editTableName.value) || elements.editTableName.value.trim();
+            const zone = FV?.normalizeWhitespace(elements.editTableLocation.value) || elements.editTableLocation.value;
+            const capacity = parseInt(elements.editTableCapacity.value, 10);
+            let isValid = true;
+
+            FV?.clearFormErrors(elements.editForm);
+
+            if (!name) {
+                isValid = FV ? FV.setFieldError(elements.editTableName, 'Vui lòng nhập tên bàn.') : false;
+            } else if (name.length < 2 || name.length > 50) {
+                isValid = FV ? FV.setFieldError(elements.editTableName, 'Tên bàn phải từ 2 đến 50 ký tự.') : false;
+            } else {
+                elements.editTableName.value = name;
+                FV?.markFieldValid(elements.editTableName);
+            }
+
+            if (!zone) {
+                isValid = FV ? FV.setFieldError(elements.editTableLocation, 'Vui lòng chọn khu vực.') : false;
+            } else {
+                elements.editTableLocation.value = zone;
+                FV?.markFieldValid(elements.editTableLocation);
+            }
+
+            if (!elements.editTableCapacity.value) {
+                isValid = FV ? FV.setFieldError(elements.editTableCapacity, 'Vui lòng nhập sức chứa.') : false;
+            } else if (!Number.isInteger(capacity) || capacity < 1 || capacity > 20) {
+                isValid = FV ? FV.setFieldError(elements.editTableCapacity, 'Sức chứa phải từ 1 đến 20 người.') : false;
+            } else {
+                FV?.markFieldValid(elements.editTableCapacity);
+            }
+
+            if (!elements.editTableStatus.value) {
+                isValid = FV ? FV.setFieldError(elements.editTableStatus, 'Vui lòng chọn trạng thái.') : false;
+            } else {
+                FV?.markFieldValid(elements.editTableStatus);
+            }
+
+            if (!isValid) return;
 
             const payload = {
-                name: elements.editTableName.value.trim(),
-                zone: elements.editTableLocation.value,
-                capacity: parseInt(elements.editTableCapacity.value) || 4,
+                name,
+                zone,
+                capacity,
                 status: elements.editTableStatus.value
             };
 
@@ -327,6 +358,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     renderSelectOptions(elements.statusFilter, STATUS_FILTER_OPTIONS, ALL_OPTION);
     renderSelectOptions(elements.sortFilter, SORT_OPTIONS, 'name-asc');
+    FV?.enableInstantClear(elements.editForm);
     bindEvents();
     loadTables();
 });

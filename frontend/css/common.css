@@ -109,6 +109,26 @@ body { font-family: 'Inter', sans-serif; background-color: var(--sb-warm); color
     flex-wrap: wrap;
 }
 
+.main-content input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]):not(.filter-select):not(.form-check-input),
+.main-content textarea,
+.main-content select:not(.filter-select):not(.form-check-input),
+.modal input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]):not(.filter-select):not(.form-check-input),
+.modal textarea,
+.modal select:not(.filter-select):not(.form-check-input) {
+    border: 1.5px solid #dee2e6 !important;
+}
+
+.main-content input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]):not(.filter-select):not(.form-check-input):focus,
+.main-content textarea:focus,
+.main-content select:not(.filter-select):not(.form-check-input):focus,
+.modal input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]):not(.filter-select):not(.form-check-input):focus,
+.modal textarea:focus,
+.modal select:not(.filter-select):not(.form-check-input):focus {
+    border-color: var(--sb-green) !important;
+    box-shadow: none !important;
+    outline: none;
+}
+
 .topbar-actions .btn-icon { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--text-soft); }
 .topbar-actions .btn-icon:hover { background-color: #f9f9f9; }
 .avatar { width: 30px; height: 30px; border-radius: 50%; object-fit: cover; }

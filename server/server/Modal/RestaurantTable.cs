@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 
 namespace server.Modal
 {
@@ -33,8 +34,9 @@ namespace server.Modal
         [Column("updated_at")]
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
-
+        [JsonIgnore]
         public ICollection<Order>? Orders { get; set; }
+        [JsonIgnore]
         public ICollection<Reservation>? Reservations { get; set; }
     }
 }

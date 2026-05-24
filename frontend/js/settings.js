@@ -1,8 +1,11 @@
 document.addEventListener('DOMContentLoaded', () => {
+    const FV = window.FormValidation;
     const API_BASE_URL = 'http://localhost:7071/api';
     const PAYMENT_SETTINGS_URL = `${API_BASE_URL}/PaymentSettings`;
 
     const elements = {
+        menuColumn: document.getElementById('settingsMenuColumn'),
+        contentColumn: document.getElementById('settingsContentColumn'),
         menuItems: document.querySelectorAll('.settings-menu .nav-link'),
         sections: document.querySelectorAll('.settings-section'),
         saveBtns: document.querySelectorAll('.btn-primary.px-4'),
@@ -23,6 +26,26 @@ document.addEventListener('DOMContentLoaded', () => {
         activeSection: 'section-general',
         paymentSettings: null
     };
+
+    function getCurrentUserRole() {
+        if (window.Auth?.getRole) {
+            return window.Auth.getRole();
+        }
+
+        const user = window.Auth?.getUser?.();
+        const rawRole = String(user?.role || (Array.isArray(user?.roles) ? user.roles[0] : user?.roles) || 'Staff')
+            .trim()
+            .toUpperCase()
+            .replace(/^ROLE_/, '');
+
+        if (rawRole === 'STAFF' || rawRole === 'EMPLOYEE' || rawRole === 'NHANVIEN' || rawRole === 'NHAN_VIEN') {
+            return 'Staff';
+        }
+
+        return rawRole.charAt(0) + rawRole.slice(1).toLowerCase();
+    }
+
+    const isStaffRole = getCurrentUserRole() === 'Staff';
 
     async function request(url, options = {}) {
         const token = localStorage.getItem('auth_token');
@@ -52,32 +75,88 @@ document.addEventListener('DOMContentLoaded', () => {
         return `https://img.vietqr.io/image/${bankId}-${accountNo}-compact2.png?accountName=${encodeURIComponent(accountName || '')}`;
     }
 
+    function activateSection(targetId) {
+        elements.menuItems.forEach(link => {
+            const icon = link.querySelector('.material-symbols-outlined');
+            const linkTargetId = icon ? `section-${icon.textContent.trim()}` : '';
+            const isActive = linkTargetId === targetId;
+            link.classList.toggle('active', isActive);
+            link.classList.toggle('text-secondary', !isActive);
+        });
+
+        elements.sections.forEach(sec => {
+            sec.classList.toggle('d-none', sec.id !== targetId);
+        });
+
+        state.activeSection = targetId;
+    }
+
+    function applyRoleVisibility() {
+        if (!isStaffRole) return;
+
+        document.querySelectorAll('[data-admin-only="true"]').forEach(element => {
+            element.classList.add('d-none');
+        });
+
+        if (elements.menuColumn) {
+            elements.menuColumn.classList.add('d-none');
+        }
+
+        if (elements.contentColumn) {
+            elements.contentColumn.classList.remove('col-md-9');
+            elements.contentColumn.classList.add('col-12', 'col-xl-8', 'mx-auto');
+        }
+
+        activateSection('section-account_circle');
+    }
+
     function bindTabNavigation() {
         elements.menuItems.forEach(item => {
             item.addEventListener('click', (e) => {
                 e.preventDefault();
-                elements.menuItems.forEach(link => { link.classList.remove('active'); link.classList.add('text-secondary'); });
-                item.classList.add('active');
-                item.classList.remove('text-secondary');
+                if (item.closest('.d-none')) return;
 
                 const icon = item.querySelector('.material-symbols-outlined');
-                if (icon) {
-                    const targetId = 'section-' + icon.textContent.trim();
-                    elements.sections.forEach(sec => sec.classList.add('d-none'));
-                    const target = document.getElementById(targetId);
-                    if (target) { target.classList.remove('d-none'); state.activeSection = targetId; }
-                }
+                if (!icon) return;
+
+                activateSection(`section-${icon.textContent.trim()}`);
             });
         });
     }
 
     function bindSaveButtons() {
         elements.saveBtns.forEach(btn => {
-            // Bỏ qua nút trong form profile/password (đã có handler riêng)
             if (btn.closest('#profileForm') || btn.closest('#passwordForm')) return;
 
             btn.addEventListener('click', async () => {
                 if (btn.closest('#section-payments')) {
+                    let isValid = true;
+                    FV?.clearFieldError(elements.bankSelect);
+                    FV?.clearFieldError(elements.accountNumber);
+                    FV?.clearFieldError(elements.accountName);
+
+                    if (!elements.bankSelect?.value) {
+                        isValid = FV ? FV.setFieldError(elements.bankSelect, 'Vui lòng chọn ngân hàng.') : false;
+                    } else {
+                        FV?.markFieldValid(elements.bankSelect);
+                    }
+
+                    if (!/^\d{6,20}$/.test(String(elements.accountNumber?.value || '').trim())) {
+                        isValid = FV ? FV.setFieldError(elements.accountNumber, 'Số tài khoản phải từ 6 đến 20 chữ số.') : false;
+                    } else {
+                        FV?.markFieldValid(elements.accountNumber);
+                    }
+
+                    const normalizedAccountName = FV?.normalizeWhitespace(elements.accountName?.value) || '';
+                    if (!normalizedAccountName || normalizedAccountName.length < 2) {
+                        isValid = FV ? FV.setFieldError(elements.accountName, 'Tên chủ tài khoản phải có ít nhất 2 ký tự.') : false;
+                    } else {
+                        elements.accountName.value = normalizedAccountName;
+                        FV?.markFieldValid(elements.accountName);
+                    }
+
+                    if (!isValid) return;
+
                     const dto = {
                         bankId: elements.bankSelect?.value || '',
                         accountNumber: elements.accountNumber?.value || '',
@@ -120,7 +199,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function bindBankQR() {
-        if (!elements.bankSelect) return;
+        if (!elements.bankSelect || isStaffRole) return;
 
         const settings = await loadPaymentSettings();
         const savedBankId = settings?.bankId || '970436';
@@ -149,11 +228,34 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function bindQRGenerator() {
+        if (isStaffRole) return;
+
         elements.generateQrBtn?.addEventListener('click', async () => {
             const bankId = elements.bankSelect?.value;
-            const accNo = elements.accountNumber?.value;
-            const accName = elements.accountName?.value || '';
-            if (!bankId || !accNo) { alert('Vui lòng nhập đầy đủ Số tài khoản.'); return; }
+            const accNo = String(elements.accountNumber?.value || '').trim();
+            const accName = FV?.normalizeWhitespace(elements.accountName?.value) || '';
+            let isValid = true;
+
+            if (!bankId) {
+                isValid = FV ? FV.setFieldError(elements.bankSelect, 'Vui lòng chọn ngân hàng.') : false;
+            } else {
+                FV?.markFieldValid(elements.bankSelect);
+            }
+
+            if (!/^\d{6,20}$/.test(accNo)) {
+                isValid = FV ? FV.setFieldError(elements.accountNumber, 'Số tài khoản phải từ 6 đến 20 chữ số.') : false;
+            } else {
+                FV?.markFieldValid(elements.accountNumber);
+            }
+
+            if (!accName || accName.length < 2) {
+                isValid = FV ? FV.setFieldError(elements.accountName, 'Tên chủ tài khoản phải có ít nhất 2 ký tự.') : false;
+            } else {
+                elements.accountName.value = accName;
+                FV?.markFieldValid(elements.accountName);
+            }
+
+            if (!isValid) return;
 
             const dto = {
                 bankId: bankId,
@@ -194,6 +296,17 @@ document.addEventListener('DOMContentLoaded', () => {
         elements.profileForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             if (!user?.id) { showToast('Không xác định được tài khoản', 'danger'); return; }
+            const fullName = FV?.normalizeWhitespace(elements.profileFullName?.value) || '';
+            FV?.clearFormErrors(elements.profileForm);
+            if (!fullName) {
+                FV?.setFieldError(elements.profileFullName, 'Vui lòng nhập họ và tên.');
+                return;
+            } else if (fullName.length < 2 || fullName.length > 100) {
+                FV?.setFieldError(elements.profileFullName, 'Họ và tên phải từ 2 đến 100 ký tự.');
+                return;
+            }
+            elements.profileFullName.value = fullName;
+            FV?.markFieldValid(elements.profileFullName);
 
             const btn = elements.profileForm.querySelector('button[type="submit"]');
             const original = btn.innerHTML;
@@ -203,7 +316,7 @@ document.addEventListener('DOMContentLoaded', () => {
             try {
                 const result = await request(`${API_BASE_URL}/Accounts/${user.id}/profile`, {
                     method: 'PUT',
-                    body: JSON.stringify({ fullName: elements.profileFullName?.value || '' })
+                    body: JSON.stringify({ fullName })
                 });
                 if (result?.fullName) {
                     const updatedUser = { ...user, fullName: result.fullName };
@@ -231,21 +344,32 @@ document.addEventListener('DOMContentLoaded', () => {
             const currentPassword = elements.currentPassword?.value || '';
             const newPassword = elements.newPassword?.value || '';
             const confirmNewPassword = elements.confirmNewPassword?.value || '';
+            FV?.clearFormErrors(elements.passwordForm);
 
-            if (!currentPassword || !newPassword || !confirmNewPassword) {
-                showToast('Vui lòng nhập đầy đủ thông tin mật khẩu', 'warning');
+            if (!currentPassword) {
+                FV?.setFieldError(elements.currentPassword, 'Vui lòng nhập mật khẩu hiện tại.');
                 return;
             }
 
-            if (newPassword !== confirmNewPassword) {
-                showToast('Xác nhận mật khẩu mới không khớp', 'warning');
+            if (!newPassword) {
+                FV?.setFieldError(elements.newPassword, 'Vui lòng nhập mật khẩu mới.');
+                return;
+            } else if (newPassword.length < 6) {
+                FV?.setFieldError(elements.newPassword, 'Mật khẩu mới phải có ít nhất 6 ký tự.');
                 return;
             }
 
-            if (newPassword.length < 6) {
-                showToast('Mật khẩu mới phải có ít nhất 6 ký tự', 'warning');
+            if (!confirmNewPassword) {
+                FV?.setFieldError(elements.confirmNewPassword, 'Vui lòng xác nhận mật khẩu mới.');
+                return;
+            } else if (newPassword !== confirmNewPassword) {
+                FV?.setFieldError(elements.confirmNewPassword, 'Xác nhận mật khẩu mới không khớp.');
                 return;
             }
+
+            FV?.markFieldValid(elements.currentPassword);
+            FV?.markFieldValid(elements.newPassword);
+            FV?.markFieldValid(elements.confirmNewPassword);
 
             const btn = elements.passwordForm.querySelector('button[type="submit"]');
             const original = btn.innerHTML;
@@ -270,8 +394,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     bindTabNavigation();
     bindSaveButtons();
+    applyRoleVisibility();
     bindBankQR();
     bindQRGenerator();
     bindProfileForm();
     bindPasswordForm();
+    FV?.enableInstantClear(elements.profileForm);
+    FV?.enableInstantClear(elements.passwordForm);
 });

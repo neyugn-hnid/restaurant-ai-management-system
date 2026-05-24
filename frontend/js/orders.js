@@ -1,8 +1,10 @@
 import { ORDER_STATUSES, TABLE_STATUSES } from './status-constants.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
+    const FV = window.FormValidation;
     const API_BASE_URL = 'http://localhost:7071/api';
     const ORDERS_API_URL = `${API_BASE_URL}/Orders`;
+    const TABLES_API_URL = `${API_BASE_URL}/RestaurantTables`;
     const PAYMENT_SETTINGS_URL = `${API_BASE_URL}/PaymentSettings`;
     const ITEMS_PER_PAGE = 10;
 
@@ -74,6 +76,33 @@ document.addEventListener('DOMContentLoaded', async () => {
         msg.textContent = message;
         toast.className = `toast align-items-center text-white bg-${type} border-0`;
         new bootstrap.Toast(toast, { delay: 3000 }).show();
+    }
+
+    function updateRealtimeBadge(stateName) {
+        const badge = document.getElementById('realtimeStatusOrders');
+        if (!badge) return;
+
+        if (stateName === 'connected') {
+            badge.className = 'badge rounded-pill text-bg-success';
+            badge.textContent = 'Realtime: da ket noi';
+            return;
+        }
+
+        if (stateName === 'connecting' || stateName === 'reconnecting') {
+            badge.className = 'badge rounded-pill text-bg-warning';
+            badge.textContent = 'Realtime: dang ket noi';
+            return;
+        }
+
+        badge.className = 'badge rounded-pill text-bg-secondary';
+        badge.textContent = 'Realtime: mat ket noi';
+    }
+
+    function getRealtimeMessage(event) {
+        if (event?.type === 'orderChanged') return 'Don hang vua duoc cap nhat tu thiet bi khac.';
+        if (event?.type === 'tableChanged') return 'Trang thai ban lien quan vua thay doi.';
+        if (event?.type === 'reservationChanged') return 'Dat ban lien quan vua duoc cap nhat.';
+        return 'Du lieu vua duoc dong bo realtime.';
     }
 
     function updateStats() {
@@ -266,18 +295,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         const addBtn = (label, page, disabled) => {
             const li = document.createElement('li');
             li.className = `page-item${disabled ? ' disabled' : ''}`;
-            li.innerHTML = `<a class="page-link rounded-pill border-0 text-secondary bg-light px-3" href="#" data-page="${page}">${label}</a>`;
+            li.innerHTML = `<a class="page-link border text-secondary bg-white px-3" style="border-radius:0;" href="#" data-page="${page}">${label}</a>`;
             container.appendChild(li);
         };
 
         addBtn('Trước', 'prev', state.currentPage === 1);
-        for (let i = 1; i <= totalPages; i++) {
-            const li = document.createElement('li');
-            li.className = `page-item${state.currentPage === i ? ' active' : ''}`;
-            const cls = state.currentPage === i ? 'bg-primary text-white' : 'text-secondary bg-light';
-            li.innerHTML = `<a class="page-link rounded-pill border-0 ${cls} px-3" href="#" data-page="${i}">${i}</a>`;
-            container.appendChild(li);
-        }
         addBtn('Sau', 'next', state.currentPage === totalPages);
 
         container.querySelectorAll('a').forEach(a => {
@@ -286,7 +308,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const page = a.dataset.page;
                 if (page === 'prev' && state.currentPage > 1) state.currentPage--;
                 else if (page === 'next' && state.currentPage < totalPages) state.currentPage++;
-                else if (page !== 'prev' && page !== 'next') state.currentPage = parseInt(page, 10);
                 if (state.currentFilter === 'Tất cả') {
                     loadAndRenderOrders();
                 } else {
@@ -362,15 +383,18 @@ document.addEventListener('DOMContentLoaded', async () => {
                 state.orders[idx].status = ORDER_STATUSES.COMPLETED;
                 state.orders[idx].paymentStatus = 'completed';
                 try { await request(`${ORDERS_API_URL}/${encodeURIComponent(state.orders[idx].id)}`, { method: 'PUT', body: JSON.stringify(state.orders[idx]) }); } catch (_) {}
-                if (state.orders[idx].tableId) {
+                localStorage.setItem('bistro_orders', JSON.stringify(state.orders));
+
+                const tableName = state.orders[idx].tableName || '';
+                const tableId = state.orders[idx].tableId || (tableName ? tableName.replace(/ban\s*/i, '').trim() : '');
+                if (tableId) {
                     try {
-                        await request(`${API_BASE_URL}/RestaurantTables/${state.orders[idx].tableId}`, {
+                        await request(`${TABLES_API_URL}/${encodeURIComponent(tableId)}`, {
                             method: 'PUT',
                             body: JSON.stringify({ status: TABLE_STATUSES.CLEANING })
                         });
                     } catch (_) {}
                 }
-                localStorage.setItem('bistro_orders', JSON.stringify(state.orders));
             }
             state.currentPaymentOrderId = null;
             bootstrap.Modal.getInstance(document.getElementById('paymentModal'))?.hide();
@@ -378,11 +402,41 @@ document.addEventListener('DOMContentLoaded', async () => {
             showToast('Thanh toán thành công!');
         });
 
-        elements.addOrderForm?.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const customerInput = document.getElementById('newOrderCustomer').value.trim();
-            const totalStr = document.getElementById('newOrderTotal').value;
-            const status = document.getElementById('newOrderStatus').value;
+    elements.addOrderForm?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const customerField = document.getElementById('newOrderCustomer');
+        const totalField = document.getElementById('newOrderTotal');
+        const statusField = document.getElementById('newOrderStatus');
+        const customerInput = customerField.value.trim();
+        const totalStr = totalField.value;
+        const status = statusField.value;
+        let isValid = true;
+
+        FV?.clearFormErrors(elements.addOrderForm);
+
+        if (!customerInput) {
+            isValid = FV ? FV.setFieldError(customerField, 'Vui lòng nhập khách hàng hoặc số bàn.') : false;
+        } else if (customerInput.length < 2 || customerInput.length > 100) {
+            isValid = FV ? FV.setFieldError(customerField, 'Tên khách hàng hoặc số bàn phải từ 2 đến 100 ký tự.') : false;
+        } else {
+            FV?.markFieldValid(customerField);
+        }
+
+        if (!totalStr) {
+            isValid = FV ? FV.setFieldError(totalField, 'Vui lòng nhập tổng tiền.') : false;
+        } else if (!Number.isFinite(Number(totalStr)) || Number(totalStr) <= 0) {
+            isValid = FV ? FV.setFieldError(totalField, 'Tổng tiền phải lớn hơn 0.') : false;
+        } else {
+            FV?.markFieldValid(totalField);
+        }
+
+        if (!status) {
+            isValid = FV ? FV.setFieldError(statusField, 'Vui lòng chọn trạng thái.') : false;
+        } else {
+            FV?.markFieldValid(statusField);
+        }
+
+        if (!isValid) return;
 
             const isTable = customerInput.toLowerCase().includes('bàn');
             const tableNumber = isTable ? customerInput.replace(/bàn\s*/i, '').trim() : '';
@@ -410,11 +464,21 @@ document.addEventListener('DOMContentLoaded', async () => {
             showToast('Tạo đơn hàng mới thành công!');
         });
 
-        elements.updateStatusForm?.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            if (!state.orderToUpdateId) return;
-            const newStatus = document.getElementById('updateStatusSelect').value;
-            const idx = state.orders.findIndex(o => o.id === state.orderToUpdateId);
+    elements.updateStatusForm?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        if (!state.orderToUpdateId) return;
+        const statusField = document.getElementById('updateStatusSelect');
+        const newStatus = statusField.value;
+        let isValid = true;
+        FV?.clearFormErrors(elements.updateStatusForm);
+        if (!newStatus) {
+            isValid = FV ? FV.setFieldError(statusField, 'Vui lòng chọn trạng thái mới.') : false;
+        } else {
+            FV?.markFieldValid(statusField);
+        }
+
+        if (!isValid) return;
+        const idx = state.orders.findIndex(o => o.id === state.orderToUpdateId);
             if (idx !== -1) {
                 state.orders[idx].status = newStatus;
                 try { await request(`${ORDERS_API_URL}/${encodeURIComponent(state.orders[idx].id)}`, { method: 'PUT', body: JSON.stringify(state.orders[idx]) }); } catch (_) {}
@@ -428,6 +492,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     renderSelectOptions(elements.statusFilter, STATUS_FILTER_OPTIONS, 'Tất cả');
+    FV?.enableInstantClear(elements.addOrderForm);
+    FV?.enableInstantClear(elements.updateStatusForm);
     bindEvents();
     await loadAndRenderOrders(true);
+    window.RestaurantRealtime?.connect?.({
+        onConnectionStateChange: updateRealtimeBadge,
+        onAnyChange: async (event) => {
+            await loadAndRenderOrders();
+            showToast(getRealtimeMessage(event), 'warning');
+        }
+    });
 });

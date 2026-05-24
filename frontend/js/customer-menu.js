@@ -13,7 +13,10 @@ document.addEventListener("DOMContentLoaded", async () => {
     const CATEGORIES_API_URL = `${API_BASE_URL}/Categories`;
     const PRODUCTS_API_URL = `${API_BASE_URL}/Products`;
     const ORDERS_API_URL = `${API_BASE_URL}/Orders`;
+    const RESERVATIONS_API_URL = `${API_BASE_URL}/Reservations`;
     const AI_RECOMMENDATIONS_URL = `${API_BASE_URL}/AiRecommendations`;
+    const PENDING_PREORDERS_KEY = 'bistro_pending_preorders';
+    const PREORDER_NOTE_TAG = '[PREORDER]';
 
     async function request(url, options = {}) {
         const response = await fetch(url, {
@@ -59,6 +62,99 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     function getCurrentCart() {
         return JSON.parse(localStorage.getItem('bistro_customer_cart') || '[]');
+    }
+
+    function readPendingPreorders() {
+        return JSON.parse(localStorage.getItem(PENDING_PREORDERS_KEY) || '[]');
+    }
+
+    function writePendingPreorders(preorders) {
+        localStorage.setItem(PENDING_PREORDERS_KEY, JSON.stringify(preorders));
+    }
+
+    function stripPreorderFromNotes(notes) {
+        const text = String(notes || '');
+        const markerIndex = text.indexOf(PREORDER_NOTE_TAG);
+        return markerIndex >= 0 ? text.slice(0, markerIndex).trim() : text.trim();
+    }
+
+    function buildReservationNotesWithPreorder(existingNotes, preorder) {
+        const baseNotes = stripPreorderFromNotes(existingNotes);
+        const preorderPayload = JSON.stringify({
+            itemsCount: preorder.itemsCount,
+            total: preorder.total,
+            items: preorder.items
+        });
+        return baseNotes
+            ? `${baseNotes}\n\n${PREORDER_NOTE_TAG}${preorderPayload}`
+            : `${PREORDER_NOTE_TAG}${preorderPayload}`;
+    }
+
+    async function syncPreorderToReservation(tableId, preorder) {
+        if (!tableId || tableId === 'Mang về') return;
+
+        try {
+            const response = await request(`${RESERVATIONS_API_URL}?page=1&pageSize=200&sortBy=createdAt&sortOrder=desc`);
+            const reservations = Array.isArray(response?.items) ? response.items : [];
+            const targetReservation = reservations.find(reservation =>
+                String(reservation.tableId) === String(tableId)
+                && (reservation.status === 'Đã xác nhận' || reservation.status === 'Đã đến')
+            );
+
+            if (!targetReservation) return;
+
+            const payload = {
+                id: targetReservation.id,
+                customerId: targetReservation.customerId,
+                tableId: targetReservation.tableId,
+                reservationDate: targetReservation.reservationDate,
+                reservationTime: targetReservation.reservationTime,
+                guestCount: targetReservation.guestCount,
+                status: targetReservation.status,
+                notes: buildReservationNotesWithPreorder(targetReservation.notes, preorder),
+                createdAt: targetReservation.createdAt,
+                updatedAt: new Date().toISOString()
+            };
+
+            await request(`${RESERVATIONS_API_URL}/${encodeURIComponent(targetReservation.id)}`, {
+                method: 'PUT',
+                body: JSON.stringify(payload)
+            });
+        } catch (error) {
+            console.warn('Không thể đồng bộ pre-order vào reservation:', error.message);
+        }
+    }
+
+    function hasActiveReservation(tableId) {
+        if (!tableId || tableId === 'Mang về') return false;
+        if (String(sessionStorage.getItem('bookedTable') || '') === String(tableId)) return true;
+        const reservations = JSON.parse(localStorage.getItem('bistro_reservations') || '[]');
+        return reservations.some(reservation => String(reservation.tableId) === String(tableId));
+    }
+
+    function mergePendingItems(targetItems, incomingCartItems) {
+        incomingCartItems.forEach(cartItem => {
+            const existingItem = targetItems.find(
+                item => String(item.productId) === String(cartItem.id) || item.productName === cartItem.name
+            );
+
+            if (existingItem) {
+                existingItem.quantity += Number(cartItem.quantity || 0);
+                existingItem.totalPrice = Number(existingItem.unitPrice || 0) * Number(existingItem.quantity || 0);
+                return;
+            }
+
+            const quantity = Number(cartItem.quantity || 0);
+            const unitPrice = Number(cartItem.price || 0);
+            targetItems.push({
+                productId: Number(cartItem.id) || 0,
+                productName: cartItem.name,
+                quantity,
+                unitPrice,
+                totalPrice: unitPrice * quantity,
+                notes: null
+            });
+        });
     }
 
     function renderDishRecommendations(response) {
@@ -512,8 +608,71 @@ document.addEventListener("DOMContentLoaded", async () => {
         const cCustomerId = sessionStorage.getItem('bookedCustomerId') || null;
         const cName = sessionStorage.getItem('customerName') || 'Quý khách';
         const finalTotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+        const shouldStagePreorder = hasActiveReservation(cTable);
 
         let existingOrders = JSON.parse(localStorage.getItem('bistro_orders') || '[]');
+
+        if (shouldStagePreorder) {
+            const pendingPreorders = readPendingPreorders();
+            const existingPreorder = pendingPreorders.find(preorder => String(preorder.tableId) === String(cTable));
+            let stagedPreorder = null;
+
+            if (existingPreorder) {
+                mergePendingItems(existingPreorder.items, cart);
+                existingPreorder.total = Number(existingPreorder.items.reduce(
+                    (sum, item) => sum + Number(item.totalPrice || 0),
+                    0
+                ));
+                existingPreorder.itemsCount = Number(existingPreorder.items.reduce(
+                    (sum, item) => sum + Number(item.quantity || 0),
+                    0
+                ));
+                existingPreorder.customerId = existingPreorder.customerId || cCustomerId;
+                existingPreorder.customerName = existingPreorder.customerName || cName;
+                existingPreorder.updatedAt = new Date().toISOString();
+                stagedPreorder = existingPreorder;
+            } else {
+                stagedPreorder = {
+                    tableId: Number(cTable) || cTable,
+                    customerId: cCustomerId,
+                    customerName: cName,
+                    itemsCount: cart.reduce((sum, item) => sum + Number(item.quantity || 0), 0),
+                    total: Number(finalTotal),
+                    items: cart.map(item => {
+                        const quantity = Number(item.quantity || 0);
+                        const unitPrice = Number(item.price || 0);
+                        return {
+                            productId: Number(item.id) || 0,
+                            productName: item.name,
+                            quantity,
+                            unitPrice,
+                            totalPrice: unitPrice * quantity,
+                            notes: null
+                        };
+                    }),
+                    createdAt: new Date().toISOString(),
+                    updatedAt: new Date().toISOString()
+                };
+                pendingPreorders.unshift(stagedPreorder);
+            }
+
+            writePendingPreorders(pendingPreorders);
+            await syncPreorderToReservation(cTable, stagedPreorder);
+
+            const msgEl = document.getElementById('order-success-msg');
+            msgEl.innerHTML = `Cảm ơn <b>${cName}</b>.<br/>Món ăn đã được ghi nhận trước. Hóa đơn sẽ được tạo khi nhà hàng nhận bàn.`;
+
+            const modal = document.getElementById('order-success-modal');
+            modal.style.opacity = '1';
+            modal.style.pointerEvents = 'auto';
+            modal.querySelector('div').style.transform = 'translateY(0)';
+
+            localStorage.setItem('bistro_customer_cart', JSON.stringify([]));
+            window.updateCartUI();
+            loadDishRecommendations();
+            document.getElementById('close-cart').click();
+            return;
+        }
 
         const activeOrderIndex = existingOrders.findIndex(o =>
             cTable !== 'Mang về' &&

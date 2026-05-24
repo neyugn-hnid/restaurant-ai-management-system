@@ -170,7 +170,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 labels,
                 datasets: [{
                     label: 'Số lượng đơn hàng',
-                    data: data.some(v => v > 0) ? data : [45, 62, 53, 80, 95, 120, 150],
+                    data: data,
                     backgroundColor: '#198754',
                     borderRadius: 4
                 }]
@@ -216,7 +216,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 labels,
                 datasets: [{
                     label: 'Khách hàng mới',
-                    data: data.some(v => v > 0) ? data : [120, 150, 180, 220, 260, 310],
+                    data: data,
                     borderColor: '#ffc107',
                     backgroundColor: 'rgba(255, 193, 7, 0.1)',
                     borderWidth: 2,

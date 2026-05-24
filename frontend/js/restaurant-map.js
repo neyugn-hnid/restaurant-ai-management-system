@@ -6,6 +6,14 @@ const AI_RECOMMENDATIONS_URL = `${API_BASE}/AiRecommendations`;
 
 let pendingBookingData = null;
 let selectedTableId = null;
+let realtimeReloadTimeoutId = null;
+
+function upsertLocalReservation(reservation) {
+    const reservations = JSON.parse(localStorage.getItem('bistro_reservations') || '[]');
+    const nextReservations = reservations.filter(item => String(item.tableId) !== String(reservation.tableId));
+    nextReservations.unshift(reservation);
+    localStorage.setItem('bistro_reservations', JSON.stringify(nextReservations));
+}
 
 function validateVietnamesePhone(phone) {
     const mobilePattern = /^0[3578]\d{8}$/;
@@ -33,6 +41,48 @@ function validateTime(time) {
 function validateGuests(guests) {
     const num = parseInt(guests);
     return num >= 1 && num <= 20;
+}
+
+function updateRealtimeBadge(stateName) {
+    const badge = document.getElementById('realtimeStatusMap');
+    if (!badge) return;
+
+    if (stateName === 'connected') {
+        badge.className = 'badge rounded-pill text-bg-success';
+        badge.textContent = 'Realtime: da ket noi';
+        return;
+    }
+
+    if (stateName === 'connecting' || stateName === 'reconnecting') {
+        badge.className = 'badge rounded-pill text-bg-warning';
+        badge.textContent = 'Realtime: dang ket noi';
+        return;
+    }
+
+    badge.className = 'badge rounded-pill text-bg-secondary';
+    badge.textContent = 'Realtime: mat ket noi';
+}
+
+function showRealtimeToast(message) {
+    const toast = document.getElementById('realtimeToastMap');
+    const label = document.getElementById('realtimeToastMapMessage');
+    if (!toast || !label) return;
+
+    label.textContent = message;
+    toast.style.display = 'block';
+    toast.style.opacity = '1';
+
+    window.clearTimeout(showRealtimeToast.timeoutId);
+    showRealtimeToast.timeoutId = window.setTimeout(() => {
+        toast.style.display = 'none';
+    }, 3200);
+}
+
+function getRealtimeMessage(event) {
+    if (event?.type === 'tableChanged') return 'So do ban vua duoc cap nhat realtime.';
+    if (event?.type === 'reservationChanged') return 'Co thay doi moi ve dat ban.';
+    if (event?.type === 'orderChanged') return 'Co thay doi moi ve don hang lien quan den ban.';
+    return 'Du lieu vua duoc dong bo realtime.';
 }
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -124,6 +174,23 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (_) {
             elements.tableLayout.innerHTML = '<div style="text-align:center;padding:3rem;color:var(--color-text-muted);">Đang tải sơ đồ bàn...</div>';
         }
+    }
+
+    async function refreshTableMapRealtime() {
+        if (realtimeReloadTimeoutId) {
+            window.clearTimeout(realtimeReloadTimeoutId);
+        }
+
+        realtimeReloadTimeoutId = window.setTimeout(async () => {
+            if (pendingBookingData) {
+                const [tables, statuses] = await Promise.all([loadTables(), getTableStatuses()]);
+                renderTableMap(tables, statuses, false);
+                await loadTableRecommendations();
+                return;
+            }
+
+            await loadAndRenderAllTablesDimmed();
+        }, 200);
     }
 
     function renderTableMap(tables, statuses, dimmed = false) {
@@ -256,6 +323,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 notes: data.preference || ''
             };
             await apiFetch(RESERVATIONS_URL, { method: 'POST', body: JSON.stringify(payload) });
+            upsertLocalReservation(payload);
             return payload;
         } catch (err) {
             console.warn('Lưu reservation cục bộ:', err.message);
@@ -269,9 +337,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 status: 'Đã xác nhận',
                 notes: data.preference || ''
             };
-            let reservations = JSON.parse(localStorage.getItem('bistro_reservations') || '[]');
-            reservations.push(fallback);
-            localStorage.setItem('bistro_reservations', JSON.stringify(reservations));
+            upsertLocalReservation(fallback);
             return fallback;
         }
     }
@@ -483,6 +549,7 @@ document.addEventListener('DOMContentLoaded', () => {
             sessionStorage.setItem('bookedTable', selectedTableId);
         } catch (err) {
             console.warn('Một phần lưu thất bại:', err.message);
+            await updateTableStatus(selectedTableId, 'Đã đặt');
         }
 
         elements.bookingMsg.innerHTML = `Cảm ơn quý khách <b>${name}</b>.<br/>Vị trí <b>${selectedTableId}</b> vào lúc <b>${time}</b> ngày <b>${formattedDate}</b> đã được đặt thành công.`;
@@ -496,6 +563,14 @@ document.addEventListener('DOMContentLoaded', () => {
         document.querySelectorAll('.tbl').forEach(t => t.classList.remove('selected'));
         elements.actionBtn.innerText = 'Kiểm Tra Bàn Trống';
         elements.mapSection.classList.remove('active');
+    });
+
+    window.RestaurantRealtime?.connect?.({
+        onConnectionStateChange: updateRealtimeBadge,
+        onAnyChange: (event) => {
+            refreshTableMapRealtime();
+            showRealtimeToast(getRealtimeMessage(event));
+        }
     });
 });
 

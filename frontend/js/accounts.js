@@ -5,6 +5,7 @@ import {
 } from './status-constants.js';
 
 document.addEventListener('DOMContentLoaded', () => {
+    const FV = window.FormValidation;
     const API_BASE_URL = 'http://localhost:7071/api';
     const ACCOUNTS_API_URL = `${API_BASE_URL}/Accounts`;
     const ITEMS_PER_PAGE = 10;
@@ -248,20 +249,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const addBtn = (label, page, disabled) => {
             const li = document.createElement('li');
             li.className = `page-item${disabled ? ' disabled' : ''}`;
-            li.innerHTML = `<a class="page-link rounded-pill border-0 text-secondary bg-light px-3" href="#" data-page="${page}">${label}</a>`;
+            li.innerHTML = `<a class="page-link border text-secondary bg-white px-3" style="border-radius:0;" href="#" data-page="${page}">${label}</a>`;
             container.appendChild(li);
         };
 
         addBtn('Trước', 'prev', state.currentPage === 1);
-
-        for (let i = 1; i <= totalPages; i++) {
-            const li = document.createElement('li');
-            li.className = `page-item${state.currentPage === i ? ' active' : ''}`;
-            const cls = state.currentPage === i ? 'bg-primary text-white' : 'text-secondary bg-light';
-            li.innerHTML = `<a class="page-link rounded-pill border-0 ${cls} px-3" href="#" data-page="${i}">${i}</a>`;
-            container.appendChild(li);
-        }
-
         addBtn('Sau', 'next', state.currentPage === totalPages);
 
         container.querySelectorAll('a').forEach(a => {
@@ -270,7 +262,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 const page = a.dataset.page;
                 if (page === 'prev' && state.currentPage > 1) state.currentPage--;
                 else if (page === 'next' && state.currentPage < totalPages) state.currentPage++;
-                else if (page !== 'prev' && page !== 'next') state.currentPage = parseInt(page, 10);
                 loadAccounts();
             });
         });
@@ -287,14 +278,54 @@ document.addEventListener('DOMContentLoaded', () => {
     async function handleFormSubmit(e) {
         if (e) e.preventDefault();
         const id = elements.accountId?.value || '';
-        const name = elements.accountName?.value?.trim() || '';
+        const name = FV?.normalizeWhitespace(elements.accountName?.value) || elements.accountName?.value?.trim() || '';
         const username = elements.accountUsername?.value?.trim() || '';
         const role = elements.formRole?.value || 'staff';
         const status = elements.formStatus?.value || 'active';
         const password = elements.accountPassword?.value || '';
+        let isValid = true;
 
-        if (!username) { alert('Vui lòng nhập Username!'); return; }
-        if (!name) { alert('Vui lòng nhập Tên hiển thị!'); return; }
+        FV?.clearFormErrors(elements.accountForm);
+
+        if (!name) {
+            isValid = FV ? FV.setFieldError(elements.accountName, 'Vui lòng nhập tên hiển thị.') : false;
+        } else if (name.length < 2 || name.length > 100) {
+            isValid = FV ? FV.setFieldError(elements.accountName, 'Tên hiển thị phải từ 2 đến 100 ký tự.') : false;
+        } else {
+            FV?.markFieldValid(elements.accountName);
+        }
+
+        if (!username) {
+            isValid = FV ? FV.setFieldError(elements.accountUsername, 'Vui lòng nhập username.') : false;
+        } else if (!FV?.validateUsername(username)) {
+            isValid = FV ? FV.setFieldError(elements.accountUsername, 'Username 4-30 ký tự, chỉ gồm chữ, số, dấu chấm, gạch dưới hoặc gạch ngang.') : false;
+        } else {
+            FV?.markFieldValid(elements.accountUsername);
+        }
+
+        if (!role) {
+            isValid = FV ? FV.setFieldError(elements.formRole, 'Vui lòng chọn vai trò.') : false;
+        } else {
+            FV?.markFieldValid(elements.formRole);
+        }
+
+        if (!status) {
+            isValid = FV ? FV.setFieldError(elements.formStatus, 'Vui lòng chọn trạng thái.') : false;
+        } else {
+            FV?.markFieldValid(elements.formStatus);
+        }
+
+        if (!id && (!password || password.trim().length < 6)) {
+            isValid = FV ? FV.setFieldError(elements.accountPassword, 'Mật khẩu tài khoản mới phải có ít nhất 6 ký tự.') : false;
+        } else if (password && password.trim().length < 6) {
+            isValid = FV ? FV.setFieldError(elements.accountPassword, 'Mật khẩu phải có ít nhất 6 ký tự.') : false;
+        } else if (password) {
+            FV?.markFieldValid(elements.accountPassword);
+        } else {
+            FV?.clearFieldError(elements.accountPassword);
+        }
+
+        if (!isValid) return;
 
         const payload = { fullName: name || null, username, role, status, updatedAt: new Date().toISOString() };
 
@@ -342,6 +373,7 @@ document.addEventListener('DOMContentLoaded', () => {
         elements.accountForm?.addEventListener('submit', handleFormSubmit);
 
         elements.btnOpenAdd?.addEventListener('click', () => {
+            FV?.clearFormErrors(elements.accountForm);
             elements.modalLabel.textContent = 'Thêm tài khoản';
             elements.accountId.value = '';
             elements.accountName.value = '';
@@ -370,6 +402,7 @@ document.addEventListener('DOMContentLoaded', () => {
     renderSelectOptions(elements.formRole, FORM_ROLE_OPTIONS, 'staff');
     renderSelectOptions(elements.formStatus, FORM_STATUS_OPTIONS, 'active');
 
+    FV?.enableInstantClear(elements.accountForm);
     bindEvents();
     loadAccounts();
 });

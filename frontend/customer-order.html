@@ -15,49 +15,78 @@
     <div class="mobile-wrapper">
       <div class="customer-header">
         <div class="header-content">
-          <button
-            onclick="window.history.back()"
-            class="btn btn-light btn-sm rounded-pill mb-3 fw-bold d-flex align-items-center gap-1 shadow-sm text-success btn-opacity-90"
-          >
-            <span class="material-symbols-outlined fs-5">arrow_back</span> Trở lại
-          </button>
-          <div class="d-flex justify-content-between align-items-start">
-            <div>
-              <h2 class="fw-bold mb-1 fs-2r" id="welcomeText">Chào mừng bạn!</h2>
-              <p class="mb-0 opacity-75 fw-medium">Khám phá hương vị đặc trưng hôm nay.</p>
-              <div class="table-info-badge">
-                <span class="material-symbols-outlined fs-5">table_restaurant</span>
-                <span id="tableNumber">Đang xác định...</span>
-              </div>
-            </div>
-            <button class="btn btn-outline-light rounded-circle shadow-sm circle-btn-light" data-bs-toggle="modal" data-bs-target="#customerDemoModal" title="Đăng nhập / Đổi người dùng">
-               <span class="material-symbols-outlined">person</span>
+          <div class="hero-topbar">
+            <button
+              onclick="window.history.back()"
+              class="btn back-btn fw-semibold d-flex align-items-center gap-1"
+            >
+              <span class="material-symbols-outlined fs-5">arrow_back</span> Trở lại
+            </button>
+            <button class="btn profile-btn" data-bs-toggle="modal" data-bs-target="#customerDemoModal" title="Đăng nhập / Đổi người dùng">
+              <span class="material-symbols-outlined">person</span>
             </button>
           </div>
-        </div>
-      </div>
-
-      <div class="category-container">
-        <div class="category-scroll">
-
-        </div>
-      </div>
-
-
-      <div id="ai-recommendation-section" class="px-4 mt-4" style="display: none">
-        <div class="d-flex align-items-center gap-2 mb-3">
-          <div class="bg-primary bg-opacity-10 p-2 rounded-circle">
-            <span class="material-symbols-outlined text-primary fs-5">auto_awesome</span>
+          <div class="hero-copy">
+            <div>
+              <span class="hero-kicker">Đặt món tại bàn</span>
+              <h2 class="fw-bold mb-2 fs-2r" id="welcomeText">Chào mừng bạn!</h2>
+              <p class="hero-subtitle mb-0">Chọn món nhanh, xem gợi ý phù hợp và gửi bếp chỉ trong vài chạm.</p>
+            </div>
           </div>
-          <h6 class="fw-bold mb-0">Gợi ý thông minh cho bạn</h6>
-        </div>
-        <div id="ai-suggestions-list" class="d-flex gap-3 overflow-x-auto pb-3 scrollbar-hide">
-
+          <div class="hero-meta">
+            <div class="table-info-badge">
+                <span class="material-symbols-outlined fs-5">table_restaurant</span>
+                <span id="tableNumber">Đang xác định...</span>
+            </div>
+            <div class="hero-note">
+              <span class="material-symbols-outlined fs-5">schedule</span>
+              <span>Phục vụ ngay trong ngày</span>
+            </div>
+          </div>
         </div>
       </div>
 
-      <div class="menu-grid mt-3" id="menuList">
+      <div class="content-shell">
+        <section class="category-panel">
+          <div class="section-head">
+            <div>
+              <p class="section-kicker mb-1">Bộ lọc nhanh</p>
+              <h6 class="section-title mb-0">Danh mục món ăn</h6>
+            </div>
+          </div>
+          <div class="category-scroll">
 
+          </div>
+        </section>
+
+
+        <section id="ai-recommendation-section" class="ai-panel" style="display: none">
+          <div class="section-head">
+            <div class="section-icon-shell">
+              <span class="material-symbols-outlined section-icon">auto_awesome</span>
+            </div>
+            <div>
+              <p class="section-kicker mb-1">Gợi ý thông minh</p>
+              <h6 class="section-title mb-0">Món nên thử hôm nay</h6>
+            </div>
+          </div>
+          <div id="ai-suggestions-list" class="d-flex gap-3 overflow-x-auto pb-1 scrollbar-hide">
+
+          </div>
+        </section>
+
+        <section class="menu-panel">
+          <div class="section-head menu-section-head">
+            <div>
+              <p class="section-kicker mb-1">Thực đơn</p>
+              <h5 class="section-title mb-1">Chọn món bạn thích</h5>
+              <p class="section-caption mb-0">Mỗi món đều có thể thêm nhanh vào giỏ hàng.</p>
+            </div>
+          </div>
+          <div class="menu-grid" id="menuList">
+
+          </div>
+        </section>
       </div>
 
       <button
@@ -83,11 +112,11 @@
               <form id="customerDemoForm">
                 <div class="mb-3">
                   <label class="form-label fw-medium">Tên của bạn <span class="text-danger">*</span></label>
-                  <input type="text" class="form-control rounded-pill px-3 py-2" id="demoCustomerName" placeholder="Ví dụ: Anh Tuấn" required />
+                  <input type="text" class="form-control px-3 py-2" id="demoCustomerName" placeholder="Ví dụ: Anh Tuấn" required />
                 </div>
                 <div class="mb-4">
                   <label class="form-label fw-medium">Số điện thoại <span class="text-danger">*</span></label>
-                  <input type="tel" class="form-control rounded-pill px-3 py-2" id="demoCustomerPhone" placeholder="Ví dụ: 0901234567" required pattern="[0-9]{10}" />
+                  <input type="tel" class="form-control px-3 py-2" id="demoCustomerPhone" placeholder="Ví dụ: 0901234567" required pattern="[0-9]{10}" />
                   <div class="invalid-feedback ms-3">Vui lòng nhập đúng 10 số.</div>
                 </div>
                 <button type="submit" class="confirm-btn w-100 shadow-sm">Bắt đầu Đặt món</button>
@@ -141,6 +170,7 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="./js/form-validation.js"></script>
     <script type="module" src="./js/customer-order.js"></script>
   </body>
 </html>

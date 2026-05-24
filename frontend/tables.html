@@ -55,10 +55,12 @@
         <main class="topbar-pad p-4 flex-grow-1">
             <div class="d-flex justify-content-between align-items-end mb-4">
                 <div>
-                    <h3 class="fw-bold text-dark mb-1">Quản lý bàn</h3>
+                    <div class="d-flex align-items-center gap-2 mb-1">
+                        <h3 class="fw-bold text-dark mb-0">Quản lý bàn</h3>
+                    </div>
                 </div>
                 <div class="d-flex gap-3">
-                    <button class="btn btn-primary d-flex align-items-center gap-2 fw-medium px-4 shadow-sm" data-bs-toggle="modal" data-bs-target="#addTableModal">
+                    <button class="btn btn-primary d-flex align-items-center gap-2 fw-medium px-4 shadow-sm role-restricted" data-bs-toggle="modal" data-bs-target="#addTableModal">
                         <span class="material-symbols-outlined fs-6">add</span> Thêm bàn mới
                     </button>
                 </div>
@@ -74,7 +76,7 @@
                     <select id="statusFilter" class="filter-select"></select>
                     <select id="sortOption" class="filter-select"></select>
                 </div>
-                <a href="./table-management.html" class="text-primary text-decoration-none fw-medium d-flex align-items-center gap-1">
+                <a href="./table-management.html" class="text-primary text-decoration-none fw-medium d-flex align-items-center gap-1 role-restricted">
                     Xem & quản lý tất cả bàn <span class="material-symbols-outlined fs-5">arrow_forward</span>
                 </a>
             </div>
@@ -202,9 +204,6 @@
 
 
 
-    <a href="/orders.html" class="btn btn-primary d-flex align-items-center justify-content-center p-0 position-fixed fab">
-        <span class="material-symbols-outlined fab-icon">add_shopping_cart</span>
-    </a>
 
 
     <div class="toast-container position-fixed bottom-0 start-0 p-3 toast-z">
@@ -215,6 +214,47 @@
                     <span id="toastMessage">Thao tác thành công</span>
                 </div>
                 <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="reservationAlertModal" tabindex="-1" aria-labelledby="reservationAlertModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content rounded-4 border-0 shadow-lg">
+                <div class="modal-header border-bottom-0 pb-0">
+                    <h5 class="modal-title fw-bold d-flex align-items-center gap-2" id="reservationAlertModalLabel">
+                        <span class="material-symbols-outlined text-warning">notifications_active</span>
+                        Đặt bàn mới
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body px-4 pb-4 pt-3">
+                    <div class="p-3 bg-light rounded-4 mb-3">
+                        <div class="small text-secondary mb-1">Khách hàng</div>
+                        <div class="fw-semibold text-dark" id="reservationAlertCustomer">Đang tải...</div>
+                    </div>
+                    <div class="row g-3 mb-3">
+                        <div class="col-6">
+                            <div class="p-3 bg-light rounded-4 h-100">
+                                <div class="small text-secondary mb-1">Bàn</div>
+                                <div class="fw-semibold text-dark" id="reservationAlertTable">-</div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="p-3 bg-light rounded-4 h-100">
+                                <div class="small text-secondary mb-1">Số khách</div>
+                                <div class="fw-semibold text-dark" id="reservationAlertGuests">-</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="p-3 border rounded-4">
+                        <div class="small text-secondary mb-1">Thời gian đặt</div>
+                        <div class="fw-semibold text-dark" id="reservationAlertTime">-</div>
+                    </div>
+                </div>
+                <div class="modal-footer border-top-0 pt-0">
+                    <button type="button" class="btn btn-primary rounded-pill px-4 fw-medium" data-bs-dismiss="modal">Đã rõ</button>
+                </div>
             </div>
         </div>
     </div>
@@ -237,7 +277,6 @@
                             <span class="badge detail-table-status">Trống</span>
                         </div>
                     </div>
-
                     <div class="row g-3">
                         <div class="col-6">
                             <div class="p-3 bg-light rounded-4">
@@ -246,6 +285,7 @@
                                     <span class="material-symbols-outlined fs-5">location_on</span> Tầng 1
                                 </div>
                             </div>
+
                         </div>
                         <div class="col-6">
                             <div class="p-3 bg-light rounded-4">
@@ -286,10 +326,58 @@
         </div>
     </div>
 
+    <div class="modal fade" id="paymentModal" tabindex="-1" aria-labelledby="paymentModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header border-bottom-0 pb-0">
+                    <h5 class="modal-title fw-bold" id="paymentModalLabel">Thanh toán đơn hàng</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body pb-4">
+                    <div class="row g-4">
+                        <div class="col-sm-6 border-end-sm">
+                            <h6 class="fw-bold mb-3 text-dark">Thông tin đơn hàng</h6>
+                            <p class="mb-1"><span class="text-secondary">Mã đơn:</span> <strong id="paymentModalOrderId" class="ms-1 text-dark"></strong></p>
+                            <p class="mb-1"><span class="text-secondary">Khách hàng:</span> <strong id="paymentModalCustomer" class="ms-1 text-dark"></strong></p>
+                            <p class="mb-1"><span class="text-secondary">Bàn:</span> <strong id="paymentModalTable" class="ms-1 text-dark"></strong></p>
+                            <p class="mb-3 border-bottom pb-3"><span class="text-secondary">Thời gian:</span> <span id="paymentModalTime" class="ms-1 text-dark"></span></p>
+
+                            <h6 class="fw-bold border-top pt-3 mb-3 text-dark" style="margin-top: -16px;">Chi tiết món</h6>
+                            <div class="mb-0" id="paymentModalItems" style="max-height: 180px; overflow-y: auto;"></div>
+                        </div>
+                        <div class="col-sm-6 d-flex flex-column justify-content-center align-items-center text-center">
+                            <p class="text-secondary mb-2 fw-medium">Quét mã QR để thanh toán</p>
+                            <div class="bg-light p-3 rounded-4 d-inline-block mb-3 border shadow-sm">
+                                <img src="https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=ScanToPay" id="paymentModalQr" alt="QR Code" class="img-fluid rounded" style="width: 180px; height: 180px; object-fit: contain;">
+                            </div>
+                            <p class="text-muted small mb-1">Tổng tiền cần thanh toán</p>
+                            <h3 class="fw-bold text-primary mb-0" id="paymentModalTotal">0 ₫</h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-top-0 pt-0 justify-content-center">
+                    <button type="button" class="btn btn-secondary px-4 rounded-pill fw-medium" data-bs-dismiss="modal">Đóng</button>
+                    <button type="button" class="btn btn-outline-secondary px-4 rounded-pill fw-medium d-flex align-items-center gap-2" id="printInvoiceBtn">
+                        <span class="material-symbols-outlined fs-5">print</span>
+                        In hóa đơn
+                    </button>
+                    <button type="button" class="btn btn-primary px-4 rounded-pill fw-medium shadow-sm d-flex align-items-center gap-2" id="confirmPaymentBtn" data-bs-dismiss="modal">
+                        <span class="material-symbols-outlined fs-5">check_circle</span>
+                        Hoàn tất thanh toán
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@microsoft/signalr@8.0.7/dist/browser/signalr.min.js"></script>
+    <script src="./js/realtime-client.js"></script>
+    <script src="./js/form-validation.js"></script>
     <script type="module" src="./js/data.js"></script>
     <script type="module" src="./js/tables.js"></script>
     <script src="./js/sidebar.js"></script>
     <script src="./js/auth.js"></script>
+    <script src="./js/global-reservation-alert.js"></script>
 </body>
 </html>

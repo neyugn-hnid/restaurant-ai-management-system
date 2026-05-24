@@ -1,6 +1,7 @@
 using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 
 namespace server.Modal
 {
@@ -44,9 +45,11 @@ namespace server.Modal
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
 
+        [JsonIgnore]
         [ForeignKey(nameof(CustomerId))]
         public Customer? Customer { get; set; }
 
+        [JsonIgnore]
         [ForeignKey(nameof(TableId))]
         public RestaurantTable? RestaurantTable { get; set; }
     }

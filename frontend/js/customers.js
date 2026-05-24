@@ -1,4 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
+    const FV = window.FormValidation;
     const API_BASE_URL = 'http://localhost:7071/api';
     const CUSTOMERS_API_URL = `${API_BASE_URL}/Customers`;
     const ITEMS_PER_PAGE = 10;
@@ -43,6 +44,26 @@ document.addEventListener('DOMContentLoaded', () => {
         statReturn: document.getElementById('statReturnRate'),
         paginationInfo: document.getElementById('customersPaginationInfo')
     };
+
+    function getCurrentUserRole() {
+        if (window.Auth?.getRole) {
+            return window.Auth.getRole();
+        }
+
+        const user = window.Auth?.getUser?.();
+        const rawRole = String(user?.role || (Array.isArray(user?.roles) ? user.roles[0] : user?.roles) || 'Staff')
+            .trim()
+            .toUpperCase()
+            .replace(/^ROLE_/, '');
+
+        if (rawRole === 'STAFF' || rawRole === 'EMPLOYEE' || rawRole === 'NHANVIEN' || rawRole === 'NHAN_VIEN') {
+            return 'Staff';
+        }
+
+        return rawRole.charAt(0) + rawRole.slice(1).toLowerCase();
+    }
+
+    const isStaffRole = getCurrentUserRole() === 'Staff';
 
     const state = {
         customers: [],
@@ -190,9 +211,11 @@ document.addEventListener('DOMContentLoaded', () => {
                             <button class="btn btn-light btn-icon shadow-sm p-0 d-flex align-items-center justify-content-center edit-customer-btn" data-id="${c.id}" title="Sửa" style="width:32px;height:32px;border-radius:50%;color:var(--text-soft) !important;background-color:#fff !important;">
                                 <span class="material-symbols-outlined icon-sm">edit</span>
                             </button>
+                            ${isStaffRole ? '' : `
                             <button class="btn btn-light btn-icon shadow-sm p-0 d-flex align-items-center justify-content-center delete-customer-btn" data-id="${c.id}" title="Xóa" style="width:32px;height:32px;border-radius:50%;color:#dc3545 !important;background-color:#fff !important;">
                                 <span class="material-symbols-outlined icon-sm">delete</span>
                             </button>
+                            `}
                         </div>
                     </td>
                 </tr>`;
@@ -236,18 +259,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const addBtn = (label, page, disabled) => {
             const li = document.createElement('li');
             li.className = `page-item${disabled ? ' disabled' : ''}`;
-            li.innerHTML = `<a class="page-link rounded-pill border-0 text-secondary bg-light px-3" href="#" data-page="${page}">${label}</a>`;
+            li.innerHTML = `<a class="page-link border text-secondary bg-white px-3" style="border-radius:0;" href="#" data-page="${page}">${label}</a>`;
             container.appendChild(li);
         };
 
         addBtn('Trước', 'prev', state.currentPage === 1);
-        for (let i = 1; i <= totalPages; i++) {
-            const li = document.createElement('li');
-            li.className = `page-item${state.currentPage === i ? ' active' : ''}`;
-            const cls = state.currentPage === i ? 'bg-primary text-white' : 'text-secondary bg-light';
-            li.innerHTML = `<a class="page-link rounded-pill border-0 ${cls} px-3" href="#" data-page="${i}">${i}</a>`;
-            container.appendChild(li);
-        }
         addBtn('Sau', 'next', state.currentPage === totalPages);
 
         container.querySelectorAll('a').forEach(a => {
@@ -256,7 +272,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 const page = a.dataset.page;
                 if (page === 'prev' && state.currentPage > 1) state.currentPage--;
                 else if (page === 'next' && state.currentPage < totalPages) state.currentPage++;
-                else if (page !== 'prev' && page !== 'next') state.currentPage = parseInt(page, 10);
                 renderCustomers();
             });
         });
@@ -287,15 +302,57 @@ document.addEventListener('DOMContentLoaded', () => {
             loadCustomers();
         });
 
-        elements.customerForm?.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const id = elements.customerId.value;
-            const payload = {
-                id: id || `KH${Date.now().toString(36).toUpperCase()}`,
-                fullName: elements.customerName.value.trim(),
-                phone: elements.customerPhone.value.trim(),
-                email: elements.customerEmail.value.trim(),
-                tier: elements.customerRank.value,
+    elements.customerForm?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const id = elements.customerId.value;
+        const fullName = FV?.normalizeWhitespace(elements.customerName.value) || elements.customerName.value.trim();
+        const phone = elements.customerPhone.value.trim();
+        const email = elements.customerEmail.value.trim();
+        let isValid = true;
+
+        FV?.clearFormErrors(elements.customerForm);
+
+        if (!fullName) {
+            isValid = FV ? FV.setFieldError(elements.customerName, 'Vui lòng nhập tên khách hàng.') : false;
+        } else if (fullName.length < 2 || fullName.length > 100) {
+            isValid = FV ? FV.setFieldError(elements.customerName, 'Tên khách hàng phải từ 2 đến 100 ký tự.') : false;
+        } else {
+            elements.customerName.value = fullName;
+            FV?.markFieldValid(elements.customerName);
+        }
+
+        if (!phone) {
+            isValid = FV ? FV.setFieldError(elements.customerPhone, 'Vui lòng nhập số điện thoại.') : false;
+        } else if (!FV?.validateVietnamesePhone(phone)) {
+            isValid = FV ? FV.setFieldError(elements.customerPhone, 'Số điện thoại không hợp lệ.') : false;
+        } else {
+            FV?.markFieldValid(elements.customerPhone);
+        }
+
+        if (!email) {
+            isValid = FV ? FV.setFieldError(elements.customerEmail, 'Vui lòng nhập email.') : false;
+        } else if (!FV?.validateEmail(email)) {
+            isValid = FV ? FV.setFieldError(elements.customerEmail, 'Email không đúng định dạng.') : false;
+        } else if (email) {
+            FV?.markFieldValid(elements.customerEmail);
+        } else {
+            FV?.clearFieldError(elements.customerEmail);
+        }
+
+        if (!elements.customerRank.value) {
+            isValid = FV ? FV.setFieldError(elements.customerRank, 'Vui lòng chọn hạng khách hàng.') : false;
+        } else {
+            FV?.markFieldValid(elements.customerRank);
+        }
+
+        if (!isValid) return;
+
+        const payload = {
+            id: id || `KH${Date.now().toString(36).toUpperCase()}`,
+            fullName,
+            phone,
+            email,
+            tier: elements.customerRank.value,
                 visits: 0,
                 totalSpent: 0
             };
@@ -332,6 +389,7 @@ document.addEventListener('DOMContentLoaded', () => {
     renderSelectOptions(elements.rankFilter, RANK_FILTER_OPTIONS, 'Tất cả');
     renderSelectOptions(elements.sortOption, SORT_OPTIONS, 'spend-desc');
     renderSelectOptions(elements.customerRank, FORM_RANK_OPTIONS, 'new');
+    FV?.enableInstantClear(elements.customerForm);
     bindEvents();
     loadCustomers();
 });

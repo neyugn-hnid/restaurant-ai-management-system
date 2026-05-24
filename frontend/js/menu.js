@@ -1,6 +1,7 @@
 import { PRODUCT_STATUSES, isOutOfStockProductStatus } from './status-constants.js';
 
 document.addEventListener('DOMContentLoaded', () => {
+    const FV = window.FormValidation;
     const API_BASE_URL = 'http://localhost:7071/api';
     const PRODUCTS_API_URL = `${API_BASE_URL}/Products`;
     const CATEGORIES_API_URL = `${API_BASE_URL}/Categories`;
@@ -39,6 +40,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const elements = {
+        actionButtons: document.getElementById('menuActionButtons'),
         tableBody: document.getElementById('menuTableBody'),
         searchInput: document.getElementById('menuSearch'),
         categoryFilter: document.getElementById('categoryFilter'),
@@ -58,8 +60,32 @@ document.addEventListener('DOMContentLoaded', () => {
         foodPrice: document.getElementById('foodPrice'),
         foodCategory: document.getElementById('foodCategory'),
         foodStatus: document.getElementById('foodStatus'),
-        foodDesc: document.getElementById('foodDesc')
+        foodDesc: document.getElementById('foodDesc'),
+        addFoodTriggerButton: document.getElementById('addFoodTriggerBtn')
     };
+
+    function getCurrentUserRole() {
+        if (window.Auth?.getRole) {
+            return window.Auth.getRole();
+        }
+
+        const user = window.Auth?.getUser?.();
+        const rawRole = String(user?.role || (Array.isArray(user?.roles) ? user.roles[0] : user?.roles) || 'Staff')
+            .trim()
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .toUpperCase()
+            .replace(/^ROLE_/, '')
+            .replace(/[^A-Z0-9]/g, '');
+
+        if (rawRole === 'STAFF' || rawRole === 'EMPLOYEE' || rawRole === 'NHANVIEN' || rawRole === 'NHAN_VIEN') {
+            return 'Staff';
+        }
+
+        return rawRole.charAt(0) + rawRole.slice(1).toLowerCase();
+    }
+
+    const isStaffRole = getCurrentUserRole() === 'Staff';
 
     const state = {
         sourceProducts: [],
@@ -236,22 +262,13 @@ document.addEventListener('DOMContentLoaded', () => {
         const totalPages = Math.max(1, state.pagination.pageCount || 1);
         let markup = `
             <li class="page-item ${state.currentPage === 1 ? 'disabled' : ''}">
-                <a class="page-link rounded-pill border-0 text-secondary bg-light px-3" href="#" data-page="prev">Trước</a>
+                <a class="page-link border text-secondary bg-white px-3" style="border-radius:0;" href="#" data-page="prev">Trước</a>
             </li>
         `;
 
-        for (let page = 1; page <= totalPages; page += 1) {
-            const activeClasses = page === state.currentPage ? 'bg-primary text-white' : 'text-secondary bg-light';
-            markup += `
-                <li class="page-item ${page === state.currentPage ? 'active' : ''}">
-                    <a class="page-link rounded-pill border-0 ${activeClasses} px-3" href="#" data-page="${page}">${page}</a>
-                </li>
-            `;
-        }
-
         markup += `
             <li class="page-item ${state.currentPage === totalPages ? 'disabled' : ''}">
-                <a class="page-link rounded-pill border-0 text-secondary bg-light px-3" href="#" data-page="next">Sau</a>
+                <a class="page-link border text-secondary bg-white px-3" style="border-radius:0;" href="#" data-page="next">Sau</a>
             </li>
         `;
 
@@ -305,12 +322,14 @@ document.addEventListener('DOMContentLoaded', () => {
                     <td><span class="badge ${badgeClass} border px-2 py-1 rounded-pill">${statusLabel}</span></td>
                     <td class="text-end pe-4">
                         <div class="d-flex justify-content-end gap-2">
+                            ${isStaffRole ? '' : `
                             <button class="btn btn-light btn-icon border shadow-sm p-0 d-flex align-items-center justify-content-center edit-product-btn" style="width: 32px; height: 32px; border-radius: 50%; color: var(--text-soft) !important; background-color: #fff !important;" title="Sửa">
                                 <span class="material-symbols-outlined fs-6">edit</span>
                             </button>
                             <button class="btn btn-light btn-icon border border-danger shadow-sm p-0 d-flex align-items-center justify-content-center delete-product-btn" style="width: 32px; height: 32px; border-radius: 50%; color: #dc3545 !important; background-color: #fff !important;" title="Xóa">
                                 <span class="material-symbols-outlined fs-6">delete</span>
                             </button>
+                            `}
                         </div>
                     </td>
                 </tr>
@@ -481,6 +500,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function openFoodModalForEdit(productId) {
+        if (isStaffRole) return;
         const product = findProductById(productId);
         if (!product) return;
 
@@ -492,10 +512,52 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function handleSaveFood() {
+        if (isStaffRole) {
+            showToast('Nhân viên không có quyền thêm hoặc sửa món ăn.', 'info');
+            return;
+        }
         const payload = createProductPayload();
+        let isValid = true;
 
-        if (!payload.name || !payload.price || !payload.categoryId) {
-            showToast('Vui lòng nhập đầy đủ thông tin bắt buộc.', 'danger');
+        FV?.clearFormErrors(elements.addFoodForm);
+
+        if (!payload.name) {
+            isValid = FV ? FV.setFieldError(elements.foodName, 'Vui lòng nhập tên món ăn.') : false;
+        } else if (payload.name.length < 2 || payload.name.length > 100) {
+            isValid = FV ? FV.setFieldError(elements.foodName, 'Tên món phải từ 2 đến 100 ký tự.') : false;
+        } else {
+            FV?.markFieldValid(elements.foodName);
+        }
+
+        if (!elements.foodPrice.value) {
+            isValid = FV ? FV.setFieldError(elements.foodPrice, 'Vui lòng nhập giá món ăn.') : false;
+        } else if (!Number.isFinite(payload.price) || payload.price <= 0) {
+            isValid = FV ? FV.setFieldError(elements.foodPrice, 'Giá món phải lớn hơn 0.') : false;
+        } else {
+            FV?.markFieldValid(elements.foodPrice);
+        }
+
+        if (!payload.categoryId) {
+            isValid = FV ? FV.setFieldError(elements.foodCategory, 'Vui lòng chọn danh mục.') : false;
+        } else {
+            FV?.markFieldValid(elements.foodCategory);
+        }
+
+        if (!elements.foodStatus.value) {
+            isValid = FV ? FV.setFieldError(elements.foodStatus, 'Vui lòng chọn trạng thái.') : false;
+        } else {
+            FV?.markFieldValid(elements.foodStatus);
+        }
+
+        if (payload.description && payload.description.length > 300) {
+            isValid = FV ? FV.setFieldError(elements.foodDesc, 'Mô tả tối đa 300 ký tự.') : false;
+        } else if (payload.description) {
+            FV?.markFieldValid(elements.foodDesc);
+        } else {
+            FV?.clearFieldError(elements.foodDesc);
+        }
+
+        if (!isValid) {
             return;
         }
 
@@ -518,6 +580,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function handleDeleteConfirm() {
+        if (isStaffRole) {
+            state.deletingProductId = null;
+            bootstrap.Modal.getInstance(document.getElementById('deleteConfirmModal'))?.hide();
+            showToast('Nhân viên không có quyền xóa món ăn.', 'info');
+            return;
+        }
         if (!state.deletingProductId) return;
 
         try {
@@ -547,8 +615,6 @@ document.addEventListener('DOMContentLoaded', () => {
             state.currentPage -= 1;
         } else if (link.dataset.page === 'next' && state.currentPage < Math.max(1, state.pagination.pageCount || 1)) {
             state.currentPage += 1;
-        } else if (!Number.isNaN(Number(link.dataset.page))) {
-            state.currentPage = Number(link.dataset.page);
         }
 
         applyClientFilters();
@@ -556,6 +622,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function handleTableAction(event) {
+        if (isStaffRole) return;
         const editButton = event.target.closest('.edit-product-btn');
         const deleteButton = event.target.closest('.delete-product-btn');
         const row = event.target.closest('tr[data-id]');
@@ -586,12 +653,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
         elements.addFoodModal?.addEventListener('hidden.bs.modal', resetFoodForm);
         elements.addFoodModal?.addEventListener('show.bs.modal', () => {
+            if (isStaffRole) {
+                bootstrap.Modal.getInstance(elements.addFoodModal)?.hide();
+                showToast('Nhân viên không có quyền thêm món ăn.', 'info');
+                return;
+            }
             if (!state.editingProductId) {
                 updateFilters();
             }
         });
     }
 
+    if (elements.addFoodTriggerButton) {
+        elements.addFoodTriggerButton.classList.toggle('d-none', isStaffRole);
+    }
+
+    FV?.enableInstantClear(elements.addFoodForm);
     bindEvents();
     updateFilters();
     loadData();

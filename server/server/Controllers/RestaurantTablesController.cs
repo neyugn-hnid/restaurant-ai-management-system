@@ -10,6 +10,7 @@ using server.Extensions;
 using server.Infrastructure;
 using server.Modal;
 using server.Models.Pagination;
+using server.Services;
 
 namespace server.Controllers
 {
@@ -18,10 +19,14 @@ namespace server.Controllers
     public class RestaurantTablesController : ControllerBase
     {
         private readonly serverContext _context;
+        private readonly TableStateCoordinator _tableStateCoordinator;
+        private readonly RealtimeNotifier _realtimeNotifier;
 
-        public RestaurantTablesController(serverContext context)
+        public RestaurantTablesController(serverContext context, TableStateCoordinator tableStateCoordinator, RealtimeNotifier realtimeNotifier)
         {
             _context = context;
+            _tableStateCoordinator = tableStateCoordinator;
+            _realtimeNotifier = realtimeNotifier;
         }
 
 
@@ -109,6 +114,15 @@ namespace server.Controllers
             table.UpdatedAt = DateTime.UtcNow;
 
             await _context.SaveChangesAsync();
+            if (!string.IsNullOrWhiteSpace(request.Status)
+                && EnumMemberValueHelper.TryParse<RestaurantTableStatus>(request.Status.Trim(), out var explicitStatus))
+            {
+                await _tableStateCoordinator.SetExplicitStatusAsync(id, explicitStatus, "restaurant-table-manual");
+            }
+            else
+            {
+                await _realtimeNotifier.BroadcastTableChangedAsync(table, "updated", "restaurant-table-updated");
+            }
             return NoContent();
         }
 
@@ -134,6 +148,7 @@ namespace server.Controllers
                 }
             }
 
+            await _realtimeNotifier.BroadcastTableChangedAsync(restaurantTable, "created", "restaurant-table-created");
             return CreatedAtAction("GetRestaurantTable", new { id = restaurantTable.Id }, restaurantTable);
         }
 
@@ -147,6 +162,7 @@ namespace server.Controllers
                 return NotFound();
             }
 
+            await _realtimeNotifier.BroadcastTableChangedAsync(restaurantTable, "deleted", "restaurant-table-deleted");
             _context.RestaurantTable.Remove(restaurantTable);
             await _context.SaveChangesAsync();
 

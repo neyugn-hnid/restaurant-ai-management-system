@@ -10,7 +10,7 @@ using server.Data;
 using server.Extensions;
 using server.Modal;
 using server.Models.Pagination;
-using System.Collections.Generic;
+using server.Services;
 
 namespace server.Controllers
 {
@@ -19,10 +19,14 @@ namespace server.Controllers
     public class OrdersController : ControllerBase
     {
         private readonly serverContext _context;
+        private readonly TableStateCoordinator _tableStateCoordinator;
+        private readonly RealtimeNotifier _realtimeNotifier;
 
-        public OrdersController(serverContext context)
+        public OrdersController(serverContext context, TableStateCoordinator tableStateCoordinator, RealtimeNotifier realtimeNotifier)
         {
             _context = context;
+            _tableStateCoordinator = tableStateCoordinator;
+            _realtimeNotifier = realtimeNotifier;
         }
 
 
@@ -87,7 +91,14 @@ namespace server.Controllers
                 return BadRequest();
             }
 
+            var existingOrder = await _context.Order.AsNoTracking().FirstOrDefaultAsync(item => item.Id == id);
+            if (existingOrder == null)
+            {
+                return NotFound();
+            }
+
             _context.Entry(order).State = EntityState.Modified;
+            order.UpdatedAt = DateTime.UtcNow;
 
             try
             {
@@ -105,6 +116,18 @@ namespace server.Controllers
                 }
             }
 
+            if (existingOrder.TableId.HasValue)
+            {
+                await _tableStateCoordinator.RecalculateAsync(existingOrder.TableId.Value, "order-updated-old-table");
+            }
+
+            if (order.TableId.HasValue)
+            {
+                var fallbackStatus = IsCompletedOrder(order) ? RestaurantTableStatus.Cleaning : (RestaurantTableStatus?)null;
+                await _tableStateCoordinator.RecalculateAsync(order.TableId.Value, "order-updated", fallbackStatus);
+            }
+
+            await _realtimeNotifier.BroadcastOrderChangedAsync(order.Id, "updated", order.TableId);
             return NoContent();
         }
 
@@ -113,6 +136,7 @@ namespace server.Controllers
         [HttpPost]
         public async Task<ActionResult<OrderResponseDto>> PostOrder(Order order)
         {
+            order.UpdatedAt = DateTime.UtcNow;
             _context.Order.Add(order);
             try
             {
@@ -130,6 +154,13 @@ namespace server.Controllers
                 }
             }
 
+            if (order.TableId.HasValue)
+            {
+                var fallbackStatus = IsCompletedOrder(order) ? RestaurantTableStatus.Cleaning : (RestaurantTableStatus?)null;
+                await _tableStateCoordinator.RecalculateAsync(order.TableId.Value, "order-created", fallbackStatus);
+            }
+
+            await _realtimeNotifier.BroadcastOrderChangedAsync(order.Id, "created", order.TableId);
             return CreatedAtAction("GetOrder", new { id = order.Id }, MapOrder(order));
         }
 
@@ -146,6 +177,11 @@ namespace server.Controllers
 
             _context.Order.Remove(order);
             await _context.SaveChangesAsync();
+            if (order.TableId.HasValue)
+            {
+                await _tableStateCoordinator.RecalculateAsync(order.TableId.Value, "order-deleted");
+            }
+            await _realtimeNotifier.BroadcastOrderChangedAsync(order.Id, "deleted", order.TableId);
 
             return NoContent();
         }
@@ -153,6 +189,14 @@ namespace server.Controllers
         private bool OrderExists(string id)
         {
             return _context.Order.Any(e => e.Id == id);
+        }
+
+        private static bool IsCompletedOrder(Order order)
+        {
+            return order.Status == OrderStatus.Completed
+                || order.Status == OrderStatus.Cancelled
+                || order.PaymentStatus == PaymentStatus.Completed
+                || order.PaymentStatus == PaymentStatus.Refunded;
         }
 
         private static IQueryable<Order> ApplySorting(IQueryable<Order> query, PagedRequest request)

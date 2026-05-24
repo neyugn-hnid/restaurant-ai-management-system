@@ -9,6 +9,7 @@ using server.Data;
 using server.Extensions;
 using server.Modal;
 using server.Models.Pagination;
+using server.Services;
 
 namespace server.Controllers
 {
@@ -17,17 +18,25 @@ namespace server.Controllers
     public class ReservationsController : ControllerBase
     {
         private readonly serverContext _context;
+        private readonly TableStateCoordinator _tableStateCoordinator;
+        private readonly RealtimeNotifier _realtimeNotifier;
 
-        public ReservationsController(serverContext context)
+        public ReservationsController(serverContext context, TableStateCoordinator tableStateCoordinator, RealtimeNotifier realtimeNotifier)
         {
             _context = context;
+            _tableStateCoordinator = tableStateCoordinator;
+            _realtimeNotifier = realtimeNotifier;
         }
 
 
         [HttpGet]
-        public async Task<ActionResult<PagedResponse<Reservation>>> GetReservation([FromQuery] PagedRequest request)
+        public async Task<ActionResult<PagedResponse<ReservationResponseDto>>> GetReservation([FromQuery] PagedRequest request)
         {
-            var query = _context.Reservation.AsNoTracking().AsQueryable();
+            var query = _context.Reservation
+                .AsNoTracking()
+                .Include(reservation => reservation.Customer)
+                .Include(reservation => reservation.RestaurantTable)
+                .AsQueryable();
 
             if (!string.IsNullOrWhiteSpace(request.SearchTerm))
             {
@@ -43,21 +52,25 @@ namespace server.Controllers
             query = ApplySorting(query, request);
 
             var pagedResult = await query.ToPagedResponseAsync(request.GetPageNumber(), request.GetPageSize());
-            return Ok(pagedResult);
+            return Ok(MapPagedReservations(pagedResult));
         }
 
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<Reservation>> GetReservation(int id)
+        public async Task<ActionResult<ReservationResponseDto>> GetReservation(int id)
         {
-            var reservation = await _context.Reservation.FindAsync(id);
+            var reservation = await _context.Reservation
+                .AsNoTracking()
+                .Include(item => item.Customer)
+                .Include(item => item.RestaurantTable)
+                .FirstOrDefaultAsync(item => item.Id == id);
 
             if (reservation == null)
             {
                 return NotFound();
             }
 
-            return reservation;
+            return Ok(MapReservation(reservation));
         }
 
 
@@ -70,7 +83,14 @@ namespace server.Controllers
                 return BadRequest();
             }
 
+            var existingReservation = await _context.Reservation.AsNoTracking().FirstOrDefaultAsync(item => item.Id == id);
+            if (existingReservation == null)
+            {
+                return NotFound();
+            }
+
             _context.Entry(reservation).State = EntityState.Modified;
+            reservation.UpdatedAt = DateTime.UtcNow;
 
             try
             {
@@ -88,18 +108,38 @@ namespace server.Controllers
                 }
             }
 
+            await _tableStateCoordinator.RecalculateAsync(existingReservation.TableId, "reservation-updated-old-table");
+            if (existingReservation.TableId != reservation.TableId)
+            {
+                await _tableStateCoordinator.RecalculateAsync(reservation.TableId, "reservation-updated-new-table");
+            }
+            else
+            {
+                await _tableStateCoordinator.RecalculateAsync(reservation.TableId, "reservation-updated");
+            }
+
+            await _realtimeNotifier.BroadcastReservationChangedAsync(reservation.Id, "updated", reservation.TableId);
             return NoContent();
         }
 
 
 
         [HttpPost]
-        public async Task<ActionResult<Reservation>> PostReservation(Reservation reservation)
+        public async Task<ActionResult<ReservationResponseDto>> PostReservation(Reservation reservation)
         {
+            reservation.UpdatedAt = DateTime.UtcNow;
             _context.Reservation.Add(reservation);
             await _context.SaveChangesAsync();
+            await _tableStateCoordinator.RecalculateAsync(reservation.TableId, "reservation-created");
+            await _realtimeNotifier.BroadcastReservationChangedAsync(reservation.Id, "created", reservation.TableId);
 
-            return CreatedAtAction("GetReservation", new { id = reservation.Id }, reservation);
+            var createdReservation = await _context.Reservation
+                .AsNoTracking()
+                .Include(item => item.Customer)
+                .Include(item => item.RestaurantTable)
+                .FirstAsync(item => item.Id == reservation.Id);
+
+            return CreatedAtAction("GetReservation", new { id = reservation.Id }, MapReservation(createdReservation));
         }
 
 
@@ -114,6 +154,8 @@ namespace server.Controllers
 
             _context.Reservation.Remove(reservation);
             await _context.SaveChangesAsync();
+            await _tableStateCoordinator.RecalculateAsync(reservation.TableId, "reservation-deleted");
+            await _realtimeNotifier.BroadcastReservationChangedAsync(reservation.Id, "deleted", reservation.TableId);
 
             return NoContent();
         }
@@ -140,6 +182,55 @@ namespace server.Controllers
                 "updatedat" => isAscending ? query.OrderBy(reservation => reservation.UpdatedAt) : query.OrderByDescending(reservation => reservation.UpdatedAt),
                 _ => isAscending ? query.OrderBy(reservation => reservation.CreatedAt) : query.OrderByDescending(reservation => reservation.CreatedAt)
             };
+        }
+
+        private static PagedResponse<ReservationResponseDto> MapPagedReservations(PagedResponse<Reservation> pagedResult)
+        {
+            return new PagedResponse<ReservationResponseDto>
+            {
+                Items = pagedResult.Items.Select(MapReservation).ToList(),
+                PageNumber = pagedResult.PageNumber,
+                PageSize = pagedResult.PageSize,
+                TotalItemCount = pagedResult.TotalItemCount,
+                PageCount = pagedResult.PageCount,
+                HasPreviousPage = pagedResult.HasPreviousPage,
+                HasNextPage = pagedResult.HasNextPage
+            };
+        }
+
+        private static ReservationResponseDto MapReservation(Reservation reservation)
+        {
+            return new ReservationResponseDto
+            {
+                Id = reservation.Id,
+                CustomerId = reservation.CustomerId,
+                CustomerName = reservation.Customer?.FullName,
+                TableId = reservation.TableId,
+                TableName = reservation.RestaurantTable?.Name ?? $"Bàn {reservation.TableId}",
+                ReservationDate = reservation.ReservationDate,
+                ReservationTime = reservation.ReservationTime,
+                GuestCount = reservation.GuestCount,
+                Status = reservation.Status,
+                Notes = reservation.Notes,
+                CreatedAt = reservation.CreatedAt,
+                UpdatedAt = reservation.UpdatedAt
+            };
+        }
+
+        public sealed class ReservationResponseDto
+        {
+            public int Id { get; set; }
+            public string? CustomerId { get; set; }
+            public string? CustomerName { get; set; }
+            public int TableId { get; set; }
+            public string? TableName { get; set; }
+            public DateTime ReservationDate { get; set; }
+            public TimeSpan ReservationTime { get; set; }
+            public int GuestCount { get; set; }
+            public ReservationStatus Status { get; set; }
+            public string? Notes { get; set; }
+            public DateTime CreatedAt { get; set; }
+            public DateTime UpdatedAt { get; set; }
         }
     }
 }

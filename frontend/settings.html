@@ -58,27 +58,27 @@
 
             <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
                 <div class="row g-0">
-                    <div class="col-md-3 border-end bg-white">
+                    <div id="settingsMenuColumn" class="col-md-3 border-end bg-white">
                         <div class="p-3 settings-menu h-100">
                             <ul class="nav flex-column">
-                                <li class="nav-item">
+                                <li class="nav-item" data-admin-only="true">
                                     <a class="nav-link active d-flex align-items-center gap-2" href="#"><span class="material-symbols-outlined fs-5">storefront</span> Thông tin nhà hàng</a>
                                 </li>
                                 <li class="nav-item">
                                     <a class="nav-link text-secondary d-flex align-items-center gap-2" href="#"><span class="material-symbols-outlined fs-5">account_circle</span> Tài khoản quản trị</a>
                                 </li>
-                                <li class="nav-item">
+                                <li class="nav-item" data-admin-only="true">
                                     <a class="nav-link text-secondary d-flex align-items-center gap-2" href="#"><span class="material-symbols-outlined fs-5">payments</span> Thanh toán</a>
                                 </li>
-                                <li class="nav-item">
+                                <li class="nav-item" data-admin-only="true">
                                     <a class="nav-link text-secondary d-flex align-items-center gap-2" href="#"><span class="material-symbols-outlined fs-5">notifications_active</span> Thông báo</a>
                                 </li>
                             </ul>
                         </div>
                     </div>
-                    <div class="col-md-9 bg-white position-relative">
+                    <div id="settingsContentColumn" class="col-md-9 bg-white position-relative">
 
-                        <div id="section-storefront" class="p-4 p-md-5 settings-section">
+                        <div id="section-storefront" class="p-4 p-md-5 settings-section" data-admin-only="true">
                             <h5 class="fw-bold mb-4">Thông tin nhà hàng</h5>
 
                             <form>
@@ -183,7 +183,7 @@
                         </div>
 
 
-                        <div id="section-payments" class="p-4 p-md-5 settings-section d-none">
+                        <div id="section-payments" class="p-4 p-md-5 settings-section d-none" data-admin-only="true">
                             <h5 class="fw-bold mb-4 text-dark">Thanh toán</h5>
 
                             <h6 class="fw-semibold mb-3">Phương thức thanh toán được chấp nhận</h6>
@@ -251,7 +251,7 @@
                         </div>
 
 
-                        <div id="section-notifications_active" class="p-4 p-md-5 settings-section d-none">
+                        <div id="section-notifications_active" class="p-4 p-md-5 settings-section d-none" data-admin-only="true">
                             <h5 class="fw-bold mb-4 text-dark">Cài đặt thông báo</h5>
 
                             <div class="card border border-light-subtle shadow-sm mb-4">
@@ -331,8 +331,10 @@
     </a>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="./js/form-validation.js"></script>
     <script type="module" src="./js/settings.js"></script>
     <script src="./js/sidebar.js"></script>
     <script src="./js/auth.js"></script>
+    <script src="./js/global-reservation-alert.js"></script>
 </body>
 </html>

@@ -1,4 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
+    const FV = window.FormValidation;
     const API_BASE_URL = 'http://localhost:7071/api';
     const CATEGORIES_API_URL = `${API_BASE_URL}/Categories`;
     const ITEMS_PER_PAGE = 10;
@@ -134,9 +135,35 @@ document.addEventListener('DOMContentLoaded', () => {
         elements.categoryForm?.addEventListener('submit', async (e) => {
             e.preventDefault();
             const id = elements.categoryId.value;
+            const name = FV?.normalizeWhitespace(elements.categoryName.value) || elements.categoryName.value.trim();
+            const description = FV?.normalizeWhitespace(elements.categoryDesc.value) || elements.categoryDesc.value.trim();
+            let isValid = true;
+
+            FV?.clearFormErrors(elements.categoryForm);
+
+            if (!name) {
+                isValid = FV ? FV.setFieldError(elements.categoryName, 'Vui lòng nhập tên danh mục.') : false;
+            } else if (name.length < 2 || name.length > 60) {
+                isValid = FV ? FV.setFieldError(elements.categoryName, 'Tên danh mục phải từ 2 đến 60 ký tự.') : false;
+            } else {
+                elements.categoryName.value = name;
+                FV?.markFieldValid(elements.categoryName);
+            }
+
+            if (description && description.length > 200) {
+                isValid = FV ? FV.setFieldError(elements.categoryDesc, 'Mô tả tối đa 200 ký tự.') : false;
+            } else if (description) {
+                elements.categoryDesc.value = description;
+                FV?.markFieldValid(elements.categoryDesc);
+            } else {
+                FV?.clearFieldError(elements.categoryDesc);
+            }
+
+            if (!isValid) return;
+
             const payload = {
-                name: elements.categoryName.value.trim(),
-                description: elements.categoryDesc.value.trim()
+                name,
+                description
             };
             try {
                 if (id) {
@@ -171,6 +198,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    FV?.enableInstantClear(elements.categoryForm);
     bindEvents();
     loadCategories();
 });
