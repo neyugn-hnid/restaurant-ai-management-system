@@ -1,0 +1,36 @@
+@startuml
+skinparam backgroundColor #FEFEFE
+|Nguoi dung|
+|He thong|
+
+title So do hoat dong - Dat mon
+
+|Nguoi dung|
+start
+:Chon ban;
+:Xem thuc don;
+:Chon mon an;
+
+repeat
+  :Chon mon va them vao don;
+  |He thong|
+  :Kiem tra so luong ton;
+  if (Con du?) then (Khong)
+    |Nguoi dung|
+    :Bao loi het mon;
+    note right: Chon mon khac
+  endif
+repeat while (Con muon goi them?) is (Co)
+->Khong;
+
+|Nguoi dung|
+:Xac nhan don;
+
+|He thong|
+:Tinh tong tien;
+:Luu don hang vao CSDL;
+:Gui thong bao xuong bep;
+:Cap nhat real-time;
+stop
+
+@enduml

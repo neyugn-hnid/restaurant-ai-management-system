@@ -1,0 +1,127 @@
+Tên use case:#Đăng ký tài khoản
+Tác nhân chính:#Người dùng
+Mục tiêu:#Tạo tài khoản mới để sử dụng hệ thống
+Điều kiện tiên quyết:#Người dùng chưa có tài khoản trong hệ thống
+Điều kiện hậu:#Tài khoản được tạo
+Luồng sự kiện chính:#1. Người dùng mở màn hình đăng ký. 2. Hệ thống hiển thị form đăng ký. 3. Người dùng nhập thông tin. 4. Người dùng nhấn nút đăng ký. 5. Hệ thống kiểm tra tính hợp lệ của dữ liệu. 6. Hệ thống kiểm tra email trong hệ thống. 7. Hệ thống tạo tài khoản mới lưu vào CSDL. 8. Hệ thống gửi OTP đến email người dùng. 9. Hệ thống thông báo đăng ký thành công và yêu cầu xác thực email.
+Luồng ngoại lệ:#5a. Dữ liệu nhập không hợp lệ. Hệ thống thông báo lỗi tại các trường bắt buộc. 6a. Email đã tồn tại. Hệ thống thông báo email đã được sử dụng.
+
+Tên use case:#Đăng nhập
+Tác nhân chính:#Người dùng (Admin, Nhân viên)
+Mục tiêu:#Đăng nhập vào hệ thống
+Điều kiện tiên quyết:#Người dùng đã có tài khoản
+Điều kiện hậu:#Người dùng đã đăng nhập
+Luồng sự kiện chính:#1. Người dùng mở màn hình đăng nhập. 2. Hệ thống hiển thị form đăng nhập. 3. Người dùng nhập tên đăng nhập và mật khẩu. 4. Người dùng nhấn nút đăng nhập. 5. Hệ thống kiểm tra thông tin đăng nhập. 6. Hệ thống tạo phiên đăng nhập (JWT token). 7. Hệ thống chuyển hướng đến trang Dashboard.
+Luồng ngoại lệ:#1a. Dữ liệu nhập không hợp lệ. Hệ thống thông báo lỗi. 5a. Thông tin đăng nhập sai. Hệ thống thông báo lỗi và yêu cầu nhập lại.
+
+Tên use case:#Thêm món ăn
+Tác nhân chính:#Admin
+Mục tiêu:#Thêm món ăn mới vào thực đơn
+Điều kiện tiên quyết:#Admin đã đăng nhập
+Điều kiện hậu:#Món ăn được thêm vào CSDL
+Luồng sự kiện chính:#1. Admin mở trang quản lý thực đơn. 2. Hệ thống hiển thị danh sách món ăn. 3. Admin nhấn nút thêm món. 4. Hệ thống hiển thị form thêm món. 5. Admin nhập thông tin món ăn (tên, giá, danh mục, ảnh). 6. Admin nhấn lưu. 7. Hệ thống kiểm tra dữ liệu. 8. Hệ thống lưu món ăn vào CSDL. 9. Hệ thống thông báo thành công.
+Luồng ngoại lệ:#5a. Dữ liệu nhập không hợp lệ. Hệ thống báo lỗi và yêu cầu nhập lại. 5b. Tên món ăn đã tồn tại. Hệ thống báo lỗi.
+
+Tên use case:#Sửa món ăn
+Tác nhân chính:#Admin
+Mục tiêu:#Cập nhật thông tin món ăn
+Điều kiện tiên quyết:#Admin đã đăng nhập, món ăn đã tồn tại
+Điều kiện hậu:#Thông tin món ăn được cập nhật
+Luồng sự kiện chính:#1. Admin chọn món ăn cần sửa. 2. Hệ thống hiển thị form với dữ liệu hiện tại. 3. Admin chỉnh sửa thông tin. 4. Admin nhấn lưu. 5. Hệ thống kiểm tra dữ liệu. 6. Hệ thống cập nhật CSDL. 7. Hệ thống thông báo thành công.
+Luồng ngoại lệ:#1a. Dữ liệu nhập không hợp lệ. Hệ thống báo lỗi. 4a. Tên món mới đã tồn tại. Hệ thống báo lỗi.
+
+Tên use case:#Xóa món ăn
+Tác nhân chính:#Admin
+Mục tiêu:#Xóa món ăn khỏi thực đơn
+Điều kiện tiên quyết:#Admin đã đăng nhập, món ăn đã tồn tại
+Điều kiện hậu:#Món ăn bị xóa khỏi CSDL
+Luồng sự kiện chính:#1. Admin chọn món ăn cần xóa. 2. Hệ thống hiển thị hộp thoại xác nhận xóa. 3. Admin xác nhận xóa. 4. Hệ thống kiểm tra ràng buộc. 5. Hệ thống xóa món ăn khỏi CSDL. 6. Hệ thống thông báo thành công.
+Luồng ngoại lệ:#4a. Món ăn đang có trong đơn hàng. Hệ thống báo lỗi và không cho xóa.
+
+Tên use case:#Tạo đơn hàng
+Tác nhân chính:#Nhân viên, Khách hàng
+Mục tiêu:#Tạo đơn hàng mới
+Điều kiện tiên quyết:#Người dùng đã đăng nhập
+Điều kiện hậu:#Đơn hàng được tạo
+Luồng sự kiện chính:#1. Nhân viên mở trang đơn hàng. 2. Hệ thống hiển thị danh sách đơn hàng. 3. Nhân viên nhấn tạo đơn hàng mới. 4. Hệ thống hiển thị form tạo đơn (chọn bàn, chọn món). 5. Nhân viên chọn món và số lượng. 6. Nhân viên xác nhận tạo đơn. 7. Hệ thống lưu đơn hàng vào CSDL. 8. Hệ thống thông báo real-time đến bộ phận bếp.
+Luồng ngoại lệ:#1a. Dữ liệu nhập không hợp lệ. Hệ thống báo lỗi. 5a. Bàn đã có người. Hệ thống báo lỗi và yêu cầu chọn bàn khác.
+
+Tên use case:#Sửa đơn hàng
+Tác nhân chính:#Nhân viên
+Mục tiêu:#Cập nhật thông tin hoặc món trong đơn hàng
+Điều kiện tiên quyết:#Đơn hàng đã tồn tại và chưa thanh toán
+Điều kiện hậu:#Đơn hàng được cập nhật
+Luồng sự kiện chính:#1. Nhân viên chọn đơn hàng cần sửa. 2. Hệ thống hiển thị chi tiết đơn hàng. 3. Nhân viên thêm bớt món hoặc sửa số lượng. 4. Hệ thống tính lại tổng tiền. 5. Nhân viên xác nhận. 6. Hệ thống cập nhật CSDL và thông báo real-time.
+Luồng ngoại lệ:#1a. Dữ liệu nhập không hợp lệ. Hệ thống báo lỗi. 5a. Đơn hàng đã thanh toán. Hệ thống báo lỗi không cho sửa.
+
+Tên use case:#Thêm bàn ăn
+Tác nhân chính:#Admin
+Mục tiêu:#Thêm bàn ăn mới vào hệ thống
+Điều kiện tiên quyết:#Admin đã đăng nhập
+Điều kiện hậu:#Bàn ăn được thêm vào CSDL
+Luồng sự kiện chính:#1. Admin mở trang quản lý bàn. 2. Hệ thống hiển thị sơ đồ bàn. 3. Admin nhấn thêm bàn. 4. Hệ thống hiển thị form thêm bàn (tên, sức chứa, vị trí). 5. Admin nhập thông tin và lưu. 6. Hệ thống lưu vào CSDL. 7. Hệ thống cập nhật sơ đồ bàn real-time.
+Luồng ngoại lệ:#5a. Dữ liệu nhập không hợp lệ. Hệ thống báo lỗi. 5b. Tên bàn đã tồn tại. Hệ thống báo lỗi.
+
+Tên use case:#Sửa bàn ăn
+Tác nhân chính:#Admin
+Mục tiêu:#Cập nhật thông tin bàn ăn
+Điều kiện tiên quyết:#Admin đã đăng nhập, bàn đã tồn tại
+Điều kiện hậu:#Thông tin bàn được cập nhật
+Luồng sự kiện chính:#1. Admin chọn bàn cần sửa. 2. Hệ thống hiển thị form sửa. 3. Admin chỉnh sửa thông tin. 4. Admin lưu. 5. Hệ thống cập nhật CSDL và sơ đồ real-time.
+Luồng ngoại lệ:#1a. Dữ liệu nhập không hợp lệ. Hệ thống báo lỗi. 4a. Tên bàn mới đã tồn tại. Hệ thống báo lỗi.
+
+Tên use case:#Xóa bàn ăn
+Tác nhân chính:#Admin
+Mục tiêu:#Xóa bàn ăn khỏi hệ thống
+Điều kiện tiên quyết:#Admin đã đăng nhập, bàn đã tồn tại
+Điều kiện hậu:#Bàn ăn bị xóa khỏi CSDL
+Luồng sự kiện chính:#1. Admin chọn bàn cần xóa. 2. Hệ thống hiển thị hộp thoại xác nhận. 3. Admin xác nhận xóa. 4. Hệ thống kiểm tra ràng buộc. 5. Hệ thống xóa khỏi CSDL. 6. Hệ thống cập nhật sơ đồ real-time.
+Luồng ngoại lệ:#4a. Bàn đang có khách. Hệ thống báo lỗi. 4b. Bàn đang có đặt trước. Hệ thống báo lỗi.
+
+Tên use case:#Thêm tài khoản nhân viên
+Tác nhân chính:#Admin
+Mục tiêu:#Tạo tài khoản cho nhân viên mới
+Điều kiện tiên quyết:#Admin đã đăng nhập
+Điều kiện hậu:#Tài khoản nhân viên được tạo
+Luồng sự kiện chính:#1. Admin mở trang quản lý tài khoản. 2. Hệ thống hiển thị danh sách nhân viên. 3. Admin nhấn thêm nhân viên. 4. Hệ thống hiển thị form thêm (tên, username, pass, vai trò). 5. Admin nhập thông tin và lưu. 6. Hệ thống kiểm tra username đã tồn tại. 7. Hệ thống hash password và lưu vào CSDL. 8. Hệ thống thông báo thành công.
+Luồng ngoại lệ:#1a. Dữ liệu nhập không hợp lệ. Hệ thống báo lỗi. 6a. Username đã tồn tại. Hệ thống báo lỗi.
+
+Tên use case:#Sửa tài khoản nhân viên
+Tác nhân chính:#Admin
+Mục tiêu:#Cập nhật thông tin nhân viên
+Điều kiện tiên quyết:#Admin đã đăng nhập, tài khoản đã tồn tại
+Điều kiện hậu:#Thông tin nhân viên được cập nhật
+Luồng sự kiện chính:#1. Admin chọn nhân viên cần sửa. 2. Hệ thống hiển thị form sửa. 3. Admin chỉnh sửa thông tin. 4. Admin lưu. 5. Hệ thống cập nhật CSDL. 6. Hệ thống thông báo thành công.
+Luồng ngoại lệ:#1a. Dữ liệu nhập không hợp lệ. Hệ thống báo lỗi. 4a. Username mới đã tồn tại. Hệ thống báo lỗi.
+
+Tên use case:#Xóa tài khoản nhân viên
+Tác nhân chính:#Admin
+Mục tiêu:#Xóa tài khoản nhân viên khỏi hệ thống
+Điều kiện tiên quyết:#Admin đã đăng nhập, tài khoản đã tồn tại
+Điều kiện hậu:#Tài khoản bị xóa khỏi CSDL
+Luồng sự kiện chính:#1. Admin chọn nhân viên cần xóa. 2. Hệ thống hiển thị hộp thoại xác nhận. 3. Admin xác nhận xóa. 4. Hệ thống xóa khỏi CSDL. 5. Hệ thống thông báo thành công.
+Luồng ngoại lệ:#3a. Admin không thể xóa tài khoản của chính mình. Hệ thống báo lỗi. 3b. Nhân viên đang có đơn hàng chưa xử lý. Hệ thống cảnh báo.
+
+Tên use case:#Xem thống kê
+Tác nhân chính:#Admin
+Mục tiêu:#Xem báo cáo doanh thu, thống kê
+Điều kiện tiên quyết:#Admin đã đăng nhập
+Điều kiện hậu:#Dữ liệu thống kê được hiển thị
+Luồng sự kiện chính:#1. Admin mở trang thống kê. 2. Hệ thống hiển thị biểu đồ và số liệu. 3. Admin lọc theo thời gian, danh mục. 4. Hệ thống cập nhật biểu đồ.
+Luồng ngoại lệ:#3a. Không có dữ liệu. Hệ thống hiển thị thông báo và gợi ý chọn lại. 3b. Kết nối CSDL lỗi. Hệ thống thông báo.
+
+Tên use case:#Đặt bàn trước
+Tác nhân chính:#Khách hàng, Nhân viên
+Mục tiêu:#Đặt bàn trước tại nhà hàng
+Điều kiện tiên quyết:#Bàn còn trống
+Điều kiện hậu:#Bàn được đặt
+Luồng sự kiện chính:#1. Khách hàng chọn ngày giờ và số người. 2. Hệ thống hiển thị bàn trống. 3. Khách hàng chọn bàn và nhập thông tin. 4. Hệ thống xác nhận đặt bàn. 5. Hệ thống thông báo real-time đến nhân viên.
+Luồng ngoại lệ:#3a. Dữ liệu nhập không hợp lệ. Hệ thống báo lỗi. 3b. Không còn bàn trống. Hệ thống gợi ý khung giờ khác.
+
+Tên use case:#Gợi ý AI
+Tác nhân chính:#DeepSeek AI (hệ thống ngoài)
+Mục tiêu:#Gợi ý món ăn và xếp bàn tự động
+Điều kiện tiên quyết:#Hệ thống kết nối được DeepSeek API
+Điều kiện hậu:#Kết quả gợi ý được hiển thị
+Luồng sự kiện chính:#1. Hệ thống thu thập dữ liệu (món đã gọi, sở thích khách, số lượng người). 2. Hệ thống gửi request đến DeepSeek API. 3. DeepSeek trả về gợi ý món ăn và cách xếp bàn. 4. Hệ thống hiển thị gợi ý cho nhân viên/khách hàng.
+Luồng ngoại lệ:#2a. Kết nối DeepSeek API thất bại. Hệ thống dùng gợi ý mặc định. 2b. Dữ liệu đầu vào không đủ. Hệ thống yêu cầu nhập thêm.

@@ -1,0 +1,28 @@
+@startuml
+skinparam defaultTextAlignment center
+skinparam backgroundColor #FEFEFE
+
+title Sửa đơn hàng
+
+actor "Nhân viên" as user
+participant "Trang đơn hàng" as page
+participant "OrdersController" as ctrl
+database "DB Orders" as db
+
+== Luong chinh ==
+user -> page : Nhân viên chọn đơn hàng cần sửa.
+ctrl --> page : Hệ thống hiển thị chi tiết đơn hàng.
+page -> user : Hệ thống hiển thị chi tiết đơn hàng.
+page -> ctrl : Nhân viên thêm bớt món hoặc sửa số lượng.
+ctrl -> ctrl : Hệ thống tính lại tổng tiền.
+user -> page : Nhân viên xác nhận.
+page -> ctrl : Nhân viên xác nhận.
+page --> user : Hệ thống cập nhật CSDL và thông báo real-time.
+
+alt Dữ liệu nhập không hợp lệ. Hệ thống báo lỗi.
+    ctrl --> user : Dữ liệu nhập không hợp lệ. Hệ thống báo lỗi.
+else Đơn hàng đã thanh toán. Hệ thống báo lỗi không cho sửa.
+    ctrl --> user : Đơn hàng đã thanh toán. Hệ thống báo lỗi không cho sửa.
+end
+
+@enduml

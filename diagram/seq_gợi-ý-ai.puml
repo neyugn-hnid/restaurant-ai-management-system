@@ -1,0 +1,23 @@
+@startuml
+skinparam defaultTextAlignment center
+skinparam backgroundColor #FEFEFE
+
+title Gợi ý AI
+
+actor "DeepSeek AI (hệ thống ngoài)" as user
+participant "Trang gợi ý" as page
+participant "DeepSeekChatClient" as ctrl
+database "DeepSeek API" as db
+
+== Luong chinh ==
+user -> page : Hệ thống thu thập dữ liệu (món đã gọi, sở thích khách, số lượng người).
+ctrl -> ctrl : Hệ thống gửi request đến DeepSeek API.
+page -> ctrl : DeepSeek trả về gợi ý món ăn và cách xếp bàn.
+ctrl --> page : Hệ thống hiển thị gợi ý cho nhân viên/khách hàng.
+page -> user : Hệ thống hiển thị gợi ý cho nhân viên/khách hàng.
+
+alt Kết nối DeepSeek API thất bại. Hệ thống dùng gợi ý mặc định. 2b. Dữ liệu đầu vào không đủ. Hệ thống yêu cầu nhập thêm.
+    ctrl --> user : Kết nối DeepSeek API thất bại. Hệ thống dùng gợi ý mặc định. 2b. Dữ liệu đầu vào không đủ. Hệ thống yêu cầu nhập thêm.
+end
+
+@enduml

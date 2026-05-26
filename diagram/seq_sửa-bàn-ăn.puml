@@ -1,0 +1,28 @@
+@startuml
+skinparam defaultTextAlignment center
+skinparam backgroundColor #FEFEFE
+
+title Sửa bàn ăn
+
+actor "Admin" as user
+participant "Trang quản lý bàn" as page
+participant "RestaurantTablesController" as ctrl
+database "DB RestaurantTables" as db
+
+== Luong chinh ==
+user -> page : Admin chọn bàn cần sửa.
+ctrl --> page : Hệ thống hiển thị form sửa.
+page -> user : Hệ thống hiển thị form sửa.
+page -> ctrl : Admin chỉnh sửa thông tin.
+ctrl -> db : Admin lưu.
+db --> ctrl : OK
+ctrl -> db : Hệ thống cập nhật CSDL và sơ đồ real-time.
+db --> ctrl : OK
+
+alt Dữ liệu nhập không hợp lệ. Hệ thống báo lỗi.
+    ctrl --> user : Dữ liệu nhập không hợp lệ. Hệ thống báo lỗi.
+else Tên bàn mới đã tồn tại. Hệ thống báo lỗi.
+    ctrl --> user : Tên bàn mới đã tồn tại. Hệ thống báo lỗi.
+end
+
+@enduml

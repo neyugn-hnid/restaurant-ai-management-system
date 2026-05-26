@@ -1,0 +1,24 @@
+@startuml
+skinparam defaultTextAlignment center
+skinparam backgroundColor #FEFEFE
+
+title Xem thống kê
+
+actor "Admin" as user
+participant "Trang thống kê" as page
+participant "AnalyticsController" as ctrl
+database "DB Analytics" as db
+
+== Luong chinh ==
+user -> page : Admin mở trang thống kê.
+ctrl --> page : Hệ thống hiển thị biểu đồ và số liệu.
+page -> user : Hệ thống hiển thị biểu đồ và số liệu.
+page -> ctrl : Admin lọc theo thời gian, danh mục.
+ctrl -> db : Hệ thống cập nhật biểu đồ.
+db --> ctrl : OK
+
+alt Không có dữ liệu. Hệ thống hiển thị thông báo và gợi ý chọn lại. 3b. Kết nối CSDL lỗi. Hệ thống thông báo.
+    ctrl --> user : Không có dữ liệu. Hệ thống hiển thị thông báo và gợi ý chọn lại. 3b. Kết nối CSDL lỗi. Hệ thống thông báo.
+end
+
+@enduml

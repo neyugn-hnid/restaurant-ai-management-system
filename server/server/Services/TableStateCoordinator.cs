@@ -88,9 +88,9 @@ public sealed class TableStateCoordinator
         var reservation = await _context.Reservation
             .Where(item => item.TableId == tableId
                 && item.ReservationDate >= today
-                && (item.Status == ReservationStatus.Confirmed || item.Status == ReservationStatus.CheckedIn))
+                && (new[] { ReservationStatus.Confirmed, ReservationStatus.CheckedIn }).Contains(item.Status))
             .OrderBy(item => item.ReservationDate)
-            .ThenBy(item => item.ReservationTime)
+            .ThenBy(item => item.ReservationTime.Hours).ThenBy(item => item.ReservationTime.Minutes)
             .FirstOrDefaultAsync();
 
         if (reservation == null) return;

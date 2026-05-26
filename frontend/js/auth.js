@@ -239,16 +239,19 @@
         var registerForm = document.getElementById('registerForm');
         
         // Setup password visibility toggle
-        var togglePasswords = document.querySelectorAll('.toggle-password');
-        togglePasswords.forEach(function(togglePassword) {
-            togglePassword.addEventListener('click', function() {
-                var passwordField = this.previousElementSibling;
-                if(passwordField) {
-                    var type = passwordField.getAttribute('type') === 'password' ? 'text' : 'password';
-                    passwordField.setAttribute('type', type);
-                    this.textContent = type === 'password' ? 'visibility_off' : 'visibility';
+        document.addEventListener('click', function(e) {
+            var target = e.target.closest('.toggle-password');
+            if(target) {
+                var wrapper = target.closest('.login-input-wrapper');
+                if(wrapper) {
+                    var passwordField = wrapper.querySelector('input');
+                    if(passwordField) {
+                        var type = passwordField.getAttribute('type') === 'password' ? 'text' : 'password';
+                        passwordField.setAttribute('type', type);
+                        target.textContent = type === 'password' ? 'visibility_off' : 'visibility';
+                    }
                 }
-            });
+            }
         });
 
         if (form) {

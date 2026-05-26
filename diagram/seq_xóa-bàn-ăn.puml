@@ -1,0 +1,31 @@
+@startuml
+skinparam defaultTextAlignment center
+skinparam backgroundColor #FEFEFE
+
+title Xóa bàn ăn
+
+actor "Admin" as user
+participant "Trang quản lý bàn" as page
+participant "RestaurantTablesController" as ctrl
+database "DB RestaurantTables" as db
+
+== Luong chinh ==
+user -> page : Admin chọn bàn cần xóa.
+ctrl --> page : Hệ thống hiển thị hộp thoại xác nhận.
+page -> user : Hệ thống hiển thị hộp thoại xác nhận.
+user -> page : Admin xác nhận xóa.
+page -> ctrl : Admin xác nhận xóa.
+ctrl -> db : Hệ thống kiểm tra ràng buộc.
+db --> ctrl : ket qua
+user -> page : Hệ thống xóa khỏi CSDL.
+page -> ctrl : Hệ thống xóa khỏi CSDL.
+ctrl -> db : xoa du lieu
+db --> ctrl : OK
+ctrl -> db : Hệ thống cập nhật sơ đồ real-time.
+db --> ctrl : OK
+
+alt Bàn đang có khách. Hệ thống báo lỗi. 4b. Bàn đang có đặt trước. Hệ thống báo lỗi.
+    ctrl --> user : Bàn đang có khách. Hệ thống báo lỗi. 4b. Bàn đang có đặt trước. Hệ thống báo lỗi.
+end
+
+@enduml

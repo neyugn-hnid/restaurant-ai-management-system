@@ -1,0 +1,33 @@
+@startuml
+skinparam defaultTextAlignment center
+skinparam backgroundColor #FEFEFE
+
+title Thêm món ăn
+
+actor "Admin" as user
+participant "Trang thực đơn" as page
+participant "ProductsController" as ctrl
+database "DB Products" as db
+
+== Luong chinh ==
+user -> page : Admin mở trang quản lý thực đơn.
+ctrl --> page : Hệ thống hiển thị danh sách món ăn.
+page -> user : Hệ thống hiển thị danh sách món ăn.
+user -> page : Admin nhấn nút thêm món.
+page -> ctrl : Admin nhấn nút thêm món.
+ctrl --> page : Hệ thống hiển thị form thêm món.
+page -> user : Hệ thống hiển thị form thêm món.
+user -> page : Admin nhập thông tin món ăn (tên, giá, danh mục, ảnh).
+ctrl -> db : Admin nhấn lưu.
+db --> ctrl : OK
+ctrl -> db : Hệ thống kiểm tra dữ liệu.
+db --> ctrl : ket qua
+ctrl -> db : Hệ thống lưu món ăn vào CSDL.
+db --> ctrl : OK
+page --> user : Hệ thống thông báo thành công.
+
+alt Dữ liệu nhập không hợp lệ. Hệ thống báo lỗi và yêu cầu nhập lại. 5b. Tên món ăn đã tồn tại. Hệ thống báo lỗi.
+    ctrl --> user : Dữ liệu nhập không hợp lệ. Hệ thống báo lỗi và yêu cầu nhập lại. 5b. Tên món ăn đã tồn tại. Hệ thống báo lỗi.
+end
+
+@enduml

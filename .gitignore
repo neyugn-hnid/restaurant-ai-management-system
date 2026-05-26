@@ -1,1 +1,10 @@
 .vs/
+# Build output
+bin/
+obj/
+temp_build_output/
+*.dll
+*.exe
+*.pdb
+*.so
+*.dylib

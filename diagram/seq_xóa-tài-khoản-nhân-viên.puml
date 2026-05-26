@@ -1,0 +1,28 @@
+@startuml
+skinparam defaultTextAlignment center
+skinparam backgroundColor #FEFEFE
+
+title Xóa tài khoản nhân viên
+
+actor "Admin" as user
+participant "Trang quản lý tài khoản" as page
+participant "AccountsController" as ctrl
+database "DB Accounts" as db
+
+== Luong chinh ==
+user -> page : Admin chọn nhân viên cần xóa.
+ctrl --> page : Hệ thống hiển thị hộp thoại xác nhận.
+page -> user : Hệ thống hiển thị hộp thoại xác nhận.
+user -> page : Admin xác nhận xóa.
+page -> ctrl : Admin xác nhận xóa.
+user -> page : Hệ thống xóa khỏi CSDL.
+page -> ctrl : Hệ thống xóa khỏi CSDL.
+ctrl -> db : xoa du lieu
+db --> ctrl : OK
+page --> user : Hệ thống thông báo thành công.
+
+alt Admin không thể xóa tài khoản của chính mình. Hệ thống báo lỗi. 3b. Nhân viên đang có đơn hàng chưa xử lý. Hệ thống cảnh báo.
+    ctrl --> user : Admin không thể xóa tài khoản của chính mình. Hệ thống báo lỗi. 3b. Nhân viên đang có đơn hàng chưa xử lý. Hệ thống cảnh báo.
+end
+
+@enduml

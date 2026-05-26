@@ -1,0 +1,25 @@
+@startuml
+skinparam defaultTextAlignment center
+skinparam backgroundColor #FEFEFE
+
+title Đặt bàn trước
+
+actor "Khách hàng" as user
+participant "Trang quản lý bàn" as page
+participant "RestaurantTablesController" as ctrl
+database "DB RestaurantTables" as db
+
+== Luong chinh ==
+user -> page : Khách hàng chọn ngày giờ và số người.
+ctrl --> page : Hệ thống hiển thị bàn trống.
+page -> user : Hệ thống hiển thị bàn trống.
+user -> page : Khách hàng chọn bàn và nhập thông tin.
+user -> page : Hệ thống xác nhận đặt bàn.
+page -> ctrl : Hệ thống xác nhận đặt bàn.
+page --> user : Hệ thống thông báo real-time đến nhân viên.
+
+alt Dữ liệu nhập không hợp lệ. Hệ thống báo lỗi. 3b. Không còn bàn trống. Hệ thống gợi ý khung giờ khác.
+    ctrl --> user : Dữ liệu nhập không hợp lệ. Hệ thống báo lỗi. 3b. Không còn bàn trống. Hệ thống gợi ý khung giờ khác.
+end
+
+@enduml

@@ -1,0 +1,30 @@
+@startuml
+skinparam defaultTextAlignment center
+skinparam backgroundColor #FEFEFE
+
+title Xóa món ăn
+
+actor "Admin" as user
+participant "Trang thực đơn" as page
+participant "ProductsController" as ctrl
+database "DB Products" as db
+
+== Luong chinh ==
+user -> page : Admin chọn món ăn cần xóa.
+ctrl --> page : Hệ thống hiển thị hộp thoại xác nhận xóa.
+page -> user : Hệ thống hiển thị hộp thoại xác nhận xóa.
+user -> page : Admin xác nhận xóa.
+page -> ctrl : Admin xác nhận xóa.
+ctrl -> db : Hệ thống kiểm tra ràng buộc.
+db --> ctrl : ket qua
+user -> page : Hệ thống xóa món ăn khỏi CSDL.
+page -> ctrl : Hệ thống xóa món ăn khỏi CSDL.
+ctrl -> db : xoa du lieu
+db --> ctrl : OK
+page --> user : Hệ thống thông báo thành công.
+
+alt Món ăn đang có trong đơn hàng. Hệ thống báo lỗi và không cho xóa.
+    ctrl --> user : Món ăn đang có trong đơn hàng. Hệ thống báo lỗi và không cho xóa.
+end
+
+@enduml

@@ -1,0 +1,31 @@
+@startuml
+skinparam defaultTextAlignment center
+skinparam backgroundColor #FEFEFE
+
+title Sửa món ăn
+
+actor "Admin" as user
+participant "Trang thực đơn" as page
+participant "ProductsController" as ctrl
+database "DB Products" as db
+
+== Luong chinh ==
+user -> page : Admin chọn món ăn cần sửa.
+ctrl --> page : Hệ thống hiển thị form với dữ liệu hiện tại.
+page -> user : Hệ thống hiển thị form với dữ liệu hiện tại.
+page -> ctrl : Admin chỉnh sửa thông tin.
+ctrl -> db : Admin nhấn lưu.
+db --> ctrl : OK
+ctrl -> db : Hệ thống kiểm tra dữ liệu.
+db --> ctrl : ket qua
+ctrl -> db : Hệ thống cập nhật CSDL.
+db --> ctrl : OK
+page --> user : Hệ thống thông báo thành công.
+
+alt Dữ liệu nhập không hợp lệ. Hệ thống báo lỗi.
+    ctrl --> user : Dữ liệu nhập không hợp lệ. Hệ thống báo lỗi.
+else Tên món mới đã tồn tại. Hệ thống báo lỗi.
+    ctrl --> user : Tên món mới đã tồn tại. Hệ thống báo lỗi.
+end
+
+@enduml

@@ -11,9 +11,8 @@ using System.Text;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddDbContext<serverContext>(options =>
-    options.UseSqlServer(
-        builder.Configuration.GetConnectionString("serverContext")
-        ?? throw new InvalidOperationException("Connection string 'serverContext' not found.")));
+    options.UseSqlite(
+        "Data Source=restaurant.db"));
 builder.Services.Configure<DeepSeekOptions>(builder.Configuration.GetSection("DeepSeek"));
 builder.Services.AddHttpClient<DeepSeekChatClient>();
 builder.Services.AddSignalR();

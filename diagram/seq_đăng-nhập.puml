@@ -1,0 +1,30 @@
+@startuml
+skinparam defaultTextAlignment center
+skinparam backgroundColor #FEFEFE
+
+title Đăng nhập
+
+actor "Người dùng (Admin" as user
+participant "Trang đăng nhập" as page
+participant "AuthController" as ctrl
+database "DB Accounts" as db
+
+== Luong chinh ==
+user -> page : Người dùng mở màn hình đăng nhập.
+ctrl --> page : Hệ thống hiển thị form đăng nhập.
+page -> user : Hệ thống hiển thị form đăng nhập.
+user -> page : Người dùng nhập tên đăng nhập và mật khẩu.
+user -> page : Người dùng nhấn nút đăng nhập.
+ctrl -> db : Hệ thống kiểm tra thông tin đăng nhập.
+db --> ctrl : ket qua
+ctrl -> db : Hệ thống tạo phiên đăng nhập (JWT token).
+db --> ctrl : OK
+ctrl --> user : Hệ thống chuyển hướng đến trang Dashboard.
+
+alt Dữ liệu nhập không hợp lệ. Hệ thống thông báo lỗi.
+    ctrl --> user : Dữ liệu nhập không hợp lệ. Hệ thống thông báo lỗi.
+else Thông tin đăng nhập sai. Hệ thống thông báo lỗi và yêu cầu nhập lại.
+    ctrl --> user : Thông tin đăng nhập sai. Hệ thống thông báo lỗi và yêu cầu nhập lại.
+end
+
+@enduml

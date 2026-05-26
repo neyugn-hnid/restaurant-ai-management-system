@@ -1,0 +1,33 @@
+@startuml
+skinparam defaultTextAlignment center
+skinparam backgroundColor #FEFEFE
+
+title Tạo đơn hàng
+
+actor "Nhân viên" as user
+participant "Trang đơn hàng" as page
+participant "OrdersController" as ctrl
+database "DB Orders" as db
+
+== Luong chinh ==
+user -> page : Nhân viên mở trang đơn hàng.
+ctrl --> page : Hệ thống hiển thị danh sách đơn hàng.
+page -> user : Hệ thống hiển thị danh sách đơn hàng.
+ctrl -> db : Nhân viên nhấn tạo đơn hàng mới.
+db --> ctrl : OK
+ctrl -> db : Hệ thống hiển thị form tạo đơn (chọn bàn, chọn món).
+db --> ctrl : OK
+page -> ctrl : Nhân viên chọn món và số lượng.
+ctrl -> db : Nhân viên xác nhận tạo đơn.
+db --> ctrl : OK
+ctrl -> db : Hệ thống lưu đơn hàng vào CSDL.
+db --> ctrl : OK
+page --> user : Hệ thống thông báo real-time đến bộ phận bếp.
+
+alt Dữ liệu nhập không hợp lệ. Hệ thống báo lỗi.
+    ctrl --> user : Dữ liệu nhập không hợp lệ. Hệ thống báo lỗi.
+else Bàn đã có người. Hệ thống báo lỗi và yêu cầu chọn bàn khác.
+    ctrl --> user : Bàn đã có người. Hệ thống báo lỗi và yêu cầu chọn bàn khác.
+end
+
+@enduml

@@ -1,0 +1,28 @@
+@startuml
+skinparam defaultTextAlignment center
+skinparam backgroundColor #FEFEFE
+
+title Dang ky tai khoan - Trinh tu
+
+actor "Nguoi dung" as user
+participant "AuthController" as ctrl
+participant "EmailService" as mail
+database "DB\nAccounts" as db
+
+user -> ctrl : POST /Auth/register\n(fullName, email,\nusername, pass)
+ctrl -> ctrl : validate input
+ctrl -> db : SELECT * FROM Accounts\nWHERE email = @email
+db --> ctrl : chua ton tai / da ton tai
+
+alt email da ton tai
+    ctrl --> user : 409 - Email da duoc su dung
+else email moi
+    ctrl -> ctrl : hash password (BCrypt)
+    ctrl -> db : INSERT INTO Accounts\n(username, pass_hash,\nfullName, role, status)
+    db --> ctrl : OK
+    ctrl -> mail : gui OTP xac thuc email
+    mail --> ctrl : da gui
+    ctrl --> user : 201 - Dang ky thanh cong\n(yeu cau xac thuc email)
+end
+
+@enduml

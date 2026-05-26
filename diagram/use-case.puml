@@ -1,0 +1,65 @@
+@startuml
+skinparam defaultTextAlignment center
+skinparam backgroundColor #FEFEFE
+skinparam actorStyle awesome
+skinparam rectangle {
+  BorderColor #666666
+  BorderThickness 1
+  roundCorner 5
+}
+skinparam usecase {
+  BorderColor #4A90D9
+  BackgroundColor #EBF4FF
+  FontSize 12
+}
+skinparam actor {
+  BorderColor #333333
+  FontSize 14
+  FontStyle bold
+}
+
+title **Use Case Diagram - L'Heritage Restaurant**
+
+' ===== Actors =====
+actor "Admin" as admin
+actor "Nhan vien" as staff
+actor "Khach hang" as customer
+
+' ===== System =====
+rectangle "He thong Quan ly Nha hang" {
+  usecase "Dang nhap" as UC1
+  usecase "Quan ly thuc don (Categories + Products)" as UC2
+  usecase "Quan ly don hang (CRUD + Status)" as UC3
+  usecase "Quan ly ban an (Restaurant Tables)" as UC4
+  usecase "Xem so do ban (Map)" as UC5
+  usecase "Quan ly khach hang (Customers)" as UC6
+  usecase "Quan ly tai khoan (Staff Accounts)" as UC7
+  usecase "Thong ke (Analytics)" as UC8
+  usecase "Dat ban truoc (Reservations)" as UC9
+  usecase "Xem Menu & Goi mon (Customer Order)" as UC10
+  usecase "Goi y AI (DeepSeek)" as UC11
+}
+
+' ===== Đường nối thẳng =====
+admin -r-> UC1
+admin -r-> UC2
+admin -r-> UC3
+admin -r-> UC4
+admin -d-> UC6
+admin -d-> UC7
+admin -d-> UC8
+admin -d-> UC9
+
+staff -r-> UC3
+staff -r-> UC4
+staff -r-> UC5
+staff -r-> UC9
+staff -d-> UC10
+
+customer -r-> UC9
+customer -r-> UC10
+
+UC11 .r.> UC10 : goi y mon
+UC11 .d.> UC9 : goi y ban
+
+@enduml

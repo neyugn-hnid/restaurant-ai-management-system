@@ -1,0 +1,24 @@
+@startuml
+skinparam defaultTextAlignment center
+skinparam backgroundColor #FEFEFE
+
+title Dat ban truoc - Trinh tu
+
+actor "Khach hang" as user
+participant "ReservationsController" as ctrl
+database "DB\nRestaurantTables" as tb
+database "DB\nReservations" as rs
+
+user -> ctrl : POST /api/Reservations\n(ngay, gio, so nguoi,\nthong tin khach)
+ctrl -> tb : kiem tra ban con trong?
+tb --> ctrl : danh sach ban trong
+ctrl -> ctrl : chon ban phu hop
+ctrl -> rs : luu dat ban
+rs --> ctrl : thanh cong
+ctrl --> user : 200 OK\n{ ma dat ban, thong tin }
+
+alt het ban
+    ctrl --> user : 400 - Het ban trong
+end
+
+@enduml

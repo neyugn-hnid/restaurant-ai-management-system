@@ -1,0 +1,34 @@
+@startuml
+skinparam defaultTextAlignment center
+skinparam backgroundColor #FEFEFE
+
+title Đăng ký tài khoản
+
+actor "Người dùng" as user
+participant "Trang đăng ký" as page
+participant "AuthController" as ctrl
+database "DB Accounts" as db
+
+== Luong chinh ==
+user -> page : Người dùng mở màn hình đăng ký.
+ctrl --> page : Hệ thống hiển thị form đăng ký.
+page -> user : Hệ thống hiển thị form đăng ký.
+user -> page : Người dùng nhập thông tin.
+user -> page : Người dùng nhấn nút đăng ký.
+page -> ctrl : Người dùng nhấn nút đăng ký.
+ctrl -> db : Hệ thống kiểm tra tính hợp lệ của dữ liệu.
+db --> ctrl : ket qua
+ctrl -> db : Hệ thống kiểm tra email trong hệ thống.
+db --> ctrl : ket qua
+ctrl -> db : Hệ thống tạo tài khoản mới lưu vào CSDL.
+db --> ctrl : OK
+ctrl -> ctrl : Hệ thống gửi OTP đến email người dùng.
+page --> user : Hệ thống thông báo đăng ký thành công và yêu cầu xác thực email.
+
+alt Dữ liệu nhập không hợp lệ. Hệ thống thông báo lỗi tại các trường bắt buộc.
+    ctrl --> user : Dữ liệu nhập không hợp lệ. Hệ thống thông báo lỗi tại các trường bắt buộc.
+else Email đã tồn tại. Hệ thống thông báo email đã được sử dụng.
+    ctrl --> user : Email đã tồn tại. Hệ thống thông báo email đã được sử dụng.
+end
+
+@enduml

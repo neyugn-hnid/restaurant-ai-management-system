@@ -1,0 +1,34 @@
+@startuml
+skinparam defaultTextAlignment center
+skinparam backgroundColor #FEFEFE
+
+title Thêm tài khoản nhân viên
+
+actor "Admin" as user
+participant "Trang quản lý tài khoản" as page
+participant "AccountsController" as ctrl
+database "DB Accounts" as db
+
+== Luong chinh ==
+user -> page : Admin mở trang quản lý tài khoản.
+ctrl --> page : Hệ thống hiển thị danh sách nhân viên.
+page -> user : Hệ thống hiển thị danh sách nhân viên.
+user -> page : Admin nhấn thêm nhân viên.
+page -> ctrl : Admin nhấn thêm nhân viên.
+ctrl --> page : Hệ thống hiển thị form thêm (tên, username, pass, vai trò).
+page -> user : Hệ thống hiển thị form thêm (tên, username, pass, vai trò).
+ctrl -> db : Admin nhập thông tin và lưu.
+db --> ctrl : OK
+ctrl -> db : Hệ thống kiểm tra username đã tồn tại.
+db --> ctrl : ket qua
+ctrl -> db : Hệ thống hash password và lưu vào CSDL.
+db --> ctrl : OK
+page --> user : Hệ thống thông báo thành công.
+
+alt Dữ liệu nhập không hợp lệ. Hệ thống báo lỗi.
+    ctrl --> user : Dữ liệu nhập không hợp lệ. Hệ thống báo lỗi.
+else Username đã tồn tại. Hệ thống báo lỗi.
+    ctrl --> user : Username đã tồn tại. Hệ thống báo lỗi.
+end
+
+@enduml

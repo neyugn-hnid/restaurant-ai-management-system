@@ -1,0 +1,29 @@
+@startuml
+skinparam defaultTextAlignment center
+skinparam backgroundColor #FEFEFE
+
+title Sửa tài khoản nhân viên
+
+actor "Admin" as user
+participant "Trang quản lý tài khoản" as page
+participant "AccountsController" as ctrl
+database "DB Accounts" as db
+
+== Luong chinh ==
+user -> page : Admin chọn nhân viên cần sửa.
+ctrl --> page : Hệ thống hiển thị form sửa.
+page -> user : Hệ thống hiển thị form sửa.
+page -> ctrl : Admin chỉnh sửa thông tin.
+ctrl -> db : Admin lưu.
+db --> ctrl : OK
+ctrl -> db : Hệ thống cập nhật CSDL.
+db --> ctrl : OK
+page --> user : Hệ thống thông báo thành công.
+
+alt Dữ liệu nhập không hợp lệ. Hệ thống báo lỗi.
+    ctrl --> user : Dữ liệu nhập không hợp lệ. Hệ thống báo lỗi.
+else Username mới đã tồn tại. Hệ thống báo lỗi.
+    ctrl --> user : Username mới đã tồn tại. Hệ thống báo lỗi.
+end
+
+@enduml
