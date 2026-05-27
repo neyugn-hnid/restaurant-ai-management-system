@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>L'Héritage | Lửa & Hương Vị Đích Thực</title>
+    <script>document.documentElement.style.overflow='hidden';document.write('<div id="page-loader" style="position:fixed;top:0;left:0;right:0;bottom:0;z-index:99999;background:#f2f0eb;display:flex;align-items:center;justify-content:center"><div style="width:48px;height:48px;border:5px solid #e0dcd5;border-top-color:#00754A;border-radius:50%;animation:spin 0.8s linear infinite"></div></div><style>@keyframes spin{to{transform:rotate(360deg)}}</style>');window.addEventListener('load',function(){setTimeout(function(){var l=document.getElementById('page-loader');if(l){l.style.transition='opacity 0.6s ease';l.style.opacity='0';document.documentElement.style.overflow='';setTimeout(function(){l.remove()},700)}},400)});setTimeout(function(){var l=document.getElementById('page-loader');if(l){l.style.opacity='0';document.documentElement.style.overflow='';setTimeout(function(){l&&l.remove()},700)}},5000);</script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -225,75 +226,6 @@
             </div>
         </div>
     </div>
-
-    <!-- Modal Đăng Ký -->
-        <div class="modal-dialog modal-dialog-centered login-modal-dialog">
-            <div class="modal-content border-0 shadow-lg overflow-hidden login-modal-content">
-                <div class="row g-0">
-                    <!-- Khu vực hình ảnh -->
-                    <div class="col-md-5 d-none d-md-block" style="background: url('https://images.unsplash.com/photo-1514933651103-005eec06c04b?auto=format&fit=crop&q=80&w=1000') center/cover;">
-                        <div class="h-100 w-100 d-flex flex-column justify-content-end p-4 p-lg-5" style="background: linear-gradient(to top, rgba(30,57,50,0.95) 0%, rgba(30,57,50,0.4) 50%, transparent 100%);">
-                            <h3 class="text-white fw-bold mb-2">Deagun</h3>
-                            <p class="text-white-50 mb-0" style="font-size: 1.4rem;">Gia nhập cùng chúng tôi</p>
-                        </div>
-                    </div>
-
-                    <!-- Khu vực nhập liệu -->
-                    <div class="col-12 col-md-7 position-relative">
-                        <button type="button" class="btn-close position-absolute top-0 end-0 m-4" data-bs-dismiss="modal" aria-label="Close"></button>
-                        <div class="login-form-panel">
-                            <div class="mb-4">
-                                <span class="login-form-kicker">Tài khoản mới</span>
-                                <p class="text-muted mb-0" style="font-size: 1.4rem;">Điền thông tin để tạo tài khoản mới.</p>
-                            </div>
-
-                                <div class="mb-3">
-                                    <label class="form-label fw-semibold text-secondary" style="font-size: 1.3rem;">Họ và tên</label>
-                                    <div class="login-input-wrapper position-relative">
-                                        <input type="text" class="form-control login-input bg-light py-3 border" style="border-radius: 12px; font-size: 1.5rem; padding-left: 4.5rem;" id="registerFullName" placeholder="Nhập họ tên" >
-                                    </div>
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label fw-semibold text-secondary" style="font-size: 1.3rem;">Email</label>
-                                    <div class="login-input-wrapper position-relative">
-                                        <input type="email" class="form-control login-input bg-light py-3 border" style="border-radius: 12px; font-size: 1.5rem; padding-left: 4.5rem;" id="registerEmail" placeholder="example@gmail.com" >
-                                    </div>
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label fw-semibold text-secondary" style="font-size: 1.3rem;">Tên đăng nhập</label>
-                                    <div class="login-input-wrapper position-relative">
-                                        <input type="text" class="form-control login-input bg-light py-3 border" style="border-radius: 12px; font-size: 1.5rem; padding-left: 4.5rem;" id="registerUsername" placeholder="Nhập username" >
-                                    </div>
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label fw-semibold text-secondary" style="font-size: 1.3rem;">Mật khẩu</label>
-                                    <div class="login-input-wrapper position-relative">
-                                        <input type="password" class="form-control login-input bg-light py-3 border" style="border-radius: 12px; font-size: 1.5rem; padding-left: 4.5rem; padding-right: 4.5rem;" id="registerPassword" placeholder="Nhập mật khẩu" >
-                                        <span class="material-symbols-outlined position-absolute text-muted toggle-password" style="top: 1.3rem; right: 1.5rem; cursor: pointer; font-size: 1.8rem; z-index: 10;" title="Hiện/ẩn mật khẩu">visibility_off</span>
-                                    </div>
-                                </div>
-                                <div class="mb-4">
-                                    <label class="form-label fw-semibold text-secondary" style="font-size: 1.3rem;">Xác nhận mật khẩu</label>
-                                    <div class="login-input-wrapper position-relative">
-                                        <input type="password" class="form-control login-input bg-light py-3 border" style="border-radius: 12px; font-size: 1.5rem; padding-left: 4.5rem; padding-right: 4.5rem;" id="registerConfirmPassword" placeholder="Nhập lại mật khẩu" >
-                                        <span class="material-symbols-outlined position-absolute text-muted toggle-password" style="top: 1.3rem; right: 1.5rem; cursor: pointer; font-size: 1.8rem; z-index: 10;" title="Hiện/ẩn mật khẩu">visibility_off</span>
-                                    </div>
-                                </div>
-                                <div id="registerError" class="alert alert-danger d-none rounded-3 py-2 mb-3" style="font-size: 1.3rem;"></div>
-                                <button type="submit" class="btn w-100 fw-bold py-3 shadow-sm d-flex align-items-center justify-content-center gap-2 mt-2" style="background-color: var(--color-brand); color: white; border-radius: 12px; font-size: 1.5rem; transition: all 0.3s ease;" onmouseover="this.style.backgroundColor='var(--color-house-green)'" onmouseout="this.style.backgroundColor='var(--color-brand)'">
-                                    <span class="material-symbols-outlined fs-5">person_add</span>
-                                    <span>Đăng ký</span>
-                                </button>
-                                <div class="mt-4 text-center" style="font-size: 1.3rem;">
-                                    <span class="text-muted">Đã có tài khoản?</span>
-                                    <a href="#" class="text-decoration-none fw-bold" style="color: var(--color-brand);" data-bs-target="#loginModal" data-bs-toggle="modal">Đăng nhập ngay</a>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
     </div>
 
     <script src="./js/form-validation.js"></script>

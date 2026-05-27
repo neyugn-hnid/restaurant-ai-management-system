@@ -1,4 +1,3 @@
-
 const MOCK_CATEGORIES = [
     {
         "id": 1,
@@ -73,7 +72,6 @@ const MOCK_CATEGORIES = [
         "status": "Hoạt động"
     }
 ];
-
 const MOCK_PRODUCTS = [
     {
         "id": 1,
@@ -562,14 +560,12 @@ const MOCK_PRODUCTS = [
         "description": "Lớp vỏ da giòn tan, lớp mỡ thơm dịu, thớ nạc đỏ au rưới mứt cam chua ngọt hoàn mĩ."
     }
 ];
-
 const MOCK_ACCOUNTS = [
     { id: 1, username: 'admin', password_hash: 'hashed_password_here', fullName: 'Quản trị viên', role: 'admin', status: 'Hoạt động', created_at: '2026-01-01T08:00:00Z' },
     { id: 2, username: 'manager', password_hash: 'hashed_password_here', fullName: 'Quản lý cửa hàng', role: 'manager', status: 'Hoạt động', created_at: '2026-01-02T08:00:00Z' },
     { id: 3, username: 'nhanvien1', password_hash: 'hashed_password_here', fullName: 'Lê Văn C', role: 'staff', status: 'Hoạt động', created_at: '2026-02-15T09:30:00Z' },
     { id: 4, username: 'nhanvien2', password_hash: 'hashed_password_here', fullName: 'Phạm Thị D', role: 'staff', status: 'Hoạt động', created_at: '2026-03-10T10:15:00Z' }
 ];
-
 const MOCK_CUSTOMERS = [
     { id: 'KH101', phone: '0901234567', name: 'Nguyễn Văn A', full_name: 'Nguyễn Văn A', email: 'nguyenvana@gmail.com', visits: 5, totalSpent: 15000000, total_spent: 15000000, tier: 'gold', created_at: '2025-12-10T14:20:00Z' },
     { id: 'KH102', phone: '0912345678', name: 'Trần Thị B', full_name: 'Trần Thị B', email: 'tranthib@gmail.com', visits: 1, totalSpent: 2450000, total_spent: 2450000, tier: 'new', created_at: '2026-04-05T18:45:00Z' },
@@ -577,7 +573,6 @@ const MOCK_CUSTOMERS = [
     { id: 'KH104', phone: '0933445566', name: 'Hoàng Đăng D', full_name: 'Hoàng Đăng D', email: 'hoangdangd@gmail.com', visits: 3, totalSpent: 8500000, total_spent: 8500000, tier: 'silver', created_at: '2026-01-15T12:30:00Z' },
     { id: 'KH105', phone: '0977889900', name: 'Đỗ Mỹ E', full_name: 'Đỗ Mỹ E', email: 'domye@yahoo.com', visits: 2, totalSpent: 3200000, total_spent: 3200000, tier: 'new', created_at: '2026-02-28T20:10:00Z' }
 ];
-
 const MOCK_TABLES = [
     { id: 1, zone: 'Tầng 1', capacity: 4, status: 'Trống', created_at: '2025-01-01T00:00:00Z' },
     { id: 2, zone: 'Tầng 1', capacity: 4, status: 'Trống', created_at: '2025-01-01T00:00:00Z' },
@@ -587,18 +582,15 @@ const MOCK_TABLES = [
     { id: 6, zone: 'Sân vườn', capacity: 4, status: 'Trống', created_at: '2025-01-01T00:00:00Z' },
     { id: 7, zone: 'Khu VIP', capacity: 8, status: 'Trống', created_at: '2025-01-01T00:00:00Z' }
 ];
-
 const MOCK_TABLE_STATUSES = {};
 MOCK_TABLES.forEach(table => {
     MOCK_TABLE_STATUSES[table.id] = table.status;
 });
-
 const MOCK_RESERVATIONS = [
     { id: 1, customer_id: 'KH101', table_id: 7, reservation_date: '2026-05-02', reservation_time: '19:00', guest_count: 5, status: 'Đã xác nhận', notes: 'Kỷ niệm', created_at: '2026-04-28T10:00:00Z' },
     { id: 2, customer_id: 'KH102', table_id: 2, reservation_date: '2026-05-02', reservation_time: '20:30', guest_count: 4, status: 'Chờ xử lý', notes: 'Cần ghế trẻ em', created_at: '2026-05-01T15:20:00Z' },
     { id: 3, customer_id: 'KH104', table_id: 5, reservation_date: '2026-05-03', reservation_time: '18:00', guest_count: 2, status: 'Đã xác nhận', notes: 'Bàn view đẹp', created_at: '2026-04-30T09:45:00Z' }
 ];
-
 const MOCK_ORDERS = [
     {
         id: 'ORD-17042026-001',
@@ -674,7 +666,6 @@ const MOCK_ORDERS = [
         ]
     }
 ];
-
 function initializeMockData() {
     if (!localStorage.getItem('bistro_categories')) {
         localStorage.setItem('bistro_categories', JSON.stringify(MOCK_CATEGORIES));
@@ -692,9 +683,7 @@ function initializeMockData() {
         localStorage.setItem('bistro_orders', JSON.stringify(MOCK_ORDERS));
     }
 }
-
 initializeMockData();
-
 window.BistroMockData = {
     MOCK_CATEGORIES,
     MOCK_PRODUCTS,
@@ -705,12 +694,9 @@ window.BistroMockData = {
     MOCK_RESERVATIONS,
     MOCK_ORDERS
 };
-
 document.addEventListener('DOMContentLoaded', () => {
-
     const topbar = document.querySelector('.topbar');
     const sidebar = document.querySelector('.sidebar');
-
     if (topbar && sidebar) {
         let toggleBtn = topbar.querySelector('.mobile-toggle');
         if (!toggleBtn) {
@@ -719,7 +705,6 @@ document.addEventListener('DOMContentLoaded', () => {
             toggleBtn.innerHTML = '<span class="material-symbols-outlined fs-2">menu</span>';
             topbar.insertBefore(toggleBtn, topbar.firstChild);
         }
-
         let overlay = document.querySelector('.sidebar-overlay');
         if (!overlay) {
             overlay = document.createElement('div');
@@ -731,7 +716,6 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             document.body.appendChild(overlay);
         }
-
         toggleBtn.addEventListener('click', () => {
             const isShowing = sidebar.classList.toggle('show');
             if (isShowing) {
@@ -742,15 +726,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 setTimeout(() => overlay.style.display = 'none', 300);
             }
         });
-
         overlay.addEventListener('click', () => {
             sidebar.classList.remove('show');
             overlay.style.opacity = 0;
             setTimeout(() => overlay.style.display = 'none', 300);
         });
     }
-
-
     const navbar = document.querySelector('.navbar');
     if (navbar && !sidebar) {
         let mobileNavToggle = navbar.querySelector('.mobile-nav-toggle');
@@ -763,7 +744,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 cursor: 'pointer', display: 'none'
             });
             navbar.appendChild(mobileNavToggle);
-
             const style = document.createElement('style');
             style.textContent = `
                 @media (max-width: 768px) {
@@ -781,9 +761,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     .nav-links.nav-active { clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%); }
                     .nav-links .nav-label::after { display: none; }
                     .nav-links .btn { width: 100%; text-align: center; }
-
                     .reservation-bar { grid-template-columns: 1fr !important; }
-
                     .menu-filter-island {
                         justify-content: flex-start !important;
                         padding: 1rem !important;
@@ -794,7 +772,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                     .menu-filter-island::-webkit-scrollbar { display: none; }
                     .menu-category h2 { font-size: 2.4rem !important; }
-
                     .map-main { grid-template-columns: 1fr !important; }
                     .map-booking-panel { position: static !important; width: 100% !important; margin-bottom: 2rem !important; }
                 }
@@ -805,7 +782,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             `;
             document.head.appendChild(style);
-
             if (!document.querySelector('link[href*="Material+Symbols+Outlined"]')) {
                 const link = document.createElement('link');
                 link.rel = 'stylesheet';
@@ -813,7 +789,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 document.head.appendChild(link);
             }
         }
-
         mobileNavToggle.addEventListener('click', () => {
             const navLinks = navbar.querySelector('.nav-links');
             if (navLinks) {
@@ -827,4 +802,3 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 });
-

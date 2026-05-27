@@ -1,5 +1,4 @@
 import { ORDER_STATUSES, TABLE_STATUSES } from './status-constants.js';
-
 document.addEventListener('DOMContentLoaded', async () => {
     const FV = window.FormValidation;
     const API_BASE_URL = 'http://localhost:7071/api';
@@ -7,12 +6,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     const TABLES_API_URL = `${API_BASE_URL}/RestaurantTables`;
     const PAYMENT_SETTINGS_URL = `${API_BASE_URL}/PaymentSettings`;
     const ITEMS_PER_PAGE = 10;
-
     const STATUS_FILTER_OPTIONS = [
         { value: 'Tất cả', label: 'Tất cả trạng thái' },
         ...Object.entries(ORDER_STATUSES).map(([, val]) => ({ value: val, label: val }))
     ];
-
     const elements = {
         searchInput: document.getElementById('searchInput'),
         statusFilter: document.getElementById('statusFilter'),
@@ -27,7 +24,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         statCooking: document.getElementById('stat-cooking'),
         statCompleted: document.getElementById('stat-completed')
     };
-
     const state = {
         orders: JSON.parse(localStorage.getItem('bistro_orders') || '[]'),
         currentPage: 1,
@@ -39,21 +35,18 @@ document.addEventListener('DOMContentLoaded', async () => {
         currentPaymentOrderId: null,
         currentOrderDetailsId: null
     };
-
     window.addEventListener('storage', (e) => {
         if (e.key === 'bistro_orders') {
             state.orders = JSON.parse(localStorage.getItem('bistro_orders') || '[]');
             renderOrders();
         }
     });
-
     function renderSelectOptions(selectElement, options, selectedValue) {
         if (!selectElement) return;
         selectElement.innerHTML = options
             .map(opt => `<option value="${opt.value}"${opt.value === selectedValue ? ' selected' : ''}>${opt.label}</option>`)
             .join('');
     }
-
     async function request(url, options = {}) {
         const token = localStorage.getItem('auth_token');
         const response = await fetch(url, {
@@ -68,7 +61,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (response.status === 204) return null;
         return await response.json();
     }
-
     function showToast(message, type = 'success') {
         const toast = document.getElementById('liveToast');
         const msg = document.getElementById('toastMessage');
@@ -77,34 +69,28 @@ document.addEventListener('DOMContentLoaded', async () => {
         toast.className = `toast align-items-center text-white bg-${type} border-0`;
         new bootstrap.Toast(toast, { delay: 3000 }).show();
     }
-
     function updateRealtimeBadge(stateName) {
         const badge = document.getElementById('realtimeStatusOrders');
         if (!badge) return;
-
         if (stateName === 'connected') {
             badge.className = 'badge rounded-pill text-bg-success';
             badge.textContent = 'Realtime: da ket noi';
             return;
         }
-
         if (stateName === 'connecting' || stateName === 'reconnecting') {
             badge.className = 'badge rounded-pill text-bg-warning';
             badge.textContent = 'Realtime: dang ket noi';
             return;
         }
-
         badge.className = 'badge rounded-pill text-bg-secondary';
         badge.textContent = 'Realtime: mat ket noi';
     }
-
     function getRealtimeMessage(event) {
         if (event?.type === 'orderChanged') return 'Don hang vua duoc cap nhat tu thiet bi khac.';
         if (event?.type === 'tableChanged') return 'Trang thai ban lien quan vua thay doi.';
         if (event?.type === 'reservationChanged') return 'Dat ban lien quan vua duoc cap nhat.';
         return 'Du lieu vua duoc dong bo realtime.';
     }
-
     function updateStats() {
         const setVal = (el, val) => { if (el) el.textContent = val; };
         setVal(elements.statTotal, state.orders.length);
@@ -112,7 +98,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         setVal(elements.statCooking, state.orders.filter(o => o.status === ORDER_STATUSES.PREPARING).length);
         setVal(elements.statCompleted, state.orders.filter(o => o.status === ORDER_STATUSES.COMPLETED || o.status === ORDER_STATUSES.SERVED).length);
     }
-
     function getStatusBadgeClass(status) {
         const s = status || '';
         if (s.includes('Chờ') || s === ORDER_STATUSES.PENDING) return 'bg-warning text-dark';
@@ -121,7 +106,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (s.includes('Hủy') || s === ORDER_STATUSES.CANCELLED) return 'bg-danger';
         return 'bg-secondary';
     }
-
     async function loadAndRenderOrders(resetPage = false) {
         if (resetPage) state.currentPage = 1;
         try {
@@ -145,7 +129,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         updateStats();
         renderOrders();
     }
-
     function getFilteredOrders() {
         return state.orders.filter(order => {
             const matchesFilter = state.currentFilter === 'Tất cả' || order.status === state.currentFilter;
@@ -157,19 +140,15 @@ document.addEventListener('DOMContentLoaded', async () => {
             return matchesFilter && matchesSearch;
         });
     }
-
     function renderOrders() {
         if (!elements.tableBody) return;
-
         const filtered = getFilteredOrders();
         const pageData = filtered;
-
         if (pageData.length === 0) {
             elements.tableBody.innerHTML = '<tr><td colspan="7" class="text-center py-4 text-muted">Không tìm thấy đơn hàng nào.</td></tr>';
             renderPagination();
             return;
         }
-
         elements.tableBody.innerHTML = pageData.map(o => {
             const badgeClass = getStatusBadgeClass(o.status);
             const total = Number(o.total || 0).toLocaleString('vi-VN');
@@ -207,11 +186,9 @@ document.addEventListener('DOMContentLoaded', async () => {
                     </td>
                 </tr>`;
         }).join('');
-
         bindRowButtons();
         renderPagination();
     }
-
     function bindRowButtons() {
         document.querySelectorAll('.order-detail-link').forEach(link => {
             link.addEventListener('click', (e) => {
@@ -230,7 +207,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                 new bootstrap.Modal(document.getElementById('orderDetailsModal')).show();
             });
         });
-
         document.querySelectorAll('.payment-btn').forEach(btn => {
             btn.addEventListener('click', async () => {
                 state.currentPaymentOrderId = btn.dataset.id;
@@ -246,8 +222,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                     : '-';
                 document.getElementById('paymentModalTotal').textContent = `${total} ₫`;
                 renderOrderItems(document.getElementById('paymentModalItems'), order);
-
-                // Load QR từ cài đặt thanh toán
                 const qrImg = document.getElementById('paymentModalQr');
                 try {
                     const settings = await request(PAYMENT_SETTINGS_URL);
@@ -262,18 +236,15 @@ document.addEventListener('DOMContentLoaded', async () => {
                 } catch (_) {
                     qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(`ThanhToan:${order.id}|${order.total || 0}VND`)}`;
                 }
-
                 new bootstrap.Modal(document.getElementById('paymentModal')).show();
             });
         });
-
         document.querySelectorAll('.status-btn').forEach(btn => {
             btn.addEventListener('click', () => {
                 state.orderToUpdateId = btn.dataset.id;
                 new bootstrap.Modal(document.getElementById('updateStatusModal')).show();
             });
         });
-
         document.querySelectorAll('.delete-btn').forEach(btn => {
             btn.addEventListener('click', () => {
                 state.orderToDeleteId = btn.dataset.id;
@@ -281,27 +252,22 @@ document.addEventListener('DOMContentLoaded', async () => {
             });
         });
     }
-
     function renderPagination() {
         const container = document.querySelector('.pagination');
         if (!container) return;
-
         const filtered = getFilteredOrders();
         const totalPages = state.currentFilter === 'Tất cả'
             ? Math.max(1, state.totalPages)
             : Math.max(1, Math.ceil(filtered.length / ITEMS_PER_PAGE));
         container.innerHTML = '';
-
         const addBtn = (label, page, disabled) => {
             const li = document.createElement('li');
             li.className = `page-item${disabled ? ' disabled' : ''}`;
             li.innerHTML = `<a class="page-link border text-secondary bg-white px-3" style="border-radius:0;" href="#" data-page="${page}">${label}</a>`;
             container.appendChild(li);
         };
-
         addBtn('Trước', 'prev', state.currentPage === 1);
         addBtn('Sau', 'next', state.currentPage === totalPages);
-
         container.querySelectorAll('a').forEach(a => {
             a.addEventListener('click', e => {
                 e.preventDefault();
@@ -316,16 +282,13 @@ document.addEventListener('DOMContentLoaded', async () => {
             });
         });
     }
-
     function renderOrderItems(container, order) {
         if (!container) return;
-
         const items = order?.items || order?.orderItems || [];
         if (!items.length) {
             container.innerHTML = '<div class="text-center text-muted py-3">Không có món ăn nào trong đơn này.</div>';
             return;
         }
-
         container.innerHTML = items.map(item => `
             <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
                 <div>
@@ -336,7 +299,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             </div>
         `).join('');
     }
-
     function bindEvents() {
         if (elements.searchInput) {
             elements.searchInput.addEventListener('input', () => {
@@ -350,7 +312,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             state.currentPage = 1;
             renderOrders();
         });
-
         elements.confirmDeleteBtn?.addEventListener('click', async () => {
             if (!state.orderToDeleteId) return;
             try { await request(`${ORDERS_API_URL}/${encodeURIComponent(state.orderToDeleteId)}`, { method: 'DELETE' }); } catch (_) {}
@@ -361,7 +322,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             renderOrders();
             showToast('Đã xóa đơn hàng!');
         });
-
         elements.confirmToKitchenBtn?.addEventListener('click', async () => {
             if (!state.currentOrderDetailsId) return;
             const idx = state.orders.findIndex(o => o.id === state.currentOrderDetailsId);
@@ -375,7 +335,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             renderOrders();
             showToast('Đã chuyển xuống bếp!');
         });
-
         elements.confirmPaymentBtn?.addEventListener('click', async () => {
             if (!state.currentPaymentOrderId) return;
             const idx = state.orders.findIndex(o => o.id === state.currentPaymentOrderId);
@@ -384,7 +343,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                 state.orders[idx].paymentStatus = 'completed';
                 try { await request(`${ORDERS_API_URL}/${encodeURIComponent(state.orders[idx].id)}`, { method: 'PUT', body: JSON.stringify(state.orders[idx]) }); } catch (_) {}
                 localStorage.setItem('bistro_orders', JSON.stringify(state.orders));
-
                 const tableName = state.orders[idx].tableName || '';
                 const tableId = state.orders[idx].tableId || (tableName ? tableName.replace(/ban\s*/i, '').trim() : '');
                 if (tableId) {
@@ -401,7 +359,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             renderOrders();
             showToast('Thanh toán thành công!');
         });
-
     elements.addOrderForm?.addEventListener('submit', async (e) => {
         e.preventDefault();
         const customerField = document.getElementById('newOrderCustomer');
@@ -411,9 +368,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const totalStr = totalField.value;
         const status = statusField.value;
         let isValid = true;
-
         FV?.clearFormErrors(elements.addOrderForm);
-
         if (!customerInput) {
             isValid = FV ? FV.setFieldError(customerField, 'Vui lòng nhập khách hàng hoặc số bàn.') : false;
         } else if (customerInput.length < 2 || customerInput.length > 100) {
@@ -421,7 +376,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         } else {
             FV?.markFieldValid(customerField);
         }
-
         if (!totalStr) {
             isValid = FV ? FV.setFieldError(totalField, 'Vui lòng nhập tổng tiền.') : false;
         } else if (!Number.isFinite(Number(totalStr)) || Number(totalStr) <= 0) {
@@ -429,15 +383,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         } else {
             FV?.markFieldValid(totalField);
         }
-
         if (!status) {
             isValid = FV ? FV.setFieldError(statusField, 'Vui lòng chọn trạng thái.') : false;
         } else {
             FV?.markFieldValid(statusField);
         }
-
         if (!isValid) return;
-
             const isTable = customerInput.toLowerCase().includes('bàn');
             const tableNumber = isTable ? customerInput.replace(/bàn\s*/i, '').trim() : '';
             const newOrder = {
@@ -463,7 +414,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             renderOrders();
             showToast('Tạo đơn hàng mới thành công!');
         });
-
     elements.updateStatusForm?.addEventListener('submit', async (e) => {
         e.preventDefault();
         if (!state.orderToUpdateId) return;
@@ -476,7 +426,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         } else {
             FV?.markFieldValid(statusField);
         }
-
         if (!isValid) return;
         const idx = state.orders.findIndex(o => o.id === state.orderToUpdateId);
             if (idx !== -1) {
@@ -490,7 +439,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             showToast('Cập nhật trạng thái thành công!');
         });
     }
-
     renderSelectOptions(elements.statusFilter, STATUS_FILTER_OPTIONS, 'Tất cả');
     FV?.enableInstantClear(elements.addOrderForm);
     FV?.enableInstantClear(elements.updateStatusForm);

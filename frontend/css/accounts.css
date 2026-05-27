@@ -1,5 +1,3 @@
-
-
 .role-badge {
     display: inline-flex;
     align-items: center;
@@ -12,21 +10,17 @@
 .role-admin { background-color: #fdf0f0; color: #dc3545; }
 .role-manager { background-color: #f0f7fd; color: #0d6efd; }
 .role-staff { background-color: #f4fdf0; color: #198754; }
-
 .notification-dot {
     margin-top: 10px;
     margin-right: 5px;
 }
-
 .vr-divider {
     height: 24px;
     align-self: center;
 }
-
 .cursor-pointer {
     cursor: pointer;
 }
-
 .search-box-accounts {
     width: 250px;
     position: relative;
@@ -42,17 +36,14 @@
     padding-left: 38px !important;
     border-radius: 8px;
 }
-
 .filter-role {
     width: 160px;
     border-radius: 8px;
 }
-
 .filter-sort {
     width: 170px;
     border-radius: 8px;
 }
-
 .delete-icon-lg {
     font-size: 3rem;
 }

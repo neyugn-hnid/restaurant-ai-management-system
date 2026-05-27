@@ -108,14 +108,26 @@ namespace server.Controllers
                 }
             }
 
-            await _tableStateCoordinator.RecalculateAsync(existingReservation.TableId, "reservation-updated-old-table");
+            // Không đổi trạng thái bàn nếu bàn đang Reserved (Đã đặt)
+            var oldTable = await _context.RestaurantTable.FindAsync(existingReservation.TableId);
+            if (oldTable?.Status != RestaurantTableStatus.Reserved)
+            {
+                await _tableStateCoordinator.RecalculateAsync(existingReservation.TableId, "reservation-updated-old-table");
+            }
             if (existingReservation.TableId != reservation.TableId)
             {
-                await _tableStateCoordinator.RecalculateAsync(reservation.TableId, "reservation-updated-new-table");
+                var newTable = await _context.RestaurantTable.FindAsync(reservation.TableId);
+                if (newTable?.Status != RestaurantTableStatus.Reserved)
+                {
+                    await _tableStateCoordinator.RecalculateAsync(reservation.TableId, "reservation-updated-new-table");
+                }
             }
             else
             {
-                await _tableStateCoordinator.RecalculateAsync(reservation.TableId, "reservation-updated");
+                if (oldTable?.Status != RestaurantTableStatus.Reserved)
+                {
+                    await _tableStateCoordinator.RecalculateAsync(reservation.TableId, "reservation-updated");
+                }
             }
 
             await _realtimeNotifier.BroadcastReservationChangedAsync(reservation.Id, "updated", reservation.TableId);

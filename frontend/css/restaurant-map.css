@@ -1,4 +1,3 @@
-/* ========== Page Banner ========== */
 .page-banner {
   padding: 16rem 5% 6rem;
   min-height: 65vh;
@@ -10,16 +9,13 @@
     url("https://images.unsplash.com/photo-1514933651103-005eec06c04b?auto=format&fit=crop&q=80&w=2200") center/cover;
   text-align: center;
 }
-
 .banner-content {
   max-width: 720px;
   margin: 0 auto;
 }
-
 .banner-content .subheading {
   color: var(--color-gold);
 }
-
 .banner-content h1 {
   color: #fff;
   font-size: clamp(3.2rem, 4vw, 5.2rem);
@@ -27,14 +23,11 @@
   letter-spacing: -0.04em;
   margin-bottom: 1.2rem;
 }
-
 .banner-content p {
   color: rgba(255, 255, 255, 0.72);
   font-size: 1.7rem;
   line-height: 1.6;
 }
-
-/* ========== Booking Flow Steps ========== */
 .booking-flow {
   max-width: 1280px;
   margin: -2.4rem auto 2.4rem;
@@ -45,7 +38,6 @@
   position: relative;
   z-index: 20;
 }
-
 .booking-flow span {
   padding: 0.9rem 1.4rem;
   border-radius: 999px;
@@ -58,63 +50,50 @@
   letter-spacing: 0.1em;
   color: var(--color-house-green);
 }
-
-/* ========== Main Container ========== */
 .reservation-wrapper {
   max-width: 1280px;
   margin: 0 auto;
   padding: 0 5% 9rem;
 }
-
 .reservation-shell {
   max-width: 960px;
   margin: 0 auto;
 }
-
 .reservation-main {
   display: grid;
   gap: 2rem;
 }
-
-/* ========== Cards ========== */
 .content-card {
+  margin-top: 2rem;
   background: #fffdf9;
   border: 1px solid rgba(20, 33, 29, 0.07);
   border-radius: 24px;
   box-shadow: 0 16px 40px rgba(18, 28, 24, 0.06);
 }
-
 .card-head {
   padding: 2.6rem 2.6rem 0;
 }
-
 .card-head h2,
 .card-head h3 {
   margin-bottom: 0.4rem;
   color: var(--color-house-green);
   letter-spacing: -0.04em;
 }
-
 .card-head h2 {
   font-size: clamp(2.4rem, 2.5vw, 3.4rem);
 }
-
 .card-head h3 {
   font-size: 2rem;
 }
-
-/* ========== Reservation Form ========== */
 .reservation-form {
   padding: 2rem 2.6rem 2.6rem;
 }
-
 .res-row {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 1rem;
   margin-bottom: 1rem;
 }
-
 .res-group {
   display: flex;
   flex-direction: column;
@@ -124,12 +103,10 @@
   border: 1px solid rgba(30, 57, 50, 0.06);
   transition: border-color 0.2s, transform 0.2s;
 }
-
 .res-group:focus-within {
   border-color: rgba(30, 57, 50, 0.18);
   transform: translateY(-1px);
 }
-
 .res-group label {
   font-size: 1rem;
   font-weight: 700;
@@ -138,7 +115,6 @@
   color: var(--color-text-muted);
   margin-bottom: 0.6rem;
 }
-
 .res-input {
   border: none;
   background: transparent;
@@ -148,19 +124,16 @@
   font-weight: 600;
   padding: 0;
 }
-
 .res-input::placeholder {
   color: rgba(17, 17, 17, 0.35);
   font-weight: 400;
 }
-
 .field-error {
   display: none;
   margin-top: 0.5rem;
   font-size: 1.15rem;
   color: #c62828;
 }
-
 .reservation-actions {
   display: flex;
   justify-content: space-between;
@@ -168,14 +141,12 @@
   gap: 1.4rem;
   margin-top: 0.8rem;
 }
-
 .reservation-note {
   margin: 0;
   max-width: 46ch;
   color: var(--color-text-muted);
   font-size: 1.3rem;
 }
-
 .res-submit-btn {
   min-width: 200px;
   min-height: 50px;
@@ -191,26 +162,20 @@
   box-shadow: 0 12px 28px rgba(30, 57, 50, 0.16);
   transition: transform 0.2s, box-shadow 0.2s;
 }
-
 .res-submit-btn:hover {
   transform: translateY(-2px);
   box-shadow: 0 16px 34px rgba(30, 57, 50, 0.22);
 }
-
-/* ========== AI Section ========== */
 .ai-table-section {
   overflow: hidden;
   padding-bottom: 2.6rem;
 }
-
 .ai-head {
   display: flex;
   justify-content: space-between;
   gap: 1.2rem;
   align-items: start;
 }
-
-/* ========== AI Spotlight (light design) ========== */
 .ai-spotlight {
   position: relative;
   margin: 2rem 2.6rem 0;
@@ -220,7 +185,6 @@
   border: 1px solid rgba(203, 162, 88, 0.25);
   box-shadow: 0 4px 24px rgba(30, 57, 50, 0.06);
 }
-
 .spotlight-top {
   display: flex;
   justify-content: space-between;
@@ -228,11 +192,9 @@
   gap: 1.2rem;
   padding-right: 100px;
 }
-
 .spotlight-info {
   flex: 1;
 }
-
 .spotlight-label {
   display: inline-block;
   padding: 0.35rem 0.8rem;
@@ -245,20 +207,17 @@
   text-transform: uppercase;
   margin-bottom: 0.8rem;
 }
-
 .ai-spotlight h3 {
   margin: 0 0 0.8rem;
   color: var(--color-house-green);
   font-size: clamp(2.2rem, 2.5vw, 3rem);
   letter-spacing: -0.03em;
 }
-
 .spotlight-meta-row {
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
 }
-
 .spotlight-meta-tag {
   display: inline-flex;
   align-items: center;
@@ -271,8 +230,6 @@
   letter-spacing: 0.04em;
   text-transform: uppercase;
 }
-
-/* Score ring - top right corner */
 .spotlight-score-ring {
   position: absolute;
   top: 2rem;
@@ -288,34 +245,28 @@
   box-shadow: 0 4px 16px rgba(30, 57, 50, 0.18);
   z-index: 1;
 }
-
 .spotlight-score-ring strong {
   color: #f5d489;
   font-size: 1.8rem;
   line-height: 1;
 }
-
 .spotlight-score-ring span {
   color: rgba(255, 255, 255, 0.7);
   font-size: 0.85rem;
   font-weight: 600;
   text-transform: uppercase;
 }
-
 .ai-spotlight .body-text {
   margin-top: 1.2rem;
   color: var(--color-text-muted);
   font-size: 1.35rem;
 }
-
-/* Chips */
 .ai-chip-row {
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
   margin-top: 1rem;
 }
-
 .ai-chip {
   display: inline-flex;
   align-items: center;
@@ -326,15 +277,12 @@
   font-size: 1rem;
   font-weight: 700;
 }
-
-/* Reason list */
 .ai-reason-list {
   display: flex;
   flex-wrap: wrap;
   gap: 0.6rem;
   margin-top: 1rem;
 }
-
 .ai-reason-item {
   display: flex;
   align-items: center;
@@ -346,14 +294,12 @@
   color: var(--color-house-green);
   font-weight: 600;
 }
-
 .ai-reason-item::before {
   content: "✓";
   font-size: 1rem;
   color: var(--color-accent);
   font-weight: 800;
 }
-
 .ai-spotlight-btn {
   margin-top: 1.4rem;
   min-height: 44px;
@@ -361,15 +307,12 @@
   border-radius: 999px;
   font-size: 1.1rem;
 }
-
-/* ========== AI Table Cards ========== */
 .ai-table-list {
   margin: 1.4rem 2.6rem 0;
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 1rem;
 }
-
 .ai-table-card {
   position: relative;
   display: flex;
@@ -380,17 +323,14 @@
   background: #fffdf9;
   transition: box-shadow 0.2s, transform 0.2s;
 }
-
 .ai-table-card:hover {
   box-shadow: 0 6px 20px rgba(30, 57, 50, 0.08);
   transform: translateY(-2px);
 }
-
 .ai-table-card.featured {
   border-color: rgba(203, 162, 88, 0.3);
   background: linear-gradient(135deg, #fffdf7 0%, #fef9ef 100%);
 }
-
 .ai-table-card.featured::before {
   content: "Tốt nhất";
   position: absolute;
@@ -405,14 +345,12 @@
   letter-spacing: 0.06em;
   text-transform: uppercase;
 }
-
 .ai-table-card h4 {
   margin-bottom: 0.3rem;
   font-size: 1.7rem;
   color: var(--color-house-green);
   padding-right: 60px;
 }
-
 .ai-card-score {
   display: inline-flex;
   align-items: center;
@@ -422,7 +360,6 @@
   font-weight: 800;
   color: var(--color-house-green);
 }
-
 .ai-card-score::after {
   content: "phù hợp";
   font-size: 0.9rem;
@@ -430,14 +367,12 @@
   color: var(--color-text-muted);
   text-transform: lowercase;
 }
-
 .ai-table-meta {
   display: flex;
   flex-wrap: wrap;
   gap: 0.4rem;
   margin-bottom: 0.5rem;
 }
-
 .ai-table-meta span {
   padding: 0.3rem 0.6rem;
   border-radius: 999px;
@@ -448,28 +383,23 @@
   letter-spacing: 0.04em;
   text-transform: uppercase;
 }
-
 .ai-table-card p {
   margin-bottom: 0.8rem;
   color: var(--color-text-muted);
   font-size: 1.2rem;
 }
-
 .ai-card-chips {
   display: flex;
   flex-wrap: wrap;
   gap: 0.4rem;
   margin-bottom: 1rem;
 }
-
 .ai-table-card button {
   width: 100%;
   min-height: 40px;
   font-size: 1rem;
   margin-top: auto;
 }
-
-/* ========== Table Map ========== */
 .map-head {
   display: flex;
   justify-content: space-between;
@@ -477,13 +407,11 @@
   align-items: end;
   flex-wrap: wrap;
 }
-
 .table-legend {
   display: flex;
   flex-wrap: wrap;
   gap: 0.6rem;
 }
-
 .legend-item {
   display: flex;
   align-items: center;
@@ -498,42 +426,35 @@
   text-transform: uppercase;
   color: var(--color-text-muted);
 }
-
 .legend-box {
   width: 12px;
   height: 12px;
   border-radius: 50%;
   border: 2px solid transparent;
 }
-
 .legend-box.available {
   background: #fff;
   border-color: var(--color-house-green);
 }
-
 .legend-box.occupied {
   background: #d8d8d8;
   border-color: #d8d8d8;
 }
-
 .legend-box.selected {
   background: #c9a45f;
   border-color: #c9a45f;
 }
-
 .legend-box.suggested {
   background: #fff;
   border-color: #1d5a4d;
   box-shadow: 0 0 0 4px rgba(29, 90, 77, 0.12);
 }
-
 .table-layout-shell {
   margin: 1.6rem 2.6rem 2.6rem;
   padding: 1.2rem;
   border-radius: 22px;
   background: linear-gradient(180deg, #fffdf9, #f4efe6);
 }
-
 .table-layout {
   position: relative;
   padding: 2.4rem;
@@ -552,7 +473,6 @@
     );
   border: 1px solid rgba(203, 162, 88, 0.2);
 }
-
 .layout-zone {
   display: flex;
   flex-wrap: wrap;
@@ -564,7 +484,6 @@
   background: rgba(255, 255, 255, 0.74);
   border: 1px solid rgba(30, 57, 50, 0.06);
 }
-
 .zone-title {
   width: 100%;
   padding-bottom: 0.8rem;
@@ -576,8 +495,6 @@
   letter-spacing: 0.16em;
   text-transform: uppercase;
 }
-
-/* Table blocks */
 .tbl {
   position: relative;
   display: flex;
@@ -592,7 +509,6 @@
   box-shadow: 0 8px 18px rgba(0, 0, 0, 0.03);
   transition: transform 0.25s, box-shadow 0.25s, border-color 0.25s, background 0.25s;
 }
-
 .tbl::before {
   content: "";
   position: absolute;
@@ -601,12 +517,10 @@
   border-radius: inherit;
   pointer-events: none;
 }
-
 .tbl-2  { width: 82px;  height: 82px;  border-radius: 16px; }
 .tbl-4  { width: 98px;  height: 98px;  border-radius: 18px; }
 .tbl-6  { width: 136px; height: 94px;  border-radius: 18px; }
 .tbl-vip { width: 148px; height: 148px; border-radius: 50%; }
-
 .tbl.dimmed {
   background: #efede8;
   color: #b5b0a7;
@@ -615,17 +529,14 @@
   pointer-events: none;
   box-shadow: none;
 }
-
 .tbl.available {
   border-color: var(--color-house-green);
   cursor: pointer;
 }
-
 .tbl.available:hover {
   transform: translateY(-3px);
   box-shadow: 0 14px 26px rgba(30, 57, 50, 0.1);
 }
-
 .tbl.occupied {
   background: #efede8;
   color: #9d988f;
@@ -633,11 +544,9 @@
   cursor: not-allowed;
   box-shadow: none;
 }
-
 .tbl.ai-suggest {
   box-shadow: 0 0 0 4px rgba(29, 90, 77, 0.08), 0 14px 26px rgba(29, 90, 77, 0.12);
 }
-
 .tbl.ai-suggest::after {
   content: "AI";
   position: absolute;
@@ -651,13 +560,11 @@
   font-weight: 800;
   letter-spacing: 0.06em;
 }
-
 .tbl.selected {
   border-color: #c4934a;
   transform: translateY(-3px);
   box-shadow: 0 16px 30px rgba(196, 147, 74, 0.2);
 }
-
 .tbl span {
   margin-top: 0.4rem;
   font-size: 0.85rem;
@@ -666,26 +573,21 @@
   text-transform: uppercase;
   opacity: 0.8;
 }
-
-/* ========== Table Detail Modal ========== */
 .table-detail-dialog {
   text-align: left;
 }
-
 .table-detail-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 1rem;
   margin: 2rem 0;
 }
-
 .detail-item {
   padding: 1rem 1.2rem;
   border-radius: 12px;
   background: #f8f3eb;
   border: 1px solid rgba(30, 57, 50, 0.05);
 }
-
 .detail-item span {
   display: block;
   margin-bottom: 0.3rem;
@@ -695,14 +597,11 @@
   text-transform: uppercase;
   letter-spacing: 0.06em;
 }
-
 .detail-item strong {
   display: block;
   font-size: 1.6rem;
   color: var(--color-house-green);
 }
-
-/* ========== Toast ========== */
 .realtime-toast {
   position: fixed;
   right: 2rem;
@@ -717,8 +616,6 @@
   color: #fff;
   box-shadow: 0 16px 30px rgba(0, 0, 0, 0.2);
 }
-
-/* ========== Booking Modal ========== */
 .booking-modal {
   position: fixed;
   inset: 0;
@@ -732,12 +629,10 @@
   transition: opacity 0.4s ease;
   backdrop-filter: blur(4px);
 }
-
 .booking-modal.active {
   opacity: 1;
   pointer-events: auto;
 }
-
 .booking-dialog {
   width: calc(100% - 3rem);
   max-width: 520px;
@@ -749,11 +644,9 @@
   transition: transform 0.4s ease;
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.18);
 }
-
 .booking-modal.active .booking-dialog {
   transform: translateY(0);
 }
-
 .booking-icon {
   width: 72px;
   height: 72px;
@@ -765,60 +658,61 @@
   justify-content: center;
   color: #198754;
 }
-
+@keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes pulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.04)} }
+.page-banner { animation: fadeIn 0.6s ease; }
+.banner-content h1 { animation: fadeInUp 0.6s ease 0.1s both; }
+.banner-content p { animation: fadeInUp 0.6s ease 0.2s both; }
+.layout-zone { animation: fadeInUp 0.5s ease both; }
+.tbl { transition: transform 0.2s ease, box-shadow 0.2s ease; }
+.tbl.available { animation: fadeIn 0.4s ease both; }
+.tbl.available:hover { transform: scale(1.08); box-shadow: 0 6px 24px rgba(0,0,0,0.15); }
+.tbl.ai-suggest { animation: pulse 1.5s ease infinite; }
+.tbl.selected { animation: pulse 0.8s ease infinite; box-shadow: 0 0 0 3px var(--color-accent); }
 .booking-icon svg {
   width: 36px;
   height: 36px;
 }
-
 .booking-title {
   font-size: 2.4rem;
   color: var(--color-house-green);
   margin-bottom: 1rem;
 }
-
 .booking-message {
   margin-bottom: 1.4rem;
   font-size: 1.5rem;
 }
-
 .booking-question {
   margin-bottom: 2rem;
   font-size: 1.5rem;
   font-weight: 600;
   color: var(--color-house-green);
 }
-
 .booking-dialog-actions {
   display: flex;
   gap: 1rem;
   justify-content: center;
   flex-wrap: wrap;
 }
-
 .booking-dialog-actions .btn {
   flex: 1;
   min-width: 0;
 }
-
 .booking-secondary-btn {
   border: 1px solid var(--color-house-green);
   color: var(--color-house-green);
   background: transparent;
 }
-
 .booking-primary-btn {
   background: var(--color-brand);
   color: #fff;
 }
-
-/* ========== Footer ========== */
 footer {
   background: #13241f;
   padding: 5rem 5%;
   text-align: center;
 }
-
 .footer-logo {
   font-size: 2.2rem;
   font-weight: 700;
@@ -828,58 +722,45 @@ footer {
   margin-bottom: 1.2rem;
   text-transform: uppercase;
 }
-
 .footer-copy {
   color: rgba(255, 255, 255, 0.5);
 }
-
-/* ========== Responsive ========== */
 @media (max-width: 1024px) {
   .table-layout {
     grid-template-columns: 1fr;
   }
 }
-
 @media (max-width: 768px) {
   .page-banner {
     padding: 13rem 5% 4rem;
     min-height: 40vh;
   }
-
   .res-row {
     grid-template-columns: 1fr;
   }
-
   .booking-flow span {
     font-size: 1rem;
     padding: 0.7rem 1rem;
   }
-
   .map-head {
     flex-direction: column;
     align-items: start;
   }
-
   .reservation-actions {
     flex-direction: column;
   }
-
   .res-submit-btn {
     width: 100%;
   }
-
   .ai-spotlight {
     grid-template-columns: 1fr;
   }
-
   .spotlight-top {
     flex-direction: column;
   }
-
   .spotlight-score-ring {
     align-self: flex-start;
   }
-
   .table-detail-grid {
     grid-template-columns: 1fr;
   }

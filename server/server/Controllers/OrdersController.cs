@@ -116,15 +116,24 @@ namespace server.Controllers
                 }
             }
 
-            if (existingOrder.TableId.HasValue)
+            if (existingOrder.TableId.HasValue && existingOrder.TableId != order.TableId)
             {
-                await _tableStateCoordinator.RecalculateAsync(existingOrder.TableId.Value, "order-updated-old-table");
+                var oldTable = await _context.RestaurantTable.FindAsync(existingOrder.TableId.Value);
+                if (oldTable?.Status != RestaurantTableStatus.Reserved)
+                {
+                    await _tableStateCoordinator.RecalculateAsync(existingOrder.TableId.Value, "order-updated-old-table");
+                }
             }
 
             if (order.TableId.HasValue)
             {
-                var fallbackStatus = IsCompletedOrder(order) ? RestaurantTableStatus.Cleaning : (RestaurantTableStatus?)null;
-                await _tableStateCoordinator.RecalculateAsync(order.TableId.Value, "order-updated", fallbackStatus);
+                // Nếu bàn đang ở trạng thái Đã đặt (Reserved), không thay đổi trạng thái khi cập nhật đơn (pre-order).
+                var table = await _context.RestaurantTable.FindAsync(order.TableId.Value);
+                if (table?.Status != RestaurantTableStatus.Reserved)
+                {
+                    var fallbackStatus = IsCompletedOrder(order) ? RestaurantTableStatus.Cleaning : (RestaurantTableStatus?)null;
+                    await _tableStateCoordinator.RecalculateAsync(order.TableId.Value, "order-updated", fallbackStatus);
+                }
             }
 
             await _realtimeNotifier.BroadcastOrderChangedAsync(order.Id, "updated", order.TableId);
@@ -156,8 +165,14 @@ namespace server.Controllers
 
             if (order.TableId.HasValue)
             {
-                var fallbackStatus = IsCompletedOrder(order) ? RestaurantTableStatus.Cleaning : (RestaurantTableStatus?)null;
-                await _tableStateCoordinator.RecalculateAsync(order.TableId.Value, "order-created", fallbackStatus);
+                // Nếu bàn đang ở trạng thái Đã đặt (Reserved), không thay đổi trạng thái khi tạo đơn (pre-order).
+                // Chỉ khi khách check-in thì mới chuyển từ Reserved -> Occupied.
+                var table = await _context.RestaurantTable.FindAsync(order.TableId.Value);
+                if (table?.Status != RestaurantTableStatus.Reserved)
+                {
+                    var fallbackStatus = IsCompletedOrder(order) ? RestaurantTableStatus.Cleaning : (RestaurantTableStatus?)null;
+                    await _tableStateCoordinator.RecalculateAsync(order.TableId.Value, "order-created", fallbackStatus);
+                }
             }
 
             await _realtimeNotifier.BroadcastOrderChangedAsync(order.Id, "created", order.TableId);

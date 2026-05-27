@@ -49,6 +49,13 @@ public sealed class TableStateCoordinator
 
     private async Task<RestaurantTableStatus> ResolveStatusAsync(int tableId, RestaurantTableStatus? fallbackStatus)
     {
+        // Nếu đơn đã hoàn thành, bàn phải chuyển sang Chờ dọn dẹp (Cleaning),
+        // bất kể có reservation CheckedIn hay không.
+        if (fallbackStatus == RestaurantTableStatus.Cleaning)
+        {
+            return RestaurantTableStatus.Cleaning;
+        }
+
         var hasCheckedInReservation = await _context.Reservation.AnyAsync(reservation =>
             reservation.TableId == tableId
             && reservation.Status == ReservationStatus.CheckedIn);
@@ -65,6 +72,15 @@ public sealed class TableStateCoordinator
             && reservation.ReservationDate >= today);
 
         if (hasConfirmedReservation)
+        {
+            return RestaurantTableStatus.Reserved;
+        }
+
+        // Nếu bàn hiện đang ở trạng thái Reserved (Đã đặt),
+        // thì việc tạo đơn hàng (pre-order) không được đổi trạng thái thành Occupied (Đang phục vụ).
+        // Chỉ khi khách check-in thì mới chuyển từ Reserved -> Occupied.
+        var currentTable = await _context.RestaurantTable.FindAsync(tableId);
+        if (currentTable?.Status == RestaurantTableStatus.Reserved)
         {
             return RestaurantTableStatus.Reserved;
         }

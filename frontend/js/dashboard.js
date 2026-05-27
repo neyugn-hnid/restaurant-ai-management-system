@@ -1,10 +1,7 @@
-
-
 const API_BASE = 'http://localhost:7071/api';
 const ORDERS_URL = `${API_BASE}/Orders`;
 const CUSTOMERS_URL = `${API_BASE}/Customers`;
 const TABLES_URL = `${API_BASE}/RestaurantTables`;
-
 async function apiFetch(url) {
     const resp = await fetch(url, {
         headers: {
@@ -15,11 +12,8 @@ async function apiFetch(url) {
     if (!resp.ok) throw new Error(`API ${resp.status}`);
     return resp.json();
 }
-
 document.addEventListener('DOMContentLoaded', async function() {
     let orders = [], customers = [], tables = [];
-
-
     try {
         const [ordResp, custResp, tableResp] = await Promise.all([
             apiFetch(`${ORDERS_URL}?page=1&pageSize=1000&sortBy=createdAt&sortOrder=desc`),
@@ -33,12 +27,9 @@ document.addEventListener('DOMContentLoaded', async function() {
         console.warn('API unavailable, using localStorage cache:', err.message);
         orders = JSON.parse(localStorage.getItem('bistro_orders') || '[]');
         customers = JSON.parse(localStorage.getItem('bistro_customers') || '[]');
-        tables = JSON.parse(localStorage.getItem('bistro_tables') || '[]');
+        tables = []; // Không dùng localStorage cache
     }
-
     const tableStatuses = JSON.parse(localStorage.getItem('bistro_table_statuses') || '{}');
-
-
     const totalRevenue = orders.reduce((sum, o) => sum + (Number(o.total) || 0), 0);
     const pendingOrders = orders.filter(o => {
         const s = (o.status || '').toLowerCase();
@@ -47,14 +38,11 @@ document.addEventListener('DOMContentLoaded', async function() {
     const totalCustomers = customers.length;
     const occupiedTables = Object.values(tableStatuses).filter(s => s === 'Đang phục vụ').length;
     const totalTables = tables.length || 42;
-
     const setText = (id, text) => { const el = document.getElementById(id); if (el) el.textContent = text; };
     setText('statRevenue', totalRevenue.toLocaleString('vi-VN') + 'đ');
     setText('statNewOrders', pendingOrders);
     setText('statCustomers', totalCustomers.toLocaleString('vi-VN'));
     setText('statTablesServing', occupiedTables + ' / ' + totalTables);
-
-
     const tbody = document.getElementById('dashboardOrdersBody');
     if (tbody) {
         tbody.innerHTML = '';
@@ -65,10 +53,8 @@ document.addEventListener('DOMContentLoaded', async function() {
             else if (status.includes('Đang chế biến') || status.includes('Preparing')) badgeClass = 'bg-info text-white';
             else if (status.includes('Hoàn thành') || status.includes('Đã phục vụ') || status.includes('Completed')) badgeClass = 'bg-success';
             else if (status.includes('Hủy') || status.includes('Cancelled')) badgeClass = 'bg-danger';
-
             const dateStr = o.date || (o.createdAt ? new Date(o.createdAt).toLocaleDateString('vi-VN') : '');
             const timeStr = o.time || (o.createdAt ? new Date(o.createdAt).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) : '');
-
             const tr = document.createElement('tr');
             tr.innerHTML = `
                 <td><a href="./orders.html" class="text-decoration-none fw-semibold">#${o.id || '-'}</a></td>
@@ -80,8 +66,6 @@ document.addEventListener('DOMContentLoaded', async function() {
             tbody.appendChild(tr);
         });
     }
-
-
     const ctxRev = document.getElementById('revenueChart');
     if (ctxRev) {
         const revByDay = {};
@@ -92,20 +76,17 @@ document.addEventListener('DOMContentLoaded', async function() {
             d.setDate(d.getDate() - i);
             revByDay[d.toLocaleDateString('vi-VN')] = 0;
         }
-
         orders.forEach(o => {
             const dateKey = o.date || (o.createdAt ? new Date(o.createdAt).toLocaleDateString('vi-VN') : '');
             if (revByDay.hasOwnProperty(dateKey)) {
                 revByDay[dateKey] += Number(o.total) || 0;
             }
         });
-
         const labels = Object.keys(revByDay).map(d => {
             const parts = d.split('/');
             return parts.length === 3 ? dayNames[new Date(parts[2], parts[1] - 1, parts[0]).getDay()] : d;
         });
         const values = Object.values(revByDay);
-
         new Chart(ctxRev.getContext('2d'), {
             type: 'line',
             data: {
@@ -133,8 +114,6 @@ document.addEventListener('DOMContentLoaded', async function() {
             }
         });
     }
-
-
     const ctxStat = document.getElementById('statusChart');
     if (ctxStat) {
         const statusCounts = { 'Hoàn thành': 0, 'Đang chế biến': 0, 'Chờ xác nhận': 0, 'Hủy': 0 };
@@ -146,7 +125,6 @@ document.addEventListener('DOMContentLoaded', async function() {
             else if (s.includes('Hủy') || s.includes('Cancelled')) statusCounts['Hủy']++;
             else statusCounts['Hoàn thành']++;
         });
-
         const vals = Object.values(statusCounts);
         new Chart(ctxStat.getContext('2d'), {
             type: 'doughnut',

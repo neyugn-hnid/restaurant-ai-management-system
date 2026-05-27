@@ -5,10 +5,8 @@
     const RESERVATIONS_API_URL = `${API_BASE_URL}/Reservations`;
     const MODAL_ID = 'globalReservationAlertModal';
     const SEEN_KEY = '__globalReservationSeen__';
-
     function ensureModalMarkup() {
         if (document.getElementById(MODAL_ID)) return;
-
         document.body.insertAdjacentHTML('beforeend', `
             <div class="modal fade" id="${MODAL_ID}" tabindex="-1" aria-labelledby="${MODAL_ID}Label" aria-hidden="true">
                 <div class="modal-dialog modal-dialog-centered">
@@ -52,46 +50,37 @@
             </div>
         `);
     }
-
     function setField(name, value) {
         const modal = document.getElementById(MODAL_ID);
         if (!modal) return;
         const field = modal.querySelector(`[data-field="${name}"]`);
         if (field) field.textContent = value;
     }
-
     function playAlertSound() {
         const AudioContextClass = window.AudioContext || window.webkitAudioContext;
         if (!AudioContextClass) return;
-
         try {
             const audioContext = new AudioContextClass();
             const now = audioContext.currentTime;
             const notes = [659.25, 783.99, 987.77];
-
             notes.forEach((frequency, index) => {
                 const oscillator = audioContext.createOscillator();
                 const gainNode = audioContext.createGain();
-
                 oscillator.type = 'sine';
                 oscillator.frequency.setValueAtTime(frequency, now);
-
                 gainNode.gain.setValueAtTime(0.0001, now);
                 gainNode.gain.exponentialRampToValueAtTime(0.08, now + (index * 0.12) + 0.03);
                 gainNode.gain.exponentialRampToValueAtTime(0.0001, now + (index * 0.12) + 0.18);
-
                 oscillator.connect(gainNode);
                 gainNode.connect(audioContext.destination);
                 oscillator.start(now + (index * 0.12));
                 oscillator.stop(now + (index * 0.12) + 0.2);
             });
-
             window.setTimeout(() => {
                 audioContext.close().catch(() => {});
             }, 800);
         } catch (_) {}
     }
-
     function formatReservationTime(value) {
         if (!value) return '-';
         if (typeof value === 'string' && value.includes('T')) {
@@ -102,7 +91,6 @@
         }
         return String(value).slice(0, 5);
     }
-
     function formatReservationDateTime(reservation) {
         const dateValue = reservation?.reservationDate || reservation?.ReservationDate;
         const timeValue = reservation?.reservationTime || reservation?.ReservationTime;
@@ -113,7 +101,6 @@
         const timeText = formatReservationTime(timeValue);
         return `${dateText} ${timeText}`.trim();
     }
-
     async function request(url) {
         const token = localStorage.getItem('auth_token');
         const response = await fetch(url, {
@@ -128,7 +115,6 @@
         if (response.status === 204) return null;
         return response.json();
     }
-
     async function fetchReservation(reservationId) {
         if (!reservationId) return null;
         try {
@@ -137,34 +123,27 @@
             return null;
         }
     }
-
     async function showReservationAlert(payload) {
         if (!window.bootstrap) return;
         if (payload?.action !== 'created') return;
-
         const reservationId = payload?.reservationId;
         const seenMap = window[SEEN_KEY] || (window[SEEN_KEY] = new Set());
         const seenToken = `created:${reservationId}`;
         if (reservationId && seenMap.has(seenToken)) return;
         if (reservationId) seenMap.add(seenToken);
-
         ensureModalMarkup();
-
         const reservation = await fetchReservation(reservationId);
         const customerName = reservation?.customerName || reservation?.CustomerName || 'Khách mới';
         const tableName = reservation?.tableName || reservation?.TableName || (payload?.tableId ? `Bàn ${payload.tableId}` : '-');
         const guestCount = reservation?.guestCount || reservation?.GuestCount || '-';
         const bookingTime = reservation ? formatReservationDateTime(reservation) : 'Vừa đặt xong';
-
         setField('customer', customerName);
         setField('table', tableName);
         setField('guests', `${guestCount} khách`);
         setField('time', bookingTime);
-
         playAlertSound();
         new window.bootstrap.Modal(document.getElementById(MODAL_ID)).show();
     }
-
     function loadScript(src) {
         return new Promise((resolve, reject) => {
             const existing = Array.from(document.scripts).find(script => script.src && script.src.includes(src));
@@ -177,7 +156,6 @@
                 existing.addEventListener('error', () => reject(new Error(`Không tải được ${src}`)), { once: true });
                 return;
             }
-
             const script = document.createElement('script');
             script.src = src;
             script.async = true;
@@ -189,7 +167,6 @@
             document.head.appendChild(script);
         });
     }
-
     async function ensureRealtimeClient() {
         if (!window.signalR) {
             await loadScript(SIGNALR_CDN);
@@ -198,12 +175,10 @@
             await loadScript(REALTIME_CLIENT_PATH);
         }
     }
-
     async function init() {
         try {
             await ensureRealtimeClient();
             if (!window.RestaurantRealtime?.connect) return;
-
             await window.RestaurantRealtime.connect({
                 debounceMs: 100,
                 onReservationChanged: async (payload) => {
@@ -214,7 +189,6 @@
             console.warn('Không khởi tạo được thông báo đặt bàn toàn cục:', error.message);
         }
     }
-
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', init, { once: true });
     } else {

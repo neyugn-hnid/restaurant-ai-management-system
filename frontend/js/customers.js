@@ -3,7 +3,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const API_BASE_URL = 'http://localhost:7071/api';
     const CUSTOMERS_API_URL = `${API_BASE_URL}/Customers`;
     const ITEMS_PER_PAGE = 10;
-
     const RANK_FILTER_OPTIONS = [
         { value: 'Tất cả', label: 'Tất cả hạng' },
         { value: 'Mới', label: 'Mới' },
@@ -11,21 +10,18 @@ document.addEventListener('DOMContentLoaded', () => {
         { value: 'Gold', label: 'Gold' },
         { value: 'Platinum', label: 'Platinum' }
     ];
-
     const SORT_OPTIONS = [
         { value: 'spend-desc', label: 'Chi tiêu (Cao - Thấp)' },
         { value: 'spend-asc', label: 'Chi tiêu (Thấp - Cao)' },
         { value: 'orders-desc', label: 'Số đơn (Nhiều - Ít)' },
         { value: 'orders-asc', label: 'Số đơn (Ít - Nhiều)' }
     ];
-
     const FORM_RANK_OPTIONS = [
         { value: 'new', label: 'Mới' },
         { value: 'silver', label: 'Silver' },
         { value: 'gold', label: 'Gold' },
         { value: 'platinum', label: 'Platinum' }
     ];
-
     const elements = {
         searchInput: document.getElementById('customerSearch'),
         rankFilter: document.getElementById('rankFilter'),
@@ -44,27 +40,21 @@ document.addEventListener('DOMContentLoaded', () => {
         statReturn: document.getElementById('statReturnRate'),
         paginationInfo: document.getElementById('customersPaginationInfo')
     };
-
     function getCurrentUserRole() {
         if (window.Auth?.getRole) {
             return window.Auth.getRole();
         }
-
         const user = window.Auth?.getUser?.();
         const rawRole = String(user?.role || (Array.isArray(user?.roles) ? user.roles[0] : user?.roles) || 'Staff')
             .trim()
             .toUpperCase()
             .replace(/^ROLE_/, '');
-
         if (rawRole === 'STAFF' || rawRole === 'EMPLOYEE' || rawRole === 'NHANVIEN' || rawRole === 'NHAN_VIEN') {
             return 'Staff';
         }
-
         return rawRole.charAt(0) + rawRole.slice(1).toLowerCase();
     }
-
     const isStaffRole = getCurrentUserRole() === 'Staff';
-
     const state = {
         customers: [],
         currentPage: 1,
@@ -75,14 +65,12 @@ document.addEventListener('DOMContentLoaded', () => {
         sort: 'spend-desc',
         customerToDeleteId: null
     };
-
     function renderSelectOptions(selectElement, options, selectedValue) {
         if (!selectElement) return;
         selectElement.innerHTML = options
             .map(opt => `<option value="${opt.value}"${opt.value === selectedValue ? ' selected' : ''}>${opt.label}</option>`)
             .join('');
     }
-
     async function request(url, options = {}) {
         const resp = await fetch(url, {
             headers: { 'Content-Type': 'application/json', ...(options.headers || {}) },
@@ -96,7 +84,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (resp.status === 204) return null;
         return resp.json();
     }
-
     function showToast(message, type = 'success') {
         const toast = document.getElementById('liveToast');
         const msg = document.getElementById('toastMessage');
@@ -105,7 +92,6 @@ document.addEventListener('DOMContentLoaded', () => {
         toast.className = `toast align-items-center text-white bg-${type} border-0`;
         new bootstrap.Toast(toast, { delay: 3000 }).show();
     }
-
     function getRankBadge(tier) {
         const config = {
             platinum: 'bg-dark text-white',
@@ -117,11 +103,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const cls = config[tier?.toLowerCase()] || config.new;
         return `<span class="badge ${cls}">${tier || 'Mới'}</span>`;
     }
-
     async function loadCustomers() {
         if (!elements.tableBody) return;
         elements.tableBody.innerHTML = '<tr><td colspan="7" class="text-center py-4"><span class="spinner-border spinner-border-sm"></span> Đang tải...</td></tr>';
-
         try {
             const sortParts = state.sort.split('-');
             const sortBy = sortParts[0] === 'spend' ? 'totalSpent' : sortParts[0] === 'orders' ? 'visits' : 'createdAt';
@@ -151,7 +135,6 @@ document.addEventListener('DOMContentLoaded', () => {
         updateStats();
         renderCustomers();
     }
-
     function updateStats() {
         const setVal = (el, val) => { if (el) el.textContent = val; };
         setVal(elements.statTotal, state.totalItems.toLocaleString('vi-VN'));
@@ -160,14 +143,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const returning = state.customers.filter(c => c.visits > 1).length;
         const rate = state.totalItems > 0 ? Math.round((returning / state.totalItems) * 100) : 0;
         setVal(elements.statReturn, rate + '%');
-
         if (elements.paginationInfo) {
             const start = state.totalItems > 0 ? (state.currentPage - 1) * ITEMS_PER_PAGE + 1 : 0;
             const end = Math.min(state.currentPage * ITEMS_PER_PAGE, state.totalItems);
             elements.paginationInfo.textContent = `Hiển thị ${start} - ${end} trong số ${state.totalItems.toLocaleString('vi-VN')} khách hàng`;
         }
     }
-
     function getFilteredCustomers() {
         return state.customers.filter(c => {
             if (state.rankFilter !== 'Tất cả' && c.tier?.toLowerCase() !== state.rankFilter.toLowerCase()) return false;
@@ -178,19 +159,16 @@ document.addEventListener('DOMContentLoaded', () => {
             return true;
         });
     }
-
     function renderCustomers() {
         if (!elements.tableBody) return;
         const filtered = getFilteredCustomers();
         const start = (state.currentPage - 1) * ITEMS_PER_PAGE;
         const pageData = filtered.slice(start, start + ITEMS_PER_PAGE);
-
         if (pageData.length === 0) {
             elements.tableBody.innerHTML = '<tr><td colspan="7" class="text-center py-4 text-muted">Không tìm thấy khách hàng nào.</td></tr>';
             renderPagination();
             return;
         }
-
         elements.tableBody.innerHTML = pageData.map(c => {
             const initials = (c.name || 'KH').split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
             return `
@@ -220,11 +198,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     </td>
                 </tr>`;
         }).join('');
-
         bindRowButtons();
         renderPagination();
     }
-
     function bindRowButtons() {
         document.querySelectorAll('.edit-customer-btn').forEach(btn => {
             btn.addEventListener('click', () => {
@@ -239,7 +215,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 new bootstrap.Modal(document.getElementById('addCustomerModal')).show();
             });
         });
-
         document.querySelectorAll('.delete-customer-btn').forEach(btn => {
             btn.addEventListener('click', () => {
                 state.customerToDeleteId = btn.dataset.id;
@@ -247,25 +222,20 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         });
     }
-
     function renderPagination() {
         const container = document.querySelector('.pagination');
         if (!container) return;
-
         const filtered = getFilteredCustomers();
         const totalPages = Math.max(1, Math.ceil(filtered.length / ITEMS_PER_PAGE));
         container.innerHTML = '';
-
         const addBtn = (label, page, disabled) => {
             const li = document.createElement('li');
             li.className = `page-item${disabled ? ' disabled' : ''}`;
             li.innerHTML = `<a class="page-link border text-secondary bg-white px-3" style="border-radius:0;" href="#" data-page="${page}">${label}</a>`;
             container.appendChild(li);
         };
-
         addBtn('Trước', 'prev', state.currentPage === 1);
         addBtn('Sau', 'next', state.currentPage === totalPages);
-
         container.querySelectorAll('a').forEach(a => {
             a.addEventListener('click', e => {
                 e.preventDefault();
@@ -276,7 +246,6 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         });
     }
-
     function bindEvents() {
         document.getElementById('addCustomerModal')?.addEventListener('show.bs.modal', (e) => {
             if (e.relatedTarget?.id === 'btnOpenAddModal' || !elements.customerId.value) {
@@ -285,7 +254,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 elements.customerId.value = '';
             }
         });
-
         elements.searchInput?.addEventListener('input', () => {
             state.searchTerm = elements.searchInput.value.trim().toLowerCase();
             state.currentPage = 1;
@@ -301,7 +269,6 @@ document.addEventListener('DOMContentLoaded', () => {
             state.currentPage = 1;
             loadCustomers();
         });
-
     elements.customerForm?.addEventListener('submit', async (e) => {
         e.preventDefault();
         const id = elements.customerId.value;
@@ -309,9 +276,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const phone = elements.customerPhone.value.trim();
         const email = elements.customerEmail.value.trim();
         let isValid = true;
-
         FV?.clearFormErrors(elements.customerForm);
-
         if (!fullName) {
             isValid = FV ? FV.setFieldError(elements.customerName, 'Vui lòng nhập tên khách hàng.') : false;
         } else if (fullName.length < 2 || fullName.length > 100) {
@@ -320,7 +285,6 @@ document.addEventListener('DOMContentLoaded', () => {
             elements.customerName.value = fullName;
             FV?.markFieldValid(elements.customerName);
         }
-
         if (!phone) {
             isValid = FV ? FV.setFieldError(elements.customerPhone, 'Vui lòng nhập số điện thoại.') : false;
         } else if (!FV?.validateVietnamesePhone(phone)) {
@@ -328,7 +292,6 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             FV?.markFieldValid(elements.customerPhone);
         }
-
         if (!email) {
             isValid = FV ? FV.setFieldError(elements.customerEmail, 'Vui lòng nhập email.') : false;
         } else if (!FV?.validateEmail(email)) {
@@ -338,15 +301,12 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             FV?.clearFieldError(elements.customerEmail);
         }
-
         if (!elements.customerRank.value) {
             isValid = FV ? FV.setFieldError(elements.customerRank, 'Vui lòng chọn hạng khách hàng.') : false;
         } else {
             FV?.markFieldValid(elements.customerRank);
         }
-
         if (!isValid) return;
-
         const payload = {
             id: id || `KH${Date.now().toString(36).toUpperCase()}`,
             fullName,
@@ -372,7 +332,6 @@ document.addEventListener('DOMContentLoaded', () => {
             elements.customerId.value = '';
             await loadCustomers();
         });
-
         elements.confirmDeleteBtn?.addEventListener('click', async () => {
             if (!state.customerToDeleteId) return;
             try { await request(`${CUSTOMERS_API_URL}/${encodeURIComponent(state.customerToDeleteId)}`, { method: 'DELETE' }); } catch (_) {}
@@ -385,7 +344,6 @@ document.addEventListener('DOMContentLoaded', () => {
             showToast('Đã xóa khách hàng!');
         });
     }
-
     renderSelectOptions(elements.rankFilter, RANK_FILTER_OPTIONS, 'Tất cả');
     renderSelectOptions(elements.sortOption, SORT_OPTIONS, 'spend-desc');
     renderSelectOptions(elements.customerRank, FORM_RANK_OPTIONS, 'new');

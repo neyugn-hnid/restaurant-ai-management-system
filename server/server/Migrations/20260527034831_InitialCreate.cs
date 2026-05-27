@@ -15,16 +15,16 @@ namespace server.Migrations
                 name: "accounts",
                 columns: table => new
                 {
-                    id = table.Column<int>(type: "INTEGER", nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
-                    username = table.Column<string>(type: "TEXT", maxLength: 100, nullable: false),
-                    password_hash = table.Column<string>(type: "TEXT", maxLength: 255, nullable: true),
-                    full_name = table.Column<string>(type: "TEXT", maxLength: 255, nullable: false),
-                    role = table.Column<string>(type: "TEXT", maxLength: 50, nullable: true),
-                    status = table.Column<string>(type: "TEXT", maxLength: 50, nullable: false),
-                    last_login = table.Column<DateTime>(type: "TEXT", nullable: true),
-                    created_at = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    updated_at = table.Column<DateTime>(type: "TEXT", nullable: false)
+                    id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    username = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    password_hash = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: true),
+                    full_name = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
+                    role = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
+                    status = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    last_login = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    created_at = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    updated_at = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -35,12 +35,12 @@ namespace server.Migrations
                 name: "categories",
                 columns: table => new
                 {
-                    id = table.Column<int>(type: "INTEGER", nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
-                    name = table.Column<string>(type: "TEXT", maxLength: 255, nullable: false),
+                    id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    name = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
                     description = table.Column<string>(type: "text", nullable: true),
-                    created_at = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    updated_at = table.Column<DateTime>(type: "TEXT", nullable: false)
+                    created_at = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    updated_at = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -51,15 +51,15 @@ namespace server.Migrations
                 name: "customers",
                 columns: table => new
                 {
-                    id = table.Column<string>(type: "TEXT", maxLength: 50, nullable: false),
-                    phone = table.Column<string>(type: "TEXT", maxLength: 20, nullable: false),
-                    full_name = table.Column<string>(type: "TEXT", maxLength: 255, nullable: false),
-                    email = table.Column<string>(type: "TEXT", maxLength: 255, nullable: true),
-                    visits = table.Column<int>(type: "INTEGER", nullable: false),
-                    total_spent = table.Column<decimal>(type: "decimal(12, 2)", nullable: false),
-                    tier = table.Column<string>(type: "TEXT", maxLength: 50, nullable: true),
-                    created_at = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    updated_at = table.Column<DateTime>(type: "TEXT", nullable: false)
+                    id = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    phone = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
+                    full_name = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
+                    email = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: true),
+                    visits = table.Column<int>(type: "int", nullable: false),
+                    total_spent = table.Column<decimal>(type: "decimal(12,2)", nullable: false),
+                    tier = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
+                    created_at = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    updated_at = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -70,12 +70,12 @@ namespace server.Migrations
                 name: "payment_settings",
                 columns: table => new
                 {
-                    id = table.Column<int>(type: "INTEGER", nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
-                    bank_id = table.Column<string>(type: "TEXT", maxLength: 50, nullable: false),
-                    account_number = table.Column<string>(type: "TEXT", maxLength: 50, nullable: false),
-                    account_name = table.Column<string>(type: "TEXT", maxLength: 255, nullable: false),
-                    updated_at = table.Column<DateTime>(type: "TEXT", nullable: false)
+                    id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    bank_id = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    account_number = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    account_name = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
+                    updated_at = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -86,14 +86,14 @@ namespace server.Migrations
                 name: "restaurant_tables",
                 columns: table => new
                 {
-                    id = table.Column<int>(type: "INTEGER", nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
-                    name = table.Column<string>(type: "TEXT", maxLength: 255, nullable: true),
-                    zone = table.Column<string>(type: "TEXT", maxLength: 100, nullable: true),
-                    capacity = table.Column<int>(type: "INTEGER", nullable: false),
-                    status = table.Column<string>(type: "TEXT", maxLength: 50, nullable: false),
-                    created_at = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    updated_at = table.Column<DateTime>(type: "TEXT", nullable: false)
+                    id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    name = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: true),
+                    zone = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
+                    capacity = table.Column<int>(type: "int", nullable: false),
+                    status = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    created_at = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    updated_at = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -104,16 +104,16 @@ namespace server.Migrations
                 name: "products",
                 columns: table => new
                 {
-                    id = table.Column<int>(type: "INTEGER", nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
-                    category_id = table.Column<int>(type: "INTEGER", nullable: false),
-                    name = table.Column<string>(type: "TEXT", maxLength: 255, nullable: false),
-                    price = table.Column<decimal>(type: "decimal(12, 2)", nullable: false),
-                    image_url = table.Column<string>(type: "TEXT", maxLength: 255, nullable: true),
+                    id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    category_id = table.Column<int>(type: "int", nullable: false),
+                    name = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
+                    price = table.Column<decimal>(type: "decimal(12,2)", nullable: false),
+                    image_url = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: true),
                     description = table.Column<string>(type: "text", nullable: true),
-                    status = table.Column<string>(type: "TEXT", maxLength: 50, nullable: false),
-                    created_at = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    updated_at = table.Column<DateTime>(type: "TEXT", nullable: false)
+                    status = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    created_at = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    updated_at = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -130,19 +130,19 @@ namespace server.Migrations
                 name: "orders",
                 columns: table => new
                 {
-                    id = table.Column<string>(type: "TEXT", maxLength: 50, nullable: false),
-                    customer_id = table.Column<string>(type: "TEXT", maxLength: 50, nullable: true),
-                    account_id = table.Column<int>(type: "INTEGER", nullable: true),
-                    table_id = table.Column<int>(type: "INTEGER", nullable: true),
-                    status = table.Column<string>(type: "TEXT", maxLength: 50, nullable: false),
-                    subtotal = table.Column<decimal>(type: "decimal(12, 2)", nullable: false),
-                    discount = table.Column<decimal>(type: "decimal(12, 2)", nullable: false),
-                    total = table.Column<decimal>(type: "decimal(12, 2)", nullable: false),
-                    payment_method = table.Column<string>(type: "TEXT", maxLength: 50, nullable: true),
-                    payment_status = table.Column<string>(type: "TEXT", maxLength: 50, nullable: false),
+                    id = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    customer_id = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
+                    account_id = table.Column<int>(type: "int", nullable: true),
+                    table_id = table.Column<int>(type: "int", nullable: true),
+                    status = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    subtotal = table.Column<decimal>(type: "decimal(12,2)", nullable: false),
+                    discount = table.Column<decimal>(type: "decimal(12,2)", nullable: false),
+                    total = table.Column<decimal>(type: "decimal(12,2)", nullable: false),
+                    payment_method = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
+                    payment_status = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
                     notes = table.Column<string>(type: "text", nullable: true),
-                    created_at = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    updated_at = table.Column<DateTime>(type: "TEXT", nullable: false)
+                    created_at = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    updated_at = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -168,17 +168,17 @@ namespace server.Migrations
                 name: "reservations",
                 columns: table => new
                 {
-                    id = table.Column<int>(type: "INTEGER", nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
-                    customer_id = table.Column<string>(type: "TEXT", maxLength: 50, nullable: false),
-                    table_id = table.Column<int>(type: "INTEGER", nullable: false),
+                    id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    customer_id = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    table_id = table.Column<int>(type: "int", nullable: false),
                     reservation_date = table.Column<DateTime>(type: "date", nullable: false),
                     reservation_time = table.Column<TimeSpan>(type: "time", nullable: false),
-                    guest_count = table.Column<int>(type: "INTEGER", nullable: false),
-                    status = table.Column<string>(type: "TEXT", maxLength: 50, nullable: false),
+                    guest_count = table.Column<int>(type: "int", nullable: false),
+                    status = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
                     notes = table.Column<string>(type: "text", nullable: true),
-                    created_at = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    updated_at = table.Column<DateTime>(type: "TEXT", nullable: false)
+                    created_at = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    updated_at = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -201,16 +201,16 @@ namespace server.Migrations
                 name: "order_items",
                 columns: table => new
                 {
-                    id = table.Column<int>(type: "INTEGER", nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
-                    order_id = table.Column<string>(type: "TEXT", maxLength: 50, nullable: false),
-                    product_id = table.Column<int>(type: "INTEGER", nullable: false),
-                    product_name = table.Column<string>(type: "TEXT", maxLength: 255, nullable: true),
-                    quantity = table.Column<int>(type: "INTEGER", nullable: false),
-                    unit_price = table.Column<decimal>(type: "decimal(12, 2)", nullable: false),
-                    total_price = table.Column<decimal>(type: "decimal(12, 2)", nullable: false),
+                    id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    order_id = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    product_id = table.Column<int>(type: "int", nullable: false),
+                    product_name = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: true),
+                    quantity = table.Column<int>(type: "int", nullable: false),
+                    unit_price = table.Column<decimal>(type: "decimal(12,2)", nullable: false),
+                    total_price = table.Column<decimal>(type: "decimal(12,2)", nullable: false),
                     notes = table.Column<string>(type: "text", nullable: true),
-                    created_at = table.Column<DateTime>(type: "TEXT", nullable: false)
+                    created_at = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
                 constraints: table =>
                 {

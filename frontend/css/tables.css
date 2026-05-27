@@ -1,4 +1,3 @@
-
 .table-item {
     transition: opacity 0.3s ease-in-out;
 }
@@ -8,7 +7,6 @@
 .table-occupied { border-top-color: #c82014; }
 .table-reserved { border-top-color: #fbbc05; }
 .table-cleaning { border-top-color: #f97316; }
-
 .table-icon-large {
     background-color: var(--sb-house-green-light) !important;
 }

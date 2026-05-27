@@ -11,8 +11,8 @@ using System.Text;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddDbContext<serverContext>(options =>
-    options.UseSqlite(
-        "Data Source=restaurant.db"));
+    options.UseSqlServer(
+        builder.Configuration.GetConnectionString("serverContext")));
 builder.Services.Configure<DeepSeekOptions>(builder.Configuration.GetSection("DeepSeek"));
 builder.Services.AddHttpClient<DeepSeekChatClient>();
 builder.Services.AddSignalR();
@@ -66,6 +66,13 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
+
+// Seed database
+using (var scope = app.Services.CreateScope())
+{
+    var context = scope.ServiceProvider.GetRequiredService<serverContext>();
+    await DbInitializer.SeedAsync(context);
+}
 
 if (app.Environment.IsDevelopment())
 {

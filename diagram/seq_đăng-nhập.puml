@@ -4,7 +4,7 @@ skinparam backgroundColor #FEFEFE
 
 title Đăng nhập
 
-actor "Người dùng (Admin" as user
+actor "Người dùng Admin" as user
 participant "Trang đăng nhập" as page
 participant "AuthController" as ctrl
 database "DB Accounts" as db

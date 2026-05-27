@@ -1,9 +1,6 @@
-
-
 const API_BASE = 'http://localhost:7071/api';
 const ORDERS_URL = `${API_BASE}/Orders`;
 const CUSTOMERS_URL = `${API_BASE}/Customers`;
-
 async function apiFetch(url) {
     const resp = await fetch(url, {
         headers: {
@@ -14,12 +11,9 @@ async function apiFetch(url) {
     if (!resp.ok) throw new Error(`API ${resp.status}`);
     return resp.json();
 }
-
 document.addEventListener('DOMContentLoaded', async () => {
     let orders = [], customers = [];
     let timeRange = 'month';
-
-
     async function loadData() {
         try {
             const [ordResp, custResp] = await Promise.all([
@@ -36,17 +30,13 @@ document.addEventListener('DOMContentLoaded', async () => {
             customers = JSON.parse(localStorage.getItem('bistro_customers') || '[]');
         }
     }
-
     await loadData();
-
-
     function filterByRange(items, range) {
         const now = new Date();
         let since = new Date();
         if (range === '7d') since.setDate(now.getDate() - 7);
         else if (range === 'month') since = new Date(now.getFullYear(), now.getMonth(), 1);
         else if (range === 'year') since = new Date(now.getFullYear(), 0, 1);
-
         return items.filter(item => {
             const d = item.createdAt || item.date || item.created_at;
             if (!d) return true;
@@ -54,24 +44,18 @@ document.addEventListener('DOMContentLoaded', async () => {
             return date >= since;
         });
     }
-
     function refreshStats(range) {
         timeRange = range;
         const filtered = filterByRange(orders, range);
         const filteredCust = filterByRange(customers, range);
-
-
         const revenue = filtered.reduce((sum, o) => sum + (Number(o.total) || 0), 0);
         const profit = Math.round(revenue * 0.4);
         const orderCount = filtered.length;
         const avgOrder = orderCount > 0 ? Math.round(revenue / orderCount) : 0;
-
-
         const prevRange = range === '7d' ? '14d' : range === 'month' ? 'prevMonth' : 'prevYear';
         let prevSince = new Date();
         if (range === '7d') { prevSince.setDate(prevSince.getDate() - 14); }
         else if (range === 'month') { prevSince = new Date(new Date().getFullYear(), new Date().getMonth() - 1, 1); }
-
         const prevFiltered = orders.filter(item => {
             const d = item.createdAt || item.date || item.created_at;
             if (!d) return false;
@@ -85,12 +69,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         const prevRevenue = prevFiltered.reduce((sum, o) => sum + (Number(o.total) || 0), 0);
         const prevCount = prevFiltered.length;
         const prevAvg = prevCount > 0 ? Math.round(prevRevenue / prevCount) : 0;
-
         const revenueChange = prevRevenue > 0 ? ((revenue - prevRevenue) / prevRevenue * 100) : 0;
         const profitChange = revenueChange;
         const orderChange = prevCount > 0 ? ((orderCount - prevCount) / prevCount * 100) : 0;
         const avgChange = prevAvg > 0 ? ((avgOrder - prevAvg) / prevAvg * 100) : 0;
-
         const setVal = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
         const setTrend = (id, pct) => {
             const el = document.getElementById(id);
@@ -99,7 +81,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             el.innerHTML = `<span class="material-symbols-outlined icon-trend-sm">${isUp ? 'trending_up' : 'trending_down'}</span> ${isUp ? '+' : ''}${pct.toFixed(1)}% so với kỳ trước`;
             el.className = `d-flex align-items-center gap-1 small fw-medium ${isUp ? 'text-success' : 'text-danger'}`;
         };
-
         setVal('statRevenue', (revenue / 1e6).toFixed(1) + 'M ₫');
         setVal('statProfit', (profit / 1e6).toFixed(1) + 'M ₫');
         setVal('statOrders', orderCount.toLocaleString('vi-VN'));
@@ -108,8 +89,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         setTrend('trendProfit', profitChange);
         setTrend('trendOrders', orderChange);
         setTrend('trendAvgOrder', avgChange);
-
-
         const catRevenue = {};
         filtered.forEach(o => {
             const cat = o.category || (o.items?.[0]?.category) || 'Khác';
@@ -129,17 +108,13 @@ document.addEventListener('DOMContentLoaded', async () => {
             const el = document.getElementById(id);
             if (el && topCats[i]) el.style.width = Math.round(topCats[i][1] / totalCatRev * 100) + '%';
         });
-
-
         updateOrdersChart(filtered);
         updateCustomersChart(filteredCust);
     }
-
     function updateOrdersChart(filtered) {
         const canvas = document.getElementById('ordersChart');
         if (!canvas) return;
         const ctx = canvas.getContext('2d');
-
         const dayNames = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'];
         const today = new Date();
         const dayBuckets = {};
@@ -149,20 +124,17 @@ document.addEventListener('DOMContentLoaded', async () => {
             const key = d.toLocaleDateString('vi-VN');
             dayBuckets[key] = 0;
         }
-
         filtered.forEach(o => {
             const d = o.createdAt || o.date || o.created_at;
             if (!d) return;
             const key = new Date(d).toLocaleDateString('vi-VN');
             if (dayBuckets.hasOwnProperty(key)) dayBuckets[key]++;
         });
-
         const labels = Object.keys(dayBuckets).map(k => {
             const parts = k.split('/');
             return parts.length === 3 ? dayNames[new Date(parts[2], parts[1] - 1, parts[0]).getDay()] : k;
         });
         const data = Object.values(dayBuckets);
-
         if (canvas._chart) canvas._chart.destroy();
         canvas._chart = new Chart(ctx, {
             type: 'bar',
@@ -183,12 +155,10 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
         });
     }
-
     function updateCustomersChart(filteredCust) {
         const canvas = document.getElementById('customersChart');
         if (!canvas) return;
         const ctx = canvas.getContext('2d');
-
         const monthNames = ['Tháng 1', 'Tháng 2', 'Tháng 3', 'Tháng 4', 'Tháng 5', 'Tháng 6',
             'Tháng 7', 'Tháng 8', 'Tháng 9', 'Tháng 10', 'Tháng 11', 'Tháng 12'];
         const now = new Date();
@@ -197,7 +167,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             const m = new Date(now.getFullYear(), now.getMonth() - i, 1);
             monthBuckets[monthNames[m.getMonth()]] = 0;
         }
-
         filteredCust.forEach(c => {
             const d = c.createdAt || c.created_at;
             if (!d) return;
@@ -205,10 +174,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             const key = monthNames[m];
             if (monthBuckets.hasOwnProperty(key)) monthBuckets[key]++;
         });
-
         const labels = Object.keys(monthBuckets);
         const data = Object.values(monthBuckets);
-
         if (canvas._chart) canvas._chart.destroy();
         canvas._chart = new Chart(ctx, {
             type: 'line',
@@ -232,8 +199,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
         });
     }
-
-
     const timeButtons = document.querySelectorAll('.bg-light.rounded-pill.border .btn');
     timeButtons.forEach(button => {
         button.addEventListener('click', () => {
@@ -243,14 +208,11 @@ document.addEventListener('DOMContentLoaded', async () => {
             });
             button.classList.remove('btn-light', 'text-secondary');
             button.classList.add('btn-primary', 'shadow-sm');
-
             const text = button.textContent.trim();
             const range = text.includes('Ngày') ? '7d' : text.includes('Năm') ? 'year' : 'month';
             refreshStats(range);
         });
     });
-
-
     document.querySelectorAll('.d-flex.gap-3 > .btn').forEach(btn => {
         if (btn.textContent.includes('Xuất Excel')) {
             btn.addEventListener('click', () => {
@@ -266,7 +228,5 @@ document.addEventListener('DOMContentLoaded', async () => {
             });
         }
     });
-
-
     refreshStats('month');
 });

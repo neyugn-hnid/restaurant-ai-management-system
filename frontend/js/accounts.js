@@ -3,7 +3,6 @@ import {
     isActiveAccountStatus,
     isInactiveAccountStatus
 } from './status-constants.js';
-
 document.addEventListener('DOMContentLoaded', () => {
     const FV = window.FormValidation;
     const API_BASE_URL = 'http://localhost:7071/api';
@@ -11,30 +10,25 @@ document.addEventListener('DOMContentLoaded', () => {
     const ITEMS_PER_PAGE = 10;
     const DEFAULT_SORT = 'name-asc';
     const DEBOUNCE_DELAY_MS = 300;
-
     const ROLE_OPTIONS = [
         { value: '', label: 'Tất cả vai trò' },
         { value: 'admin', label: 'Quản trị viên' },
         { value: 'manager', label: 'Quản lý' },
         { value: 'staff', label: 'Nhân viên' }
     ];
-
     const SORT_OPTIONS = [
         { value: 'name-asc', label: 'Tên (A-Z)' },
         { value: 'name-desc', label: 'Tên (Z-A)' }
     ];
-
     const FORM_ROLE_OPTIONS = [
         { value: 'admin', label: 'Quản trị viên' },
         { value: 'manager', label: 'Quản lý' },
         { value: 'staff', label: 'Nhân viên' }
     ];
-
     const FORM_STATUS_OPTIONS = [
         { value: 'active', label: 'Hoạt động' },
         { value: 'inactive', label: 'Khóa' }
     ];
-
     const elements = {
         searchInput: document.getElementById('accountSearch'),
         roleFilter: document.getElementById('roleFilter'),
@@ -54,7 +48,6 @@ document.addEventListener('DOMContentLoaded', () => {
         statActive: document.getElementById('statActive'),
         statInactive: document.getElementById('statInactive')
     };
-
     const state = {
         accounts: [],
         currentPage: 1,
@@ -66,14 +59,12 @@ document.addEventListener('DOMContentLoaded', () => {
         accountToDeleteId: null,
         searchTimeoutId: null
     };
-
     function renderSelectOptions(selectElement, options, selectedValue) {
         if (!selectElement) return;
         selectElement.innerHTML = options
             .map(opt => `<option value="${opt.value}"${opt.value === selectedValue ? ' selected' : ''}>${opt.label}</option>`)
             .join('');
     }
-
     async function request(url, options = {}) {
         const token = localStorage.getItem('auth_token');
         const response = await fetch(url, {
@@ -92,7 +83,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (response.status === 204) return null;
         return await response.json();
     }
-
     function getRoleBadge(role) {
         const config = {
             admin: { cls: 'role-admin', icon: 'admin_panel_settings', label: 'Quản trị' },
@@ -102,18 +92,15 @@ document.addEventListener('DOMContentLoaded', () => {
         const c = config[role] || config.staff;
         return `<span class="role-badge ${c.cls}"><span class="material-symbols-outlined icon-sm">${c.icon}</span> ${c.label}</span>`;
     }
-
     function getStatusBadge(status) {
         if (isActiveAccountStatus(status)) {
             return '<span class="badge bg-success bg-opacity-10 text-success border border-success">Hoạt động</span>';
         }
         return '<span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary">Khóa</span>';
     }
-
     async function loadAccounts() {
         if (!elements.tableBody) return;
         elements.tableBody.innerHTML = '<tr><td colspan="6" class="text-center py-4"><span class="spinner-border spinner-border-sm"></span> Đang tải...</td></tr>';
-
         try {
             const sortParts = state.sort.split('-');
             const query = new URLSearchParams({
@@ -123,12 +110,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 sortBy: sortParts[0] === 'name' ? 'fullname' : sortParts[0],
                 sortOrder: sortParts[1] || 'asc'
             });
-
             const resp = await request(`${ACCOUNTS_API_URL}?${query}`);
             state.accounts = resp?.items || [];
             state.totalItems = resp?.totalItemCount || state.accounts.length;
             state.totalPages = Math.ceil(state.totalItems / ITEMS_PER_PAGE) || 1;
-
             updateStats();
             renderAccounts();
         } catch (err) {
@@ -138,7 +123,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
     }
-
     function updateStats() {
         if (elements.statTotal) elements.statTotal.textContent = state.totalItems;
         if (elements.statActive) {
@@ -148,24 +132,20 @@ document.addEventListener('DOMContentLoaded', () => {
             elements.statInactive.textContent = state.accounts.filter(a => isInactiveAccountStatus(a.status)).length;
         }
     }
-
     function getFilteredAccounts() {
         return state.accounts.filter(acc => {
             if (state.roleFilter && acc.role !== state.roleFilter) return false;
             return true;
         });
     }
-
     function renderAccounts() {
         if (!elements.tableBody) return;
-
         const filtered = getFilteredAccounts();
         if (filtered.length === 0) {
             elements.tableBody.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-muted">Không tìm thấy tài khoản nào.</td></tr>';
             renderPagination();
             return;
         }
-
         elements.tableBody.innerHTML = filtered.map(acc => {
             const name = acc.name || acc.fullName || acc.username || 'User';
             const nameParts = name.split(' ');
@@ -175,7 +155,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const avatarCls = isActiveAccountStatus(acc.status)
                 ? 'bg-primary-light text-primary'
                 : 'bg-light text-secondary';
-
             return `
                 <tr>
                     <td class="ps-4">
@@ -202,29 +181,24 @@ document.addEventListener('DOMContentLoaded', () => {
                     </td>
                 </tr>`;
         }).join('');
-
         bindRowButtons();
         renderPagination();
     }
-
     function bindRowButtons() {
         document.querySelectorAll('.edit-btn').forEach(btn => {
             btn.addEventListener('click', () => {
                 const id = btn.dataset.id;
                 const acc = state.accounts.find(a => String(a.id) === String(id));
                 if (!acc) return;
-
                 elements.modalLabel.textContent = 'Sửa tài khoản';
                 elements.accountId.value = acc.id;
                 elements.accountName.value = acc.name || acc.fullName || '';
                 elements.accountUsername.value = acc.username || '';
                 elements.formRole.value = acc.role || 'staff';
                 elements.formStatus.value = isActiveAccountStatus(acc.status) ? 'active' : 'inactive';
-
                 new bootstrap.Modal(document.getElementById('addAccountModal')).show();
             });
         });
-
         document.querySelectorAll('.delete-btn').forEach(btn => {
             btn.addEventListener('click', () => {
                 const id = btn.dataset.id;
@@ -238,24 +212,19 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         });
     }
-
     function renderPagination() {
         const container = document.querySelector('.pagination');
         if (!container) return;
-
         container.innerHTML = '';
         const totalPages = Math.max(1, state.totalPages);
-
         const addBtn = (label, page, disabled) => {
             const li = document.createElement('li');
             li.className = `page-item${disabled ? ' disabled' : ''}`;
             li.innerHTML = `<a class="page-link border text-secondary bg-white px-3" style="border-radius:0;" href="#" data-page="${page}">${label}</a>`;
             container.appendChild(li);
         };
-
         addBtn('Trước', 'prev', state.currentPage === 1);
         addBtn('Sau', 'next', state.currentPage === totalPages);
-
         container.querySelectorAll('a').forEach(a => {
             a.addEventListener('click', e => {
                 e.preventDefault();
@@ -266,7 +235,6 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         });
     }
-
     function applyFilters() {
         state.searchTerm = elements.searchInput?.value.trim() || '';
         state.roleFilter = elements.roleFilter?.value || '';
@@ -274,7 +242,6 @@ document.addEventListener('DOMContentLoaded', () => {
         state.currentPage = 1;
         loadAccounts();
     }
-
     async function handleFormSubmit(e) {
         if (e) e.preventDefault();
         const id = elements.accountId?.value || '';
@@ -284,9 +251,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const status = elements.formStatus?.value || 'active';
         const password = elements.accountPassword?.value || '';
         let isValid = true;
-
         FV?.clearFormErrors(elements.accountForm);
-
         if (!name) {
             isValid = FV ? FV.setFieldError(elements.accountName, 'Vui lòng nhập tên hiển thị.') : false;
         } else if (name.length < 2 || name.length > 100) {
@@ -294,7 +259,6 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             FV?.markFieldValid(elements.accountName);
         }
-
         if (!username) {
             isValid = FV ? FV.setFieldError(elements.accountUsername, 'Vui lòng nhập username.') : false;
         } else if (!FV?.validateUsername(username)) {
@@ -302,19 +266,16 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             FV?.markFieldValid(elements.accountUsername);
         }
-
         if (!role) {
             isValid = FV ? FV.setFieldError(elements.formRole, 'Vui lòng chọn vai trò.') : false;
         } else {
             FV?.markFieldValid(elements.formRole);
         }
-
         if (!status) {
             isValid = FV ? FV.setFieldError(elements.formStatus, 'Vui lòng chọn trạng thái.') : false;
         } else {
             FV?.markFieldValid(elements.formStatus);
         }
-
         if (!id && (!password || password.trim().length < 6)) {
             isValid = FV ? FV.setFieldError(elements.accountPassword, 'Mật khẩu tài khoản mới phải có ít nhất 6 ký tự.') : false;
         } else if (password && password.trim().length < 6) {
@@ -324,11 +285,8 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             FV?.clearFieldError(elements.accountPassword);
         }
-
         if (!isValid) return;
-
         const payload = { fullName: name || null, username, role, status, updatedAt: new Date().toISOString() };
-
         try {
             if (id) {
                 const updatePayload = { ...payload, id: Number(id) };
@@ -352,7 +310,6 @@ document.addEventListener('DOMContentLoaded', () => {
             alert(`Lỗi: ${err.message}`);
         }
     }
-
     function bindEvents() {
         const saveBtn = document.querySelector('#addAccountModal button[type="submit"]');
         if (saveBtn) {
@@ -361,7 +318,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 handleFormSubmit(e);
             });
         }
-
         if (elements.searchInput) {
             elements.searchInput.addEventListener('input', () => {
                 clearTimeout(state.searchTimeoutId);
@@ -371,7 +327,6 @@ document.addEventListener('DOMContentLoaded', () => {
         elements.roleFilter?.addEventListener('change', applyFilters);
         elements.sortOption?.addEventListener('change', applyFilters);
         elements.accountForm?.addEventListener('submit', handleFormSubmit);
-
         elements.btnOpenAdd?.addEventListener('click', () => {
             FV?.clearFormErrors(elements.accountForm);
             elements.modalLabel.textContent = 'Thêm tài khoản';
@@ -382,7 +337,6 @@ document.addEventListener('DOMContentLoaded', () => {
             if (elements.formRole) elements.formRole.value = 'staff';
             if (elements.formStatus) elements.formStatus.value = 'active';
         });
-
         elements.confirmDeleteBtn?.addEventListener('click', async () => {
             if (!state.accountToDeleteId) return;
             try {
@@ -396,12 +350,10 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
-
     renderSelectOptions(elements.roleFilter, ROLE_OPTIONS, '');
     renderSelectOptions(elements.sortOption, SORT_OPTIONS, DEFAULT_SORT);
     renderSelectOptions(elements.formRole, FORM_ROLE_OPTIONS, 'staff');
     renderSelectOptions(elements.formStatus, FORM_STATUS_OPTIONS, 'active');
-
     FV?.enableInstantClear(elements.accountForm);
     bindEvents();
     loadAccounts();

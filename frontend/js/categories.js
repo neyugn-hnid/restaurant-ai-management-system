@@ -3,7 +3,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const API_BASE_URL = 'http://localhost:7071/api';
     const CATEGORIES_API_URL = `${API_BASE_URL}/Categories`;
     const ITEMS_PER_PAGE = 10;
-
     const elements = {
         tableBody: document.getElementById('categoriesTableBody'),
         categoryForm: document.getElementById('categoryForm'),
@@ -14,7 +13,6 @@ document.addEventListener('DOMContentLoaded', () => {
         confirmDeleteBtn: document.getElementById('confirmDeleteBtn'),
         searchInput: document.getElementById('categorySearch')
     };
-
     const state = {
         categories: [],
         currentPage: 1,
@@ -22,7 +20,6 @@ document.addEventListener('DOMContentLoaded', () => {
         searchTerm: '',
         categoryToDeleteId: null
     };
-
     async function request(url, options = {}) {
         const resp = await fetch(url, {
             headers: { 'Content-Type': 'application/json', ...(options.headers || {}) },
@@ -36,7 +33,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (resp.status === 204) return null;
         return resp.json();
     }
-
     function showToast(message, type = 'success') {
         const toast = document.getElementById('liveToast');
         const msg = document.getElementById('toastMessage');
@@ -45,11 +41,9 @@ document.addEventListener('DOMContentLoaded', () => {
         toast.className = `toast align-items-center text-white bg-${type} border-0`;
         new bootstrap.Toast(toast, { delay: 3000 }).show();
     }
-
     async function loadCategories() {
         if (!elements.tableBody) return;
         elements.tableBody.innerHTML = '<tr><td colspan="5" class="text-center py-4"><span class="spinner-border spinner-border-sm"></span></td></tr>';
-
         try {
             const query = new URLSearchParams({
                 page: state.currentPage,
@@ -68,7 +62,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         renderCategories();
     }
-
     function renderCategories() {
         if (!elements.tableBody) return;
         const filtered = state.categories.filter(c => {
@@ -78,12 +71,10 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         const start = (state.currentPage - 1) * ITEMS_PER_PAGE;
         const pageData = filtered.slice(start, start + ITEMS_PER_PAGE);
-
         if (pageData.length === 0) {
             elements.tableBody.innerHTML = '<tr><td colspan="5" class="text-center py-4 text-muted">Không tìm thấy danh mục nào.</td></tr>';
             return;
         }
-
         elements.tableBody.innerHTML = pageData.map(c => `
             <tr>
                 <td class="ps-4 fw-semibold">${c.name || '-'}</td>
@@ -101,10 +92,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     </div>
                 </td>
             </tr>`).join('');
-
         bindRowButtons();
     }
-
     function bindRowButtons() {
         document.querySelectorAll('.edit-btn').forEach(btn => {
             btn.addEventListener('click', () => {
@@ -124,23 +113,19 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         });
     }
-
     function bindEvents() {
         elements.searchInput?.addEventListener('input', () => {
             state.searchTerm = elements.searchInput.value.trim().toLowerCase();
             state.currentPage = 1;
             renderCategories();
         });
-
         elements.categoryForm?.addEventListener('submit', async (e) => {
             e.preventDefault();
             const id = elements.categoryId.value;
             const name = FV?.normalizeWhitespace(elements.categoryName.value) || elements.categoryName.value.trim();
             const description = FV?.normalizeWhitespace(elements.categoryDesc.value) || elements.categoryDesc.value.trim();
             let isValid = true;
-
             FV?.clearFormErrors(elements.categoryForm);
-
             if (!name) {
                 isValid = FV ? FV.setFieldError(elements.categoryName, 'Vui lòng nhập tên danh mục.') : false;
             } else if (name.length < 2 || name.length > 60) {
@@ -149,7 +134,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 elements.categoryName.value = name;
                 FV?.markFieldValid(elements.categoryName);
             }
-
             if (description && description.length > 200) {
                 isValid = FV ? FV.setFieldError(elements.categoryDesc, 'Mô tả tối đa 200 ký tự.') : false;
             } else if (description) {
@@ -158,9 +142,7 @@ document.addEventListener('DOMContentLoaded', () => {
             } else {
                 FV?.clearFieldError(elements.categoryDesc);
             }
-
             if (!isValid) return;
-
             const payload = {
                 name,
                 description
@@ -180,7 +162,6 @@ document.addEventListener('DOMContentLoaded', () => {
             elements.categoryId.value = '';
             await loadCategories();
         });
-
         elements.confirmDeleteBtn?.addEventListener('click', async () => {
             if (!state.categoryToDeleteId) return;
             try { await request(`${CATEGORIES_API_URL}/${encodeURIComponent(state.categoryToDeleteId)}`, { method: 'DELETE' }); } catch (_) {}
@@ -190,14 +171,12 @@ document.addEventListener('DOMContentLoaded', () => {
             renderCategories();
             showToast('Đã xóa danh mục!');
         });
-
         document.getElementById('btnOpenAddModal')?.addEventListener('click', () => {
             elements.modalLabel.textContent = 'Thêm danh mục';
             elements.categoryForm.reset();
             elements.categoryId.value = '';
         });
     }
-
     FV?.enableInstantClear(elements.categoryForm);
     bindEvents();
     loadCategories();

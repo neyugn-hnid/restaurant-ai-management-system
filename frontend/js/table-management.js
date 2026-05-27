@@ -4,14 +4,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const TABLES_URL = `${API_BASE}/RestaurantTables`;
     const ALL_OPTION = 'Tất cả';
     const ITEMS_PER_PAGE = 10;
-
     const TABLE_STATUSES = {
         AVAILABLE: 'Trống',
         OCCUPIED: 'Đang phục vụ',
         RESERVED: 'Đã đặt',
         CLEANING: 'Chờ dọn dẹp'
     };
-
     const STATUS_FILTER_OPTIONS = [
         { value: ALL_OPTION, label: 'Tất cả trạng thái' },
         { value: TABLE_STATUSES.AVAILABLE, label: TABLE_STATUSES.AVAILABLE },
@@ -19,21 +17,18 @@ document.addEventListener('DOMContentLoaded', () => {
         { value: TABLE_STATUSES.RESERVED, label: TABLE_STATUSES.RESERVED },
         { value: TABLE_STATUSES.CLEANING, label: TABLE_STATUSES.CLEANING }
     ];
-
     const SORT_OPTIONS = [
         { value: 'name-asc', label: 'Tên (A-Z)' },
         { value: 'name-desc', label: 'Tên (Z-A)' },
         { value: 'cap-asc', label: 'Sức chứa (Tăng dần)' },
         { value: 'cap-desc', label: 'Sức chứa (Giảm dần)' }
     ];
-
     const FORM_STATUS_OPTIONS = [
         { value: TABLE_STATUSES.AVAILABLE, label: TABLE_STATUSES.AVAILABLE },
         { value: TABLE_STATUSES.OCCUPIED, label: TABLE_STATUSES.OCCUPIED },
         { value: TABLE_STATUSES.RESERVED, label: TABLE_STATUSES.RESERVED },
         { value: TABLE_STATUSES.CLEANING, label: TABLE_STATUSES.CLEANING }
     ];
-
     const elements = {
         searchInput: document.getElementById('tableSearchMgmt'),
         locationFilter: document.getElementById('locationFilterMgmt'),
@@ -52,7 +47,6 @@ document.addEventListener('DOMContentLoaded', () => {
         toast: document.getElementById('liveToast'),
         toastMessage: document.getElementById('toastMessage')
     };
-
     const state = {
         tables: [],
         currentPage: 1,
@@ -64,14 +58,12 @@ document.addEventListener('DOMContentLoaded', () => {
         sort: 'name-asc',
         tableToDeleteId: null
     };
-
     function renderSelectOptions(selectEl, options, selectedValue) {
         if (!selectEl) return;
         selectEl.innerHTML = options
             .map(o => `<option value="${o.value}"${o.value === selectedValue ? ' selected' : ''}>${o.label}</option>`)
             .join('');
     }
-
     async function apiFetch(url, options = {}) {
         const resp = await fetch(url, {
             headers: { 'Content-Type': 'application/json', ...(options.headers || {}) },
@@ -81,14 +73,12 @@ document.addEventListener('DOMContentLoaded', () => {
         if (resp.status === 204) return null;
         return resp.json();
     }
-
     function showToast(message, type = 'success') {
         if (!elements.toast || !elements.toastMessage) { alert(message); return; }
         elements.toastMessage.textContent = message;
         elements.toast.className = `toast align-items-center text-white bg-${type} border-0`;
         new bootstrap.Toast(elements.toast, { delay: 3000 }).show();
     }
-
     function getStatusBadge(status) {
         const config = {
             [TABLE_STATUSES.AVAILABLE]: 'bg-success bg-opacity-10 text-success',
@@ -99,11 +89,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const cls = config[status] || 'bg-secondary bg-opacity-10 text-secondary';
         return `<span class="badge ${cls}">${status || 'N/A'}</span>`;
     }
-
     async function loadTables() {
         if (!elements.tableBody) return;
         elements.tableBody.innerHTML = '<tr><td colspan="6" class="text-center py-4"><span class="spinner-border spinner-border-sm"></span> Đang tải...</td></tr>';
-
         try {
             const sortParts = state.sort.split('-');
             const query = new URLSearchParams({
@@ -115,23 +103,20 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             if (state.locationFilter !== ALL_OPTION) query.set('location', state.locationFilter);
             if (state.statusFilter !== ALL_OPTION) query.set('status', state.statusFilter);
-
             const resp = await apiFetch(`${TABLES_URL}?${query}`);
             state.tables = resp?.items || [];
             state.totalItems = resp?.totalItemCount || state.tables.length;
             state.totalPages = Math.ceil(state.totalItems / ITEMS_PER_PAGE) || 1;
-
             updateLocationFilter();
         } catch (err) {
             console.warn('API không khả dụng:', err.message);
-            state.tables = JSON.parse(localStorage.getItem('bistro_tables') || '[]');
+            state.tables = []; // Không dùng localStorage cache
             state.totalItems = state.tables.length;
             state.totalPages = Math.ceil(state.totalItems / ITEMS_PER_PAGE) || 1;
             updateLocationFilter();
         }
         renderTables();
     }
-
     function updateLocationFilter() {
         const locations = [...new Set(state.tables.map(t => t.zone).filter(Boolean))];
         const currentVal = elements.locationFilter?.value || ALL_OPTION;
@@ -141,7 +126,6 @@ document.addEventListener('DOMContentLoaded', () => {
         ];
         renderSelectOptions(elements.locationFilter, options, currentVal);
     }
-
     function getFilteredTables() {
         return state.tables.filter(t => {
             if (state.locationFilter !== ALL_OPTION && t.zone !== state.locationFilter) return false;
@@ -153,23 +137,19 @@ document.addEventListener('DOMContentLoaded', () => {
             return true;
         });
     }
-
     function renderTables() {
         if (!elements.tableBody) return;
         const filtered = getFilteredTables();
         const start = (state.currentPage - 1) * ITEMS_PER_PAGE;
         const pageData = filtered.slice(start, start + ITEMS_PER_PAGE);
-
         if (elements.info) {
             elements.info.textContent = '';
         }
-
         if (pageData.length === 0) {
             elements.tableBody.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-muted">Không tìm thấy bàn nào.</td></tr>';
             renderPagination(filtered);
             return;
         }
-
         elements.tableBody.innerHTML = pageData.map(t => `
             <tr>
                 <td class="fw-semibold">${t.name || t.id || '-'}</td>
@@ -187,28 +167,23 @@ document.addEventListener('DOMContentLoaded', () => {
                     </div>
                 </td>
             </tr>`).join('');
-
         bindRowButtons();
         renderPagination(filtered);
     }
-
     function bindRowButtons() {
         document.querySelectorAll('.edit-btn').forEach(btn => {
             btn.addEventListener('click', () => {
                 const t = state.tables.find(x => String(x.id) === String(btn.dataset.id));
                 if (!t) return;
-
                 elements.editModalLabel.textContent = 'Sửa thông tin Bàn';
                 elements.editTableName.value = t.name || t.id || '';
                 elements.editTableCapacity.value = t.capacity || 4;
                 renderSelectOptions(elements.editTableLocation, getLocationOptions(), t.zone || '');
                 renderSelectOptions(elements.editTableStatus, FORM_STATUS_OPTIONS, t.status || TABLE_STATUSES.AVAILABLE);
-
                 elements.editForm.dataset.editId = t.id;
                 new bootstrap.Modal(document.getElementById('editTableModal')).show();
             });
         });
-
         document.querySelectorAll('.delete-btn').forEach(btn => {
             btn.addEventListener('click', () => {
                 state.tableToDeleteId = btn.dataset.id;
@@ -216,27 +191,22 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         });
     }
-
     function getLocationOptions() {
         const locations = [...new Set(state.tables.map(t => t.zone).filter(Boolean))];
         return locations.map(l => ({ value: l, label: l }));
     }
-
     function renderPagination(filtered) {
         if (!elements.pagination) return;
         const totalPages = Math.max(1, Math.ceil(filtered.length / ITEMS_PER_PAGE));
         elements.pagination.innerHTML = '';
-
         const addBtn = (label, page, disabled) => {
             const li = document.createElement('li');
             li.className = `page-item${disabled ? ' disabled' : ''}`;
             li.innerHTML = `<a class="page-link border text-secondary bg-white px-3" style="border-radius:0;" href="#" data-page="${page}">${label}</a>`;
             elements.pagination.appendChild(li);
         };
-
         addBtn('Trước', 'prev', state.currentPage === 1);
         addBtn('Sau', 'next', state.currentPage === totalPages);
-
         elements.pagination.querySelectorAll('a').forEach(a => {
             a.addEventListener('click', e => {
                 e.preventDefault();
@@ -247,7 +217,6 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         });
     }
-
     function applyFilters() {
         state.searchTerm = elements.searchInput?.value?.trim() || '';
         state.locationFilter = elements.locationFilter?.value || ALL_OPTION;
@@ -256,7 +225,6 @@ document.addEventListener('DOMContentLoaded', () => {
         state.currentPage = 1;
         loadTables();
     }
-
     function bindEvents() {
         elements.searchInput?.addEventListener('input', () => {
             state.searchTerm = elements.searchInput.value.trim();
@@ -266,7 +234,6 @@ document.addEventListener('DOMContentLoaded', () => {
         elements.locationFilter?.addEventListener('change', applyFilters);
         elements.statusFilter?.addEventListener('change', applyFilters);
         elements.sortFilter?.addEventListener('change', applyFilters);
-
         elements.editForm?.addEventListener('submit', async (e) => {
             e.preventDefault();
             const editId = elements.editForm.dataset.editId;
@@ -274,9 +241,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const zone = FV?.normalizeWhitespace(elements.editTableLocation.value) || elements.editTableLocation.value;
             const capacity = parseInt(elements.editTableCapacity.value, 10);
             let isValid = true;
-
             FV?.clearFormErrors(elements.editForm);
-
             if (!name) {
                 isValid = FV ? FV.setFieldError(elements.editTableName, 'Vui lòng nhập tên bàn.') : false;
             } else if (name.length < 2 || name.length > 50) {
@@ -285,14 +250,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 elements.editTableName.value = name;
                 FV?.markFieldValid(elements.editTableName);
             }
-
             if (!zone) {
                 isValid = FV ? FV.setFieldError(elements.editTableLocation, 'Vui lòng chọn khu vực.') : false;
             } else {
                 elements.editTableLocation.value = zone;
                 FV?.markFieldValid(elements.editTableLocation);
             }
-
             if (!elements.editTableCapacity.value) {
                 isValid = FV ? FV.setFieldError(elements.editTableCapacity, 'Vui lòng nhập sức chứa.') : false;
             } else if (!Number.isInteger(capacity) || capacity < 1 || capacity > 20) {
@@ -300,22 +263,18 @@ document.addEventListener('DOMContentLoaded', () => {
             } else {
                 FV?.markFieldValid(elements.editTableCapacity);
             }
-
             if (!elements.editTableStatus.value) {
                 isValid = FV ? FV.setFieldError(elements.editTableStatus, 'Vui lòng chọn trạng thái.') : false;
             } else {
                 FV?.markFieldValid(elements.editTableStatus);
             }
-
             if (!isValid) return;
-
             const payload = {
                 name,
                 zone,
                 capacity,
                 status: elements.editTableStatus.value
             };
-
             try {
                 if (editId) {
                     await apiFetch(`${TABLES_URL}/${encodeURIComponent(editId)}`, {
@@ -329,11 +288,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     showToast('Đã thêm bàn mới!');
                 }
             } catch (err) { showToast(err.message, 'danger'); }
-
             bootstrap.Modal.getInstance(document.getElementById('editTableModal'))?.hide();
             await loadTables();
         });
-
         elements.confirmDeleteBtn?.addEventListener('click', async () => {
             if (!state.tableToDeleteId) return;
             try {
@@ -344,7 +301,6 @@ document.addEventListener('DOMContentLoaded', () => {
             state.tableToDeleteId = null;
             await loadTables();
         });
-
         document.getElementById('btnOpenAddModal')?.addEventListener('click', () => {
             elements.editModalLabel.textContent = 'Thêm Bàn Mới';
             elements.editForm.reset();
@@ -355,7 +311,6 @@ document.addEventListener('DOMContentLoaded', () => {
             renderSelectOptions(elements.editTableStatus, FORM_STATUS_OPTIONS, TABLE_STATUSES.AVAILABLE);
         });
     }
-
     renderSelectOptions(elements.statusFilter, STATUS_FILTER_OPTIONS, ALL_OPTION);
     renderSelectOptions(elements.sortFilter, SORT_OPTIONS, 'name-asc');
     FV?.enableInstantClear(elements.editForm);

@@ -4,6 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Cài đặt - DEAGUN</title>
+    <style id="loader-css">html{overflow:hidden!important}body::before{content:"";position:fixed;inset:0;z-index:99999;background:#f2f0eb}body::after{content:"";position:fixed;top:50%;left:50%;z-index:100000;width:48px;height:48px;margin:-24px 0 0 -24px;border:5px solid #e0dcd5;border-top-color:#00754A;border-radius:50%;animation:spin 0.8s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}</style><script>window.addEventListener("load",function(){var s=document.getElementById("loader-css");if(s){s.remove();document.documentElement.style.overflow=""}});setTimeout(function(){var s=document.getElementById("loader-css");if(s){s.remove();document.documentElement.style.overflow=""}},5000);</script>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
@@ -62,17 +63,15 @@
                         <div class="p-3 settings-menu h-100">
                             <ul class="nav flex-column">
                                 <li class="nav-item" data-admin-only="true">
-                                    <a class="nav-link active d-flex align-items-center gap-2" href="#"><span class="material-symbols-outlined fs-5">storefront</span> Thông tin nhà hàng</a>
+                                    <a class="nav-link active d-flex align-items-center gap-2" href="javascript:void(0)"><span class="material-symbols-outlined fs-5">storefront</span> Thông tin nhà hàng</a>
                                 </li>
                                 <li class="nav-item">
-                                    <a class="nav-link text-secondary d-flex align-items-center gap-2" href="#"><span class="material-symbols-outlined fs-5">account_circle</span> Tài khoản quản trị</a>
+                                    <a class="nav-link text-secondary d-flex align-items-center gap-2" href="javascript:void(0)"><span class="material-symbols-outlined fs-5">account_circle</span> Tài khoản</a>
                                 </li>
                                 <li class="nav-item" data-admin-only="true">
-                                    <a class="nav-link text-secondary d-flex align-items-center gap-2" href="#"><span class="material-symbols-outlined fs-5">payments</span> Thanh toán</a>
+                                    <a class="nav-link text-secondary d-flex align-items-center gap-2" href="javascript:void(0)"><span class="material-symbols-outlined fs-5">payments</span> Thanh toán</a>
                                 </li>
-                                <li class="nav-item" data-admin-only="true">
-                                    <a class="nav-link text-secondary d-flex align-items-center gap-2" href="#"><span class="material-symbols-outlined fs-5">notifications_active</span> Thông báo</a>
-                                </li>
+                               
                             </ul>
                         </div>
                     </div>
@@ -85,7 +84,7 @@
                                 <div class="row g-3 mb-4">
                                     <div class="col-md-6">
                                         <label class="form-label">Tên nhà hàng</label>
-                                        <input type="text" class="form-control p-2" value="Bistro Delicacy" placeholder="Nhập tên nhà hàng">
+                                        <input type="text" class="form-control p-2" value="DeaGun" placeholder="Nhập tên nhà hàng">
                                     </div>
                                     <div class="col-md-6">
                                         <label class="form-label">Loại hình</label>
@@ -98,37 +97,32 @@
                                     </div>
                                     <div class="col-md-6">
                                         <label class="form-label">Số điện thoại liên hệ</label>
-                                        <input type="text" class="form-control p-2" value="0912 345 678">
+                                        <input type="text" class="form-control p-2" value="">
                                     </div>
                                     <div class="col-md-6">
                                         <label class="form-label">Email liên hệ</label>
-                                        <input type="email" class="form-control p-2" value="contact@bistro.com">
+                                        <input type="email" class="form-control p-2" value="">
                                     </div>
                                     <div class="col-12">
                                         <label class="form-label">Địa chỉ</label>
-                                        <input type="text" class="form-control p-2" value="123 Nguyễn Văn Linh, Phường Tân Phú, Quận 7, TP.HCM">
+                                        <input type="text" class="form-control p-2" value="">
                                     </div>
                                     <div class="col-md-4">
                                         <label class="form-label">Tỉnh / Thành phố</label>
-                                        <select class="form-select p-2">
-                                            <option selected>Hồ Chí Minh</option>
-                                            <option>Hà Nội</option>
-                                            <option>Đà Nẵng</option>
+                                        <select class="form-select p-2" id="provinceSelect">
+                                            <option value="">-- Chọn Tỉnh/TP --</option>
                                         </select>
                                     </div>
                                     <div class="col-md-4">
                                         <label class="form-label">Quận / Huyện</label>
-                                        <select class="form-select p-2">
-                                            <option selected>Quận 7</option>
-                                            <option>Quận 1</option>
-                                            <option>Thủ Đức</option>
+                                        <select class="form-select p-2" id="districtSelect" disabled>
+                                            <option value="">-- Chọn Quận/Huyện --</option>
                                         </select>
                                     </div>
                                     <div class="col-md-4">
                                         <label class="form-label">Phường / Xã</label>
-                                        <select class="form-select p-2">
-                                            <option selected>Phường Tân Phú</option>
-                                            <option>Phường Tân Quy</option>
+                                        <select class="form-select p-2" id="wardSelect" disabled>
+                                            <option value="">-- Chọn Phường/Xã --</option>
                                         </select>
                                     </div>
                                 </div>
@@ -141,45 +135,52 @@
 
 
                         <div id="section-account_circle" class="p-4 p-md-5 settings-section d-none">
-                            <h5 class="fw-bold mb-4">Tài khoản quản trị</h5>
-                            <form id="profileForm">
-                                <div class="row g-3 mb-4">
-                                    <div class="col-md-6">
-                                        <label class="form-label">Họ và tên</label>
-                                        <input type="text" class="form-control p-2" id="profileFullName" value="Nguyễn Văn Admin">
-                                    </div>
-                                    <div class="col-md-6">
-                                        <label class="form-label">Chức vụ</label>
-                                        <input type="text" class="form-control p-2" value="Quản lý cửa hàng" disabled>
-                                    </div>
+                        <div id="section-account_circle" class="p-4 p-md-5 settings-section d-none">
+                            <div class="row g-4">
+                                <!-- Cột trái: Thông tin cá nhân -->
+                                <div class="col-md-6">
+                                    <form id="profileForm" class="d-flex flex-column h-100">
+                                        <h5 class="fw-bold mb-3">Thông tin tài khoản</h5>
+                                        <div>
+                                            <div class="mb-3">
+                                                <label class="form-label">Họ và tên</label>
+                                                <input type="text" class="form-control p-2" id="profileFullName" value="Quản trị viên">
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label">Chức vụ</label>
+                                                <input type="text" class="form-control p-2" value="Quản lý cửa hàng" disabled>
+                                            </div>
+                                        </div>
+                                        <div class="mt-auto pt-3 border-top text-end">
+                                            <button type="submit" class="btn btn-primary px-4 fw-medium">Lưu thay đổi</button>
+                                        </div>
+                                    </form>
                                 </div>
 
-                                <div class="d-flex justify-content-end mt-5 border-top pt-4">
-                                    <button type="submit" class="btn btn-primary px-4 fw-medium">Lưu thay đổi</button>
+                                <!-- Cột phải: Bảo mật -->
+                                <div class="col-md-6">
+                                    <form id="passwordForm" class="d-flex flex-column h-100">
+                                        <div>
+                                            <h5 class="fw-bold mb-3">Bảo mật</h5>
+                                            <div class="mb-3">
+                                                <label class="form-label">Mật khẩu hiện tại</label>
+                                                <input type="password" class="form-control p-2" id="currentPassword" placeholder="••••••••" required>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label">Mật khẩu mới</label>
+                                                <input type="password" class="form-control p-2" id="newPassword" placeholder="Nhập mật khẩu mới" required>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label">Xác nhận mật khẩu mới</label>
+                                                <input type="password" class="form-control p-2" id="confirmNewPassword" placeholder="Nhập lại mật khẩu mới" required>
+                                            </div>
+                                        </div>
+                                        <div class="mt-auto pt-3 border-top text-end">
+                                            <button type="submit" class="btn btn-primary px-4 fw-medium">Đổi mật khẩu</button>
+                                        </div>
+                                    </form>
                                 </div>
-                            </form>
-
-                            <h6 class="fw-semibold mb-3 border-top pt-4 mt-5">Bảo mật</h6>
-                            <form id="passwordForm">
-                                <div class="row g-3 mb-4">
-                                    <div class="col-md-12">
-                                        <label class="form-label">Mật khẩu hiện tại</label>
-                                        <input type="password" class="form-control p-2" id="currentPassword" placeholder="••••••••" required>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <label class="form-label">Mật khẩu mới</label>
-                                        <input type="password" class="form-control p-2" id="newPassword" placeholder="Nhập mật khẩu mới" required>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <label class="form-label">Xác nhận mật khẩu mới</label>
-                                        <input type="password" class="form-control p-2" id="confirmNewPassword" placeholder="Nhập lại mật khẩu mới" required>
-                                    </div>
-                                </div>
-
-                                <div class="d-flex justify-content-end mt-5 border-top pt-4">
-                                    <button type="submit" class="btn btn-primary px-4 fw-medium">Đổi mật khẩu</button>
-                                </div>
-                            </form>
+                            </div>
                         </div>
 
 
@@ -218,12 +219,6 @@
                                         <div class="col-md-6">
                                             <label class="form-label">Ngân hàng</label>
                                             <select class="form-select p-2" id="bankName">
-                                                <option value="970436" selected>Vietcombank</option>
-                                                <option value="970407">Techcombank</option>
-                                                <option value="970422">MB Bank</option>
-                                                <option value="970415">VietinBank</option>
-                                                <option value="970418">BIDV</option>
-                                                <option value="970423">TPBank</option>
                                             </select>
                                         </div>
                                         <div class="col-md-6">
@@ -235,7 +230,7 @@
                                             <input type="text" class="form-control p-2" id="accountNumber" value="0123456789">
                                         </div>
                                     </div>
-                                    <button type="button" id="generateQrBtn" class="btn btn-outline-primary mt-4 fw-medium">Tạo / Cập nhật mã QR</button>
+                                    <button type="button" id="generateQrBtn" class="btn btn-outline-primary mt-4 fw-medium">Cập nhật mã QR</button>
                                 </div>
                                 <div class="col-md-4 text-center d-flex flex-column align-items-center justify-content-center">
                                     <div class="bg-light p-3 rounded-4 border w-100 h-100 d-flex flex-column align-items-center justify-content-center">
@@ -251,84 +246,12 @@
                         </div>
 
 
-                        <div id="section-notifications_active" class="p-4 p-md-5 settings-section d-none" data-admin-only="true">
-                            <h5 class="fw-bold mb-4 text-dark">Cài đặt thông báo</h5>
-
-                            <div class="card border border-light-subtle shadow-sm mb-4">
-                                <div class="card-body p-0">
-                                    <ul class="list-group list-group-flush">
-                                        <li class="list-group-item d-flex justify-content-between align-items-center p-4">
-                                            <div>
-                                                <h6 class="fw-semibold mb-1">Đơn hàng mới</h6>
-                                                <small class="text-secondary">Nhận thông báo khi có đơn hàng mới từ khách hàng.</small>
-                                            </div>
-                                            <div class="form-check form-switch m-0">
-                                                <input class="form-check-input" type="checkbox" role="switch" checked style="width: 40px; height: 20px; margin-top: 0;">
-                                            </div>
-                                        </li>
-                                        <li class="list-group-item d-flex justify-content-between align-items-center p-4">
-                                            <div>
-                                                <h6 class="fw-semibold mb-1">Yêu cầu phục vụ</h6>
-                                                <small class="text-secondary">Nhận thông báo khi khách gọi món hoặc cần hỗ trợ từ bàn.</small>
-                                            </div>
-                                            <div class="form-check form-switch m-0">
-                                                <input class="form-check-input" type="checkbox" role="switch" checked style="width: 40px; height: 20px; margin-top: 0;">
-                                            </div>
-                                        </li>
-                                        <li class="list-group-item d-flex justify-content-between align-items-center p-4">
-                                            <div>
-                                                <h6 class="fw-semibold mb-1">Thanh toán thành công</h6>
-                                                <small class="text-secondary">Thông báo xác nhận giao dịch khi hoàn tất.</small>
-                                            </div>
-                                            <div class="form-check form-switch m-0">
-                                                <input class="form-check-input" type="checkbox" role="switch" checked style="width: 40px; height: 20px; margin-top: 0;">
-                                            </div>
-                                        </li>
-                                        <li class="list-group-item d-flex justify-content-between align-items-center p-4">
-                                            <div>
-                                                <h6 class="fw-semibold mb-1">Cảnh báo hết nguyên liệu</h6>
-                                                <small class="text-secondary">Báo động khi số lượng nguyên liệu trong kho ở mức thấp.</small>
-                                            </div>
-                                            <div class="form-check form-switch m-0">
-                                                <input class="form-check-input" type="checkbox" role="switch" style="width: 40px; height: 20px; margin-top: 0;">
-                                            </div>
-                                        </li>
-                                    </ul>
-                                </div>
-                            </div>
-
-                            <h6 class="fw-semibold mb-3 border-top pt-4">Kênh nhận thông báo</h6>
-                            <div class="row g-3 mb-4">
-                                <div class="col-12">
-                                    <div class="form-check mb-2">
-                                        <input class="form-check-input" type="checkbox" value="" id="checkBrowser" checked>
-                                        <label class="form-check-label" for="checkBrowser">Thông báo trình duyệt (Browser Push)</label>
-                                    </div>
-                                    <div class="form-check mb-2">
-                                        <input class="form-check-input" type="checkbox" value="" id="checkEmail" checked>
-                                        <label class="form-check-label" for="checkEmail">Email định kỳ (admin@bistro.com)</label>
-                                    </div>
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="checkbox" value="" id="checkZalo">
-                                        <label class="form-check-label" for="checkZalo">Zalo ZNS / SMS</label>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="d-flex justify-content-end gap-2 mt-5 border-top pt-4">
-                                <button type="button" class="btn btn-primary px-4 fw-medium">Lưu thay đổi</button>
-                            </div>
-                        </div>
+                        
                     </div>
                 </div>
             </div>
         </main>
     </div>
-
-
-    <a href="/orders.html" class="btn btn-primary d-flex align-items-center justify-content-center p-0 position-fixed fab">
-        <span class="material-symbols-outlined fab-icon">add_shopping_cart</span>
-    </a>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="./js/form-validation.js"></script>
