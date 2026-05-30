@@ -8,3 +8,8 @@ temp_build_output/
 *.pdb
 *.so
 *.dylib
+.github/
+.gitlab/
+.vscode/
+.idea/
+diagram/
