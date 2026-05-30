@@ -361,16 +361,38 @@
             var loginBtn = document.getElementById('navLoginBtn');
             var userDropdown = document.getElementById('navUserDropdown');
             var userNameEl = document.getElementById('navDropdownUser');
+            var dropdownMenu = document.getElementById('navDropdownMenu');
             if (!userDropdown) return;
+            var adminLink = document.getElementById('navAdminPageBtn');
+            if (!adminLink && dropdownMenu) {
+                adminLink = document.createElement('a');
+                adminLink.id = 'navAdminPageBtn';
+                adminLink.className = 'nav-dropdown-item';
+                adminLink.href = './dashboard.html';
+                adminLink.textContent = 'Trang quản trị';
+                adminLink.style.color = 'var(--color-house-green, #00754A)';
+                var logoutBtn = document.getElementById('navLogoutBtn');
+                if (logoutBtn) {
+                    dropdownMenu.insertBefore(adminLink, logoutBtn);
+                } else {
+                    dropdownMenu.appendChild(adminLink);
+                }
+            }
             if (Auth.isLoggedIn()) {
                 var user = Auth.getUser();
                 var name = user?.fullName || user?.username || user?.email || 'Người dùng';
+                var role = Auth.getRole();
                 if (loginBtn) loginBtn.style.display = 'none';
                 userDropdown.style.display = 'block';
                 if (userNameEl) userNameEl.textContent = name;
+                if (adminLink) {
+                    adminLink.href = getDefaultPageByRole(role);
+                    adminLink.style.display = role === 'Customer' ? 'none' : 'block';
+                }
             } else {
                 if (loginBtn) loginBtn.style.display = '';
                 userDropdown.style.display = 'none';
+                if (adminLink) adminLink.style.display = 'none';
             }
         }
         var avatarBtn = document.getElementById('navAvatarBtn');
