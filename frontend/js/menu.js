@@ -1,7 +1,7 @@
 import { PRODUCT_STATUSES, isOutOfStockProductStatus } from './status-constants.js';
 document.addEventListener('DOMContentLoaded', () => {
     const FV = window.FormValidation;
-    const API_BASE_URL = 'http://localhost:7071/api';
+    const API_BASE_URL = window.API_BASE_URL;
     const PRODUCTS_API_URL = `${API_BASE_URL}/Products`;
     const CATEGORIES_API_URL = `${API_BASE_URL}/Categories`;
     const ALL_OPTION = 'Tất cả';

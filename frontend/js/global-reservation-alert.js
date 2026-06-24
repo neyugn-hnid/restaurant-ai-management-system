@@ -1,7 +1,7 @@
 (function () {
     const SIGNALR_CDN = 'https://cdn.jsdelivr.net/npm/@microsoft/signalr@8.0.7/dist/browser/signalr.min.js';
     const REALTIME_CLIENT_PATH = './js/realtime-client.js';
-    const API_BASE_URL = 'http://localhost:7071/api';
+    const API_BASE_URL = window.API_BASE_URL;
     const RESERVATIONS_API_URL = `${API_BASE_URL}/Reservations`;
     const MODAL_ID = 'globalReservationAlertModal';
     const SEEN_KEY = '__globalReservationSeen__';

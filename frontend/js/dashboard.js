@@ -1,4 +1,4 @@
-const API_BASE = 'http://localhost:7071/api';
+const API_BASE = window.API_BASE_URL;
 const ORDERS_URL = `${API_BASE}/Orders`;
 const CUSTOMERS_URL = `${API_BASE}/Customers`;
 const TABLES_URL = `${API_BASE}/RestaurantTables`;
@@ -18,7 +18,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         const [ordResp, custResp, tableResp] = await Promise.all([
             apiFetch(`${ORDERS_URL}?page=1&pageSize=1000&sortBy=createdAt&sortOrder=desc`),
             apiFetch(`${CUSTOMERS_URL}?page=1&pageSize=1000&sortBy=createdAt&sortOrder=desc`),
-            apiFetch(`http://localhost:5247/api/RestaurantTables?page=1&pageSize=200&sortBy=id&sortOrder=asc`).catch(() => null)
+            apiFetch(`${API_BASE}/RestaurantTables?page=1&pageSize=200&sortBy=id&sortOrder=asc`).catch(() => null)
         ]);
         orders = ordResp?.items || [];
         customers = custResp?.items || [];

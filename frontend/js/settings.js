@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
     const FV = window.FormValidation;
-    const API_BASE_URL = 'http://localhost:7071/api';
+    const API_BASE_URL = window.API_BASE_URL;
     const PAYMENT_SETTINGS_URL = `${API_BASE_URL}/PaymentSettings`;
     const elements = {
         menuColumn: document.getElementById('settingsMenuColumn'),

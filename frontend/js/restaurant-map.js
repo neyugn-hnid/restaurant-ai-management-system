@@ -1,4 +1,4 @@
-const API_BASE = 'http://localhost:7071/api';
+const API_BASE = window.API_BASE_URL;
 const TABLES_URL = `${API_BASE}/RestaurantTables`;
 const RESERVATIONS_URL = `${API_BASE}/Reservations`;
 const CUSTOMERS_URL = `${API_BASE}/Customers`;

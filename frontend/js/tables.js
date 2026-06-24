@@ -5,7 +5,7 @@ import {
 } from './status-constants.js';
 document.addEventListener('DOMContentLoaded', () => {
     const FV = window.FormValidation;
-    const API_BASE_URL = 'http://localhost:7071/api';
+    const API_BASE_URL = window.API_BASE_URL;
     const TABLES_API_URL = `${API_BASE_URL}/RestaurantTables`;
     const ORDERS_API_URL = `${API_BASE_URL}/Orders`;
     const RESERVATIONS_API_URL = `${API_BASE_URL}/Reservations`;
@@ -863,10 +863,7 @@ document.addEventListener('DOMContentLoaded', () => {
         loadTables();
     }
     function buildCustomerMenuUrl(tableId) {
-        const relativeUrl = `./customer-menu.html?table=${encodeURIComponent(tableId)}`;
-        return window.location.protocol.startsWith('http')
-            ? `${window.location.origin}${relativeUrl}`
-            : `http://localhost:5500${relativeUrl}`;
+        return `./customer-menu.html?table=${encodeURIComponent(tableId)}`;
     }
     function showDetailModal(cardElement) {
         const tableItem = cardElement.closest('.table-item');

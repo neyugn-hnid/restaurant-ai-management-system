@@ -32,7 +32,7 @@
 (function() {
     const TOKEN_KEY = 'auth_token';
     const USER_KEY = 'auth_user';
-    const API_BASE = 'http://localhost:7071/api';
+    const API_BASE = window.API_BASE_URL;
     const FV = window.FormValidation;
     function canonicalizeRole(value) {
         return String(value || '')

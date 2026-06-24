@@ -1,7 +1,7 @@
 import { ORDER_STATUSES, TABLE_STATUSES } from './status-constants.js';
 document.addEventListener('DOMContentLoaded', async () => {
     const FV = window.FormValidation;
-    const API_BASE_URL = 'http://localhost:7071/api';
+    const API_BASE_URL = window.API_BASE_URL;
     const ORDERS_API_URL = `${API_BASE_URL}/Orders`;
     const TABLES_API_URL = `${API_BASE_URL}/RestaurantTables`;
     const PAYMENT_SETTINGS_URL = `${API_BASE_URL}/PaymentSettings`;

@@ -1,4 +1,4 @@
-const API_BASE = 'http://localhost:7071/api';
+const API_BASE = window.API_BASE_URL;
 const ORDERS_URL = `${API_BASE}/Orders`;
 const CUSTOMERS_URL = `${API_BASE}/Customers`;
 async function apiFetch(url) {

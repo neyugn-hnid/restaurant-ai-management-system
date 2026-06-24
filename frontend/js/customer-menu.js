@@ -5,7 +5,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (tableParam) {
         sessionStorage.setItem("bookedTable", tableParam);
     }
-    const API_BASE_URL = 'http://localhost:7071/api';
+    const API_BASE_URL = window.API_BASE_URL;
     const CATEGORIES_API_URL = `${API_BASE_URL}/Categories`;
     const PRODUCTS_API_URL = `${API_BASE_URL}/Products`;
     const ORDERS_API_URL = `${API_BASE_URL}/Orders`;

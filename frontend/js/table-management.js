@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
     const FV = window.FormValidation;
-    const API_BASE = 'http://localhost:7071/api';
+    const API_BASE = window.API_BASE_URL;
     const TABLES_URL = `${API_BASE}/RestaurantTables`;
     const ALL_OPTION = 'Tất cả';
     const ITEMS_PER_PAGE = 10;

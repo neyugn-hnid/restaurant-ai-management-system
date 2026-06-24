@@ -10,9 +10,9 @@ using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
+var connectionString = builder.Configuration.GetConnectionString("serverContext");
 builder.Services.AddDbContext<serverContext>(options =>
-    options.UseSqlServer(
-        builder.Configuration.GetConnectionString("serverContext")));
+    options.UseSqlite(connectionString));
 builder.Services.Configure<DeepSeekOptions>(builder.Configuration.GetSection("DeepSeek"));
 builder.Services.AddHttpClient<DeepSeekChatClient>();
 builder.Services.AddSignalR();
@@ -31,6 +31,14 @@ builder.Services.AddCors(options =>
               .AllowAnyHeader()
               .AllowAnyMethod()
               .AllowCredentials();
+    });
+
+    // Allow all origins in production (for Render + Vercel)
+    options.AddPolicy("ProductionPolicy", policy =>
+    {
+        policy.AllowAnyOrigin()
+              .AllowAnyHeader()
+              .AllowAnyMethod();
     });
 });
 
@@ -80,7 +88,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseCors("FrontendPolicy");
+app.UseCors(app.Environment.IsDevelopment() ? "FrontendPolicy" : "ProductionPolicy");
 app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();

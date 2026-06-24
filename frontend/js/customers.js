@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
     const FV = window.FormValidation;
-    const API_BASE_URL = 'http://localhost:7071/api';
+    const API_BASE_URL = window.API_BASE_URL;
     const CUSTOMERS_API_URL = `${API_BASE_URL}/Customers`;
     const ITEMS_PER_PAGE = 10;
     const RANK_FILTER_OPTIONS = [

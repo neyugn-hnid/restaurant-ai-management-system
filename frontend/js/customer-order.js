@@ -7,7 +7,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     const tableParam = urlParams.get("table");
     const tableNum = (tableParam !== null && !isNaN(Number(tableParam))) ? Number(tableParam) : (tableParam || "Khách vãng lai");
     document.getElementById("tableNumber").textContent = `Bàn: ${tableParam || tableNum}`;
-    const API_BASE_URL = 'http://localhost:7071/api';
+    const API_BASE_URL = window.API_BASE_URL;
     const CATEGORIES_API_URL = `${API_BASE_URL}/Categories`;
     const PRODUCTS_API_URL = `${API_BASE_URL}/Products`;
     const CUSTOMERS_API_URL = `${API_BASE_URL}/Customers`;

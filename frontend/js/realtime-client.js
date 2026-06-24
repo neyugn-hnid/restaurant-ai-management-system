@@ -1,5 +1,5 @@
 (function () {
-    const HUB_URL = 'http://localhost:7071/hubs/realtime';
+    const HUB_URL = window.HUB_URL;
     function debounce(callback, delay) {
         let timeoutId = null;
         return function (...args) {
