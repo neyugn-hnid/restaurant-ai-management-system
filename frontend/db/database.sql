@@ -1,4 +1,4 @@
--- SQL Server Database Schema for L'Héritage Restaurant
+-- SQL Server Database Schema for Deagun Restaurant
 
 -- 1. Categories Table
 CREATE TABLE Categories (
