@@ -4,7 +4,7 @@
   "devCommand": null,
   "framework": null,
   "redirects": [
-    { "source": "/api/(.*)", "destination": "https://your-app.onrender.com/api/$1" }
+    { "source": "/api/(.*)", "destination": "https://restaurant-api-liks.onrender.com/api/$1" }
   ],
   "rewrites": [
     { "source": "/(.*)", "destination": "/$1" }
